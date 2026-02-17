@@ -7,7 +7,9 @@ using System.Security;
 public class Bus
 {
     public int Size { get; }
-    public int Mask { get;}
+    public int Mask { get; }
+
+    public SlimEvent OnValueChanged { get; } = new SlimEvent();
 
     private int _data;
 
@@ -23,17 +25,15 @@ public class Bus
         Mask = (1 << size) - 1;
     }
 
-    public void Write(int value)
+    public void Assert(int value)
     {
         _data = value & Mask;
+        OnValueChanged.Invoke();
     }
 
-    public int Read()
-    {
-        return _data & Mask;
-    }
-
-    public bool ReadBit(int bit)
+    public int Value => _data;
+    
+    public bool BitValue(int bit)
     {
         return (_data & (1 << bit)) != 0;
     }

@@ -3,7 +3,7 @@ using System.Diagnostics;
 /// <summary>
 /// Programmable Logic Array for Memory Bank Switching
 /// </summary>
-class PLA
+class MemoryPla
 {
     public Wire BasicRomEnable = new Wire();
     public Wire KernelRomEnable = new Wire();
@@ -22,7 +22,7 @@ class PLA
     private readonly Bus _address;
     private readonly Bus _port;
 
-    public PLA(Bus Address, Bus Port)
+    public MemoryPla(Bus Address, Bus Port)
     {
         _address = Address;
         _port = Port;
@@ -37,6 +37,8 @@ class PLA
 
     readonly byte[][] MEMORY_CONFIGS = [
         // PageBlocks 0x0000  0x1000 0x8000 0xA000      0xC000 0xD000 0xE000    0xF000
+        /* Control 
+           lines */
         /* 000 */   [ RAM,    RAM,   RAM,   RAM,        RAM,   RAM,   RAM,      RAM ], 
         /* 001 */   [ RAM,    RAM,   RAM,   RAM,        RAM,   RAM,   CHAR_ROM, RAM ],
         /* 010 */   [ RAM,    RAM,   RAM,   RAM,        RAM,   RAM,   CHAR_ROM, KERNEL_ROM ],
@@ -45,13 +47,14 @@ class PLA
         /* 101 */   [ RAM,    RAM,   RAM,   RAM,        RAM,   RAM,   IO,       RAM ],
         /* 110 */   [ RAM,    RAM,   RAM,   RAM,        RAM,   RAM,   IO,       KERNEL_ROM ],
         /* 111 */   [ RAM,    RAM,   RAM,   BASIC_ROM,  RAM,   RAM,   IO,       KERNEL_ROM ]
+        
      ];
 
     private void Evaluate()
     {
         // top 3 bits
-        var controlLines = _port.Read() & 0b111;
-        var pageNumber = _address.Read() >> 13;
+        var controlLines = _port.Value & 0b111;
+        var pageNumber = _address.Value >> 13;
 
         byte memoryConfig = 
             pageNumber < 16 ? MEMORY_CONFIGS[controlLines][0] :
