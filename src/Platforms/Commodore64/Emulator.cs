@@ -51,8 +51,8 @@ public class Emulator
     private void PrintRomHashes()
     {
         var romHashes = MemoryMap.GetRomHashes();
-        Debug.WriteLine($"BASIC ROM SHA256: {romHashes[0]}");
-        Debug.WriteLine($"CHAR ROM SHA256: {romHashes[1]}");
+        Debug.WriteLine($"BASIC ROM SHA256:  {romHashes[0]}");
+        Debug.WriteLine($"CHAR ROM SHA256:   {romHashes[1]}");
         Debug.WriteLine($"KERNEL ROM SHA256: {romHashes[2]}");
     }
 }

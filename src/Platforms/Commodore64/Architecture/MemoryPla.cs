@@ -22,9 +22,6 @@ class MemoryPla
     {
         _address = Address;
         _port = Port;
-
-        _address.Subscribe(Evaluate);
-        _port.Subscribe(Evaluate);
     }
     
     public const byte UNMAPPED = 0b00000;
@@ -53,11 +50,11 @@ class MemoryPla
     /// Evaluates the port bus and address bus to determine which memory segments are enabled, and asserts the corresponding wires
     /// </summary>
     /// <param name="_">throw away value, could be either address or port value change</param>
-    private void Evaluate(int _)
+    private void Evaluate()
     {
         // top 3 bits
-        var controlLines = _port.Value & 0b111;
-        var pageNumber = _address.Value >> 13;
+        var controlLines = _port.Read() & 0b111;
+        var pageNumber = _address.Read() >> 13;
 
         byte memoryConfig = 
             pageNumber < 16 ? MEMORY_CONFIGS[controlLines][0] :
@@ -73,6 +70,6 @@ class MemoryPla
         Debug.Assert(memoryConfig != UNMAPPED, $"Illegal page number {pageNumber}");
 
         // write values memory bank bus
-        MemoryBankBus.Assert(memoryConfig);
+        MemoryBankBus.Write(memoryConfig);
     }
 }

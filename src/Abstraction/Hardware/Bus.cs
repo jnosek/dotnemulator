@@ -3,7 +3,7 @@ namespace Dotnemulator.Abstraction.Hardware;
 /// <summary>
 /// Maximum of 32bit bus
 /// </summary>
-public class Bus : SlimEventSource<int>
+public class Bus : SlimEventSource
 {
     public int Size { get; }
     public int Mask { get; }
@@ -22,15 +22,44 @@ public class Bus : SlimEventSource<int>
         Mask = (1 << size) - 1;
     }
 
-    public void Assert(int value)
+    // Data Operations
+
+    /// <summary>
+    /// Place a value on the bus without triggering an update event
+    /// </summary>
+    /// <remarks>
+    /// This is useful for requesting reads from the bus without trigger write notifications
+    /// <param name="value"></param>
+    public void Place(int value)
     {
         _data = value & Mask;
-        Update(_data);
     }
 
-    public int Value => _data;
-    
-    public bool BitValue(int bit)
+    /// <summary>
+    /// Write a value to the bus and trigger an update event. This is used for normal bus writes where connected components need to be notified of the change.
+    /// The value will be masked to fit within the bus size.
+    /// </summary>
+    /// <param name="value"></param>
+    public void Write(int value)
+    {
+        _data = value & Mask;
+        Update();
+    }
+
+    /// <summary>
+    /// Read the current value on the bus.
+    /// </summary>
+    /// <returns></returns>
+    public int Read()
+    {
+        return _data;
+    }
+
+    /// <summary>
+    /// Read a specific bit from the bus.
+    /// </summary> 
+    /// <param name="bit"></param>
+    public bool ReadBit(int bit)
     {
         return (_data & (1 << bit)) != 0;
     }

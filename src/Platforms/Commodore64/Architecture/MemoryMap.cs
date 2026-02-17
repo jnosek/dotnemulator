@@ -1,6 +1,5 @@
 namespace Dotnemulator.Platforms.Commodore64.Architecture;
 
-using System.Runtime.Intrinsics.Arm;
 using Dotnemulator.Abstraction.Hardware;
 
 class MemoryMap
@@ -18,9 +17,11 @@ class MemoryMap
     public MemoryMap(Bus addressBus, Bus dataBus, Bus memoryBankBus)
     {
         _addressBus = addressBus;
-        _dataBus = dataBus;
         _memoryBankBus = memoryBankBus;
-
+        _dataBus = dataBus;
+        
+        _addressBus.Subscribe(Read);
+        _memoryBankBus.Subscribe(Read);
         _dataBus.Subscribe(Write);
     }
 
@@ -41,47 +42,63 @@ class MemoryMap
         ];
     }
 
-    public void Write(int value)
+    private void Write()
     {
-        switch(_memoryBankBus.Value)
+        var memoryBank = _memoryBankBus.Read();
+        var address = _addressBus.Read();
+        var data = _dataBus.Read();
+
+        switch(_memoryBankBus.Read())
         {
             // ROM cannot be written to, the underlying RAM will be accessed instead
             case MemoryPla.BASIC_ROM:
             case MemoryPla.CHAR_ROM:
             case MemoryPla.KERNEL_ROM:
             case MemoryPla.RAM:
-                _ram.Write(value, _addressBus.Value);
+                _ram.Write(data, address);
                 break;
             case MemoryPla.IO:
-                _io.Write(value, _addressBus.Value);
+                _io.Write(data, address);
                 break;
             case MemoryPla.UNMAPPED:
                 // do nothing, unmapped memory writes are ignored
                 break;
             default:
-                throw new InvalidOperationException($"Invalid memory bank configuration: {_memoryBankBus.Value}");
+                throw new InvalidOperationException($"Invalid memory bank configuration: {memoryBank}");
         }
     }
 
-    public int Read()
+    private void Read()
     {
-        switch(_memoryBankBus.Value)
+        int value;
+        var memoryBank = _memoryBankBus.Read();
+        var address = _addressBus.Read();
+
+        switch(memoryBank)
         {
             case MemoryPla.BASIC_ROM:
-                return (byte)_basicRom.Read(_addressBus.Value);
+                value = _basicRom.Read(address);
+                break;
             case MemoryPla.CHAR_ROM:
-                return (byte)_charRom.Read(_addressBus.Value);
+                value = _charRom.Read(address);
+                break;
             case MemoryPla.KERNEL_ROM:
-                return (byte)_kernelRom.Read(_addressBus.Value);
+                value = _kernelRom.Read(address);
+                break;
             case MemoryPla.RAM:
-                return (byte)_ram.Read(_addressBus.Value);
+                value = _ram.Read(address);
+                break;
             case MemoryPla.IO:
-                return (byte)_io.Read(_addressBus.Value);
+                value = _io.Read(address);
+                break;
             case MemoryPla.UNMAPPED:
                 // unmapped memory reads typically return open bus values, but for simplicity we'll return 0
-                return 0;
+                value = 0;
+                break;
             default:
-                throw new InvalidOperationException($"Invalid memory bank configuration: {_memoryBankBus.Value}");
+                throw new InvalidOperationException($"Invalid memory bank configuration: {memoryBank}");
         }
+
+        _dataBus.Place(value);
     }
 }

@@ -62,11 +62,11 @@ class MOS6510Cpu
     /// </summary>
     public void Reset()
     {
-        AddressBus.Assert(0xFFFC);
-        int value = DataBus.Value << 8;
+        AddressBus.Place(0xFFFC);
+        int value = DataBus.Read() << 8;
 
-        AddressBus.Assert(0xFFFD);
-        value += DataBus.Value;
+        AddressBus.Place(0xFFFD);
+        value += DataBus.Read();
         PC.Write(value);
 
         RunLoop();
@@ -89,17 +89,45 @@ class MOS6510Cpu
     /// <param name="value"></param>
     private void Write(byte value)
     {
+        var address = AddressBus.Read();
+
         // if address bus is greater than 1, write to data bus
-        if(AddressBus.Value > 1)
-            DataBus.Assert(value);
+        if(address > 1)
+        {
+            DataBus.Write(value);
+        }
         // if address bus is 0, write to port bus control register
-        else if(AddressBus.Value == 0)
+        else if(address == 0)
+        {
             Address0.Write(value);
+        }
         // else, address bus is 1, write to port bus data register, and the bus itself
         else
         {
             Address1.Write(value);
-            PortBus.Assert(value);
+            PortBus.Write(value);
+        }
+    }
+
+    private int Read()
+    {
+        // if address bus is greater than 1, read from data bus
+        var address = AddressBus.Read();
+
+        // if address bus is greater than 1, read from data bus
+        if(address > 1)
+        {
+            return DataBus.Read();
+        }
+        // if address bus is 0, read from port bus control register
+        else if(address == 0)
+        {
+            return Address0.Read();
+        }
+        // else, address bus is 1, read from port bus data register
+        else
+        {
+            return Address1.Read();
         }
     }
 }

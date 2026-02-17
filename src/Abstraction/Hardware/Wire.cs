@@ -9,7 +9,7 @@ public class Wire : SlimEventSource<bool>
         Value = value;
     }
 
-    public void Assert(bool value)
+    public void Place(bool value)
     {
         Value = value;
         Update(value);
