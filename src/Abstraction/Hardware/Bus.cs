@@ -1,15 +1,12 @@
-using System.ComponentModel;
-using System.Security;
+namespace Dotnemulator.Abstraction.Hardware;
 
 /// <summary>
 /// Maximum of 32bit bus
 /// </summary>
-public class Bus
+public class Bus : SlimEventSource<int>
 {
     public int Size { get; }
     public int Mask { get; }
-
-    public SlimEvent OnValueChanged { get; } = new SlimEvent();
 
     private int _data;
 
@@ -28,7 +25,7 @@ public class Bus
     public void Assert(int value)
     {
         _data = value & Mask;
-        OnValueChanged.Invoke();
+        Update(_data);
     }
 
     public int Value => _data;

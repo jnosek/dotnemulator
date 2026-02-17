@@ -1,5 +1,4 @@
-using System.ComponentModel;
-using System.Security;
+namespace Dotnemulator.Abstraction.Hardware;
 
 /// <summary>
 /// Maximum of 32bit register

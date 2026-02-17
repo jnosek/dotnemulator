@@ -1,8 +1,8 @@
-public class Wire
+namespace Dotnemulator.Abstraction.Hardware;
+
+public class Wire : SlimEventSource<bool>
 {
     public bool Value { get; private set; }
-
-    public SlimEvent OnValueChanged { get; } = new SlimEvent();
 
     public Wire(bool value = false)
     {
@@ -12,6 +12,6 @@ public class Wire
     public void Assert(bool value)
     {
         Value = value;
-        OnValueChanged.Invoke();
+        Update(value);
     }
 }
