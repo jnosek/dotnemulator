@@ -1,3 +1,6 @@
+namespace Dotnemulator.Platforms.Commodore64.Architecture;
+
+using Dotnemulator.Abstraction.Hardware;
 using System.Diagnostics;
 
 /// <summary>
@@ -5,15 +8,8 @@ using System.Diagnostics;
 /// </summary>
 class MemoryPla
 {
-    public Wire BasicRomEnable = new Wire();
-    public Wire KernelRomEnable = new Wire();
-    public Wire CharRomEnable = new Wire();
-    public Wire IOEnable = new Wire();
-    public Wire RamEnable = new Wire();
-
-    // TODO: use later, For cartridge bank switching
-    public Wire CartridgeRomHighEnable = new Wire();
-    public Wire CartridgeRomLowEnable = new Wire();
+    // TODO: expand to 7 for Cartridge High and Low lines
+    public Bus MemoryBankBus = new Bus(5);
 
     // TODO: use later, input signals for cartridge detection
     public Wire Game = new Wire(true);
@@ -26,19 +22,22 @@ class MemoryPla
     {
         _address = Address;
         _port = Port;
+
+        _address.Subscribe(Evaluate);
+        _port.Subscribe(Evaluate);
     }
     
-    const byte UNMAPPED = 0b00000;
-    const byte BASIC_ROM = 0b00001;
-    const byte KERNEL_ROM = 0b00010;
-    const byte CHAR_ROM = 0b00100;  
-    const byte IO = 0b01000;
-    const byte RAM = 0b10000;
+    public const byte UNMAPPED = 0b00000;
+    public const byte BASIC_ROM = 0b00001;
+    public const byte KERNEL_ROM = 0b00010;
+    public const byte CHAR_ROM = 0b00100;  
+    public const byte IO = 0b01000;
+    public const byte RAM = 0b10000;
 
     readonly byte[][] MEMORY_CONFIGS = [
         // PageBlocks 0x0000  0x1000 0x8000 0xA000      0xC000 0xD000 0xE000    0xF000
-        /* Control 
-           lines */
+        /* Port 
+           bus */
         /* 000 */   [ RAM,    RAM,   RAM,   RAM,        RAM,   RAM,   RAM,      RAM ], 
         /* 001 */   [ RAM,    RAM,   RAM,   RAM,        RAM,   RAM,   CHAR_ROM, RAM ],
         /* 010 */   [ RAM,    RAM,   RAM,   RAM,        RAM,   RAM,   CHAR_ROM, KERNEL_ROM ],
@@ -50,7 +49,11 @@ class MemoryPla
         
      ];
 
-    private void Evaluate()
+    /// <summary>
+    /// Evaluates the port bus and address bus to determine which memory segments are enabled, and asserts the corresponding wires
+    /// </summary>
+    /// <param name="_">throw away value, could be either address or port value change</param>
+    private void Evaluate(int _)
     {
         // top 3 bits
         var controlLines = _port.Value & 0b111;
@@ -69,11 +72,7 @@ class MemoryPla
                 
         Debug.Assert(memoryConfig != UNMAPPED, $"Illegal page number {pageNumber}");
 
-        // write values to wires
-        BasicRomEnable.Assert((memoryConfig & BASIC_ROM) != 0);
-        KernelRomEnable.Assert((memoryConfig & KERNEL_ROM) != 0);
-        CharRomEnable.Assert((memoryConfig & CHAR_ROM) != 0);
-        IOEnable.Assert((memoryConfig & IO) != 0);
-        RamEnable.Assert((memoryConfig & RAM) != 0);
+        // write values memory bank bus
+        MemoryBankBus.Assert(memoryConfig);
     }
 }

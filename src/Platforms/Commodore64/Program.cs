@@ -1,6 +1,15 @@
+namespace Dotnemulator.Platforms.Commodore64;
+
 using System.Diagnostics;
 
-Debug.WriteLine("Commodore64 Emulator Starting...");
+class Program
+{
+    static void Main(string[] args)
+    {
+        Debug.WriteLine("Commodore64 Emulator Starting...");
 
-var emulator = new Emulator();
+        var emulator = new Emulator();
+        emulator.Start();
+    }
+}
 

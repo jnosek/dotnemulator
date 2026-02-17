@@ -1,3 +1,7 @@
+namespace Dotnemulator.Platforms.Commodore64.Architecture;
+
+using Dotnemulator.Abstraction.Hardware;
+
 class MOS6510Cpu
 {
     /// <summary>

@@ -11,4 +11,10 @@
     <ProjectReference Include="..\..\Abstraction\Dotnemulator.Abstraction.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <EmbeddedResource Include="Roms\basic.901226-01.bin" />
+    <EmbeddedResource Include="Roms\char.901225-01.bin" />
+    <EmbeddedResource Include="Roms\kernel.901227-03.bin" />
+  </ItemGroup>
+
 </Project>
