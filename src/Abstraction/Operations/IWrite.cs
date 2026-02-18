@@ -4,5 +4,5 @@ namespace Dotnemulator.Abstraction.Operations;
 
 public interface IWrite
 {
-    int Write(int value);
+    void Write(int value);
 }

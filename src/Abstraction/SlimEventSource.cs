@@ -13,22 +13,22 @@ public class SlimEventSource : IEventSource
 
         // if only one event sink, invoke directly, otherwise use MultiUpdate to call all event sinks
         if(_eventSinks.Count == 1)
-            Update = eventSink;
+            Trigger = eventSink;
         else
-            Update = MultiUpdate;
+            Trigger = TriggerMany;
     }
 
     /// <summary>
     /// This is the method that will be called to invoke the event sinks. 
-    /// It will point directly to the event sink if there is only one, or to MultiUpdate if there are multiple event sinks.
+    /// It will point directly to the event sink if there is only one, or to TriggerMany if there are multiple event sinks.
     /// </summary>
-    internal Action Update { get; private set; } = () => { };
+    public Action Trigger { get; private set; } = () => { };
 
     /// <summary>
     /// If there are multiple subscribers, this method will be used to invoke all of them. 
-    /// If there is only one subscriber, the Update property will point directly to that subscriber for optimal performance.
+    /// If there is only one subscriber, the Trigger property will point directly to that subscriber for optimal performance.
     /// </summary>
-    private void MultiUpdate()
+    private void TriggerMany()
     {
         for(int i = 0; i < _eventSinks.Count; i++)
         {

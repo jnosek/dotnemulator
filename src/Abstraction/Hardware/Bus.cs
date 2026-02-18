@@ -30,20 +30,9 @@ public class Bus : SlimEventSource
     /// <remarks>
     /// This is useful for requesting reads from the bus without trigger write notifications
     /// <param name="value"></param>
-    public void Place(int value)
+    public void Drive(int value)
     {
         _data = value & Mask;
-    }
-
-    /// <summary>
-    /// Write a value to the bus and trigger an update event. This is used for normal bus writes where connected components need to be notified of the change.
-    /// The value will be masked to fit within the bus size.
-    /// </summary>
-    /// <param name="value"></param>
-    public void Write(int value)
-    {
-        _data = value & Mask;
-        Update();
     }
 
     /// <summary>

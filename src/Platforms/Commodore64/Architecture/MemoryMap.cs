@@ -99,6 +99,6 @@ class MemoryMap
                 throw new InvalidOperationException($"Invalid memory bank configuration: {memoryBank}");
         }
 
-        _dataBus.Place(value);
+        _dataBus.Drive(value);
     }
 }

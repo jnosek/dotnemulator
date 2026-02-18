@@ -70,6 +70,6 @@ class MemoryPla
         Debug.Assert(memoryConfig != UNMAPPED, $"Illegal page number {pageNumber}");
 
         // write values memory bank bus
-        MemoryBankBus.Write(memoryConfig);
+        MemoryBankBus.Drive(memoryConfig);
     }
 }
