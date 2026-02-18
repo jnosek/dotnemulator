@@ -1,0 +1,13 @@
+using Dotnemulator.Abstraction.Operations;
+using Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
+
+namespace Dotnemulator.Platforms.Commodore64.Architecture;
+
+class MOS6510InstructionSet : InstructionSet
+{
+    public MOS6510InstructionSet(MOS6510Cpu cpu) : base(256)
+    {
+        // build instruction set
+        Add(AddressModeInstruction.Build<STA>(cpu, STA.AddressModes));
+    }
+}

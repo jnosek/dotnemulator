@@ -17,4 +17,8 @@
     <EmbeddedResource Include="Roms\kernel.901227-03.bin" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Architecture\Instruction\" />
+  </ItemGroup>
+
 </Project>

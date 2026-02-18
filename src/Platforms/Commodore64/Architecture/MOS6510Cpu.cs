@@ -1,6 +1,7 @@
 namespace Dotnemulator.Platforms.Commodore64.Architecture;
 
 using Dotnemulator.Abstraction.Hardware;
+using Dotnemulator.Abstraction.Operations;
 
 class MOS6510Cpu
 {
@@ -12,33 +13,35 @@ class MOS6510Cpu
     /// <summary>
     /// Status Register
     /// </summary>
-    readonly Register P = new Register(8);
+    internal readonly Register P = new Register(8);
 
     /// <summary>
     /// Accumulator
     /// </summary>
-    readonly Register A = new Register(8);
+    internal readonly Register A = new Register(8);
     
     /// <summary>
     /// Index Register X
     /// </summary>
-    readonly Register X = new Register(8);
+    internal readonly Register X = new Register(8);
 
     /// <summary>
     /// Index Register Y
     /// </summary>
-    readonly Register Y = new Register(8);   
+    internal readonly Register Y = new Register(8);   
 
     // used to control direction of Port Bus
-    readonly Register Address0 = new Register(8);
+    internal readonly Register Address0 = new Register(8);
 
     // used to read/write values on port bus
-    readonly Register Address1 = new Register(8);
+    internal readonly Register Address1 = new Register(8);
     
     /// <summary>
     /// Address Bus
     /// </summary>
-    readonly Bus AddressBus;
+    internal readonly Bus AddressBus;
+
+    internal readonly InstructionSet instructionSet;
 
     /// <summary>
     /// Data Bus
@@ -55,6 +58,8 @@ class MOS6510Cpu
         AddressBus = addressBus;
         DataBus = dataBus;
         PortBus = portBus;
+
+        instructionSet = new MOS6510InstructionSet(this);
     }
 
     /// <summary>
