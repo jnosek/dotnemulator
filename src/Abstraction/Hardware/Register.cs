@@ -22,18 +22,21 @@ public class Register
         Mask = (1 << size) - 1;
     }
 
-    public void Write(int value)
+    public virtual void Write(int value)
     {
         _data = value & Mask;
     }
 
-    public int Read()
+    public virtual void SetFlag(int flag, bool value)
     {
-        return _data & Mask;
+        if(value)
+            _data |= flag & Mask;
+        else
+            _data &= ~(flag & Mask);
     }
 
-    public bool ReadBit(int bit)
+    public virtual int Read()
     {
-        return (_data & (1 << bit)) != 0;
+        return _data & Mask;
     }
 }

@@ -1,12 +1,17 @@
+using System;
+
 namespace Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
 
 /// <summary>
-/// Store Accumulator Instruction
+/// Logical OR on Accumulator
 /// </summary>
-class STA(MOS6510Cpu cpu, AddressMode addressMode) : 
+/// <param name="cpu"></param>
+/// <param name="addressMode"></param>
+class ORA(MOS6510Cpu cpu, AddressMode addressMode) : 
     AddressModeInstruction(cpu, 0x81, addressMode)
 {
     public static readonly AddressMode[] AddressModes = [
+        AddressMode.Immediate,
         AddressMode.Absolute,
         AddressMode.AbsoluteX,
         AddressMode.AbsoluteY,
@@ -21,7 +26,17 @@ class STA(MOS6510Cpu cpu, AddressMode addressMode) :
     public override void Execute(int instruction)
     {
         var address = DecodeOperand();
+        
+        // get value at address
         CPU.AddressBus.Drive(address);
-        CPU.Write(CPU.A.Read());
+        CPU.AddressBus.Trigger();
+        var value = CPU.Read();
+
+        // perform OR operation and write back to accumulator
+        CPU.A.Write(CPU.A.Read() | value);
+
+        // set flags
+        CPU.P.SetFlag(StatusFlag.Negative, (CPU.A.Read() & 0x80) != 0);
+        CPU.P.SetFlag(StatusFlag.Zero, CPU.A.Read() == 0);
     }
 }

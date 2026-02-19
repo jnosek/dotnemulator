@@ -31,59 +31,105 @@ abstract class AddressModeInstruction : IInstruction
         BaseOpCode = baseCode;
         AddressMode = addressMode;
 
-        DecodeAddress = addressMode switch 
+        DecodeOperand = addressMode switch 
         {
-            AddressMode.Immediate => GetImmediateAddress,
-            AddressMode.ZeroPage => GetZeroPageAddress,
-            AddressMode.ZeroPageX => GetZeroPageXAddress,
-            AddressMode.Absolute => GetAbsoluteAddress,
-            AddressMode.AbsoluteX => GetAbsoluteXAddress,
-            AddressMode.AbsoluteY => GetAbsoluteYAddress,
-            AddressMode.Indexed_Indirect => GetIndexIndirectAddress,
-            AddressMode.Indirect_Indexed => GetIndirectIndexedAddress,
+            AddressMode.Immediate => GetImmediateOperand,
+            AddressMode.ZeroPage => GetZeroPageOperand,
+            AddressMode.ZeroPageX => GetZeroPageXOperand,
+            AddressMode.Absolute => GetAbsoluteOperand,
+            AddressMode.AbsoluteX => GetAbsoluteXOperand,
+            AddressMode.AbsoluteY => GetAbsoluteYOperand,
+            AddressMode.Indexed_Indirect => GetIndexedIndirectOperand,
+            AddressMode.Indirect_Indexed => GetIndirectIndexedOperand,
             _ => throw new InvalidOperationException($"Unsupported address mode: {addressMode}")
         };
     }
 
     public abstract void Execute(int instruction);
 
-    public Func<int, int> DecodeAddress { get; }
+    public Func<int> DecodeOperand { get; }
 
-    private int GetImmediateAddress(int instruction) => (instruction & 0x00FF0000) >> 16;
-    private int GetZeroPageAddress(int instruction) => (instruction & 0x00FF0000) >> 16;
-    private int GetZeroPageXAddress(int instruction) => ((instruction & 0x00FF0000) >> 16) + CPU.X.Read();
-    private int GetAbsoluteAddress(int instruction) => (instruction & 0x00FFFF00) >> 8;
-    private int GetAbsoluteXAddress(int instruction) => ((instruction & 0x00FFFF00) >> 8) + CPU.X.Read();
-    private int GetAbsoluteYAddress(int instruction) => ((instruction & 0x00FFFF00) >> 8) + CPU.Y.Read();
-
-    private int GetIndexIndirectAddress(int instruction)
+    private int GetImmediateOperand()
     {
-         var zeroPageAddress = (instruction & 0x00FF0000) >> 16;
-        var zeroPageAddressOffset = zeroPageAddress + CPU.X.Read();
-
-        CPU.AddressBus.Drive(zeroPageAddressOffset);
-        CPU.AddressBus.Trigger();
-        var addressHigh = CPU.Read() << 8;
-
-        CPU.AddressBus.Drive(zeroPageAddressOffset + 1);
-        CPU.AddressBus.Trigger();
-        var addressLow = CPU.Read();
-
-        return addressHigh | addressLow;
+        var operand = CPU.PC.Read();
+        return operand;
     }
 
-    private int GetIndirectIndexedAddress(int instruction)
+    private int GetZeroPageOperand()
     {
-        var zeroPageAddress = (instruction & 0x00FF0000) >> 16;
+        var operand = CPU.ReadNextByte();
 
-        CPU.AddressBus.Drive(zeroPageAddress);
+        return operand;
+    }
+
+    private int GetZeroPageXOperand()
+    {
+        var operand = CPU.ReadNextByte();
+        operand = (operand + CPU.X.Read()) & 0xFF;
+
+        return operand;
+    }
+
+    private int GetAbsoluteOperand()
+    {
+        var operand = CPU.ReadNextWord();
+
+        return operand;
+    } 
+
+    private int GetAbsoluteXOperand()
+    {
+        var operand = CPU.ReadNextWord();
+
+        operand = (operand + CPU.X.Read()) & 0xFFFF;
+
+        return operand;
+    }
+
+    private int GetAbsoluteYOperand()
+    {
+        var operand = CPU.ReadNextWord();
+
+        operand = (operand + CPU.Y.Read()) & 0xFFFF;
+
+        return operand;
+    }
+
+    private int GetIndexedIndirectOperand()
+    {
+        var address = CPU.ReadNextByte();
+        address = (address + CPU.X.Read()) & 0xFF;
+
+        // get low byte
+        CPU.AddressBus.Drive(address);
         CPU.AddressBus.Trigger();
-        var addressHigh = CPU.Read() << 8;
+        var operand = CPU.Read();
 
-        CPU.AddressBus.Drive(zeroPageAddress + 1);
+        // get high byte
+        CPU.AddressBus.Drive((address + 1) & 0xFF);
         CPU.AddressBus.Trigger();
-        var addressLow = CPU.Read();
+        operand |= CPU.Read() << 8;
 
-        return (addressHigh | addressLow) + CPU.Y.Read();
+        return operand;
+    }
+
+    private int GetIndirectIndexedOperand()
+    {
+        var address = CPU.ReadNextByte();
+        
+        // get low byte
+        CPU.AddressBus.Drive(address);
+        CPU.AddressBus.Trigger();
+        var operand = CPU.Read();
+
+        // get high byte
+        CPU.AddressBus.Drive((address + 1) & 0xFF);
+        CPU.AddressBus.Trigger();
+        operand |= CPU.Read() << 8;
+        
+        // add y
+        operand = (operand + CPU.Y.Read()) & 0xFFFF;
+
+        return operand;
     }
 }

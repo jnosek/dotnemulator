@@ -1,5 +1,6 @@
 namespace Dotnemulator.Platforms.Commodore64.Architecture;
 
+using System.Xml;
 using Dotnemulator.Abstraction.Hardware;
 using Dotnemulator.Abstraction.Operations;
 
@@ -8,7 +9,7 @@ class MOS6510Cpu
     /// <summary>
     /// Program Counter
     /// </summary>
-    readonly Register PC = new Register(16);
+    internal readonly IncrementRegister PC = new IncrementRegister(16);
 
     /// <summary>
     /// Status Register
@@ -82,6 +83,20 @@ class MOS6510Cpu
     /// </summary>
     private void RunLoop()
     {
+        while(true)
+        {
+            // fetch
+            AddressBus.Drive(PC.Read());
+            AddressBus.Trigger();
+
+            int instruction = DataBus.Read();
+
+            // decode
+            var operation = instructionSet[instruction];
+
+            // execute
+            operation.Execute(instruction);
+        }
     }
 
     /// <summary>
@@ -136,5 +151,36 @@ class MOS6510Cpu
         {
             return Address1.Read();
         }
+    }
+
+    /// <summary>
+    /// Reads the next byte from memory at the current PC, and increments the PC. 
+    /// This is a common operation for fetching instruction operands.
+    /// </summary>
+    /// <returns></returns>
+    public int ReadNextByte()
+    {
+        var address = PC.Read();
+        AddressBus.Drive(address);
+        AddressBus.Trigger();
+
+        return Read();
+    }
+
+    /// <summary>
+    /// Reads the next two bytes from memory at the current PC, 
+    /// combines them into a 16-bit address (little-endian), 
+    /// and increments the PC by 2.
+    /// </summary>
+    /// <returns></returns>
+    public int ReadNextWord()
+    {
+        // get low byte
+        var address = ReadNextByte();
+
+        // get high byte
+        address |= ReadNextByte() << 8;
+
+        return address;
     }
 }
