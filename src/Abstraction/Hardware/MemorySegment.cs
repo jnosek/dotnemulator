@@ -64,6 +64,10 @@ public class MemorySegment
         }
     }
 
+    /// <summary>
+    /// Get a SHA256 Hash of the memory segment contents
+    /// </summary>
+    /// <returns></returns>
     public byte[] GetHash()
     {
         using var hashAlgorithm = System.Security.Cryptography.SHA256.Create();

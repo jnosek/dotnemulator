@@ -6,7 +6,7 @@ using Dotnemulator.Platforms.Commodore64.Architecture;
 
 public class Emulator
 {
-    internal Bus AddressBus { get; }
+    internal Bus AddressBus { get; } 
     internal Bus DataBus { get; }
     internal Bus PortBus { get; }
 
@@ -14,7 +14,11 @@ public class Emulator
     internal MemoryPla Pla { get; }
     internal MemoryMap MemoryMap { get; }
 
-    public Emulator()
+    public Emulator() : this(true)
+    {
+    }
+
+    protected Emulator(bool loadRoms)
     {
         AddressBus = new Bus(16);
         DataBus = new Bus(8);
@@ -22,17 +26,20 @@ public class Emulator
 
         Cpu = new MOS6510Cpu(AddressBus, DataBus, PortBus);
         Pla = new MemoryPla(AddressBus, PortBus);
-        MemoryMap = new MemoryMap(AddressBus, DataBus, PortBus);
+        MemoryMap = new MemoryMap(AddressBus, DataBus, Pla.MemoryBankBus);
 
-        // load roms
-        using var basicRomStream = GetType().Assembly.GetManifestResourceStream("Dotnemulator.Platforms.Commodore64.Roms.basic.901226-01.bin") ?? 
-            throw new InvalidOperationException("Failed to load BASIC ROM");
-        using var charRomStream = GetType().Assembly.GetManifestResourceStream("Dotnemulator.Platforms.Commodore64.Roms.char.901225-01.bin") ?? 
-            throw new InvalidOperationException("Failed to load CHAR ROM");
-        using var kernelRomStream = GetType().Assembly.GetManifestResourceStream("Dotnemulator.Platforms.Commodore64.Roms.kernel.901227-03.bin") ?? 
-            throw new InvalidOperationException("Failed to load KERNEL ROM");
+        if(loadRoms)
+        {
+            // load roms
+            using var basicRomStream = GetType().Assembly.GetManifestResourceStream("Dotnemulator.Platforms.Commodore64.Roms.basic.901226-01.bin") ?? 
+                throw new InvalidOperationException("Failed to load BASIC ROM");
+            using var charRomStream = GetType().Assembly.GetManifestResourceStream("Dotnemulator.Platforms.Commodore64.Roms.char.901225-01.bin") ?? 
+                throw new InvalidOperationException("Failed to load CHAR ROM");
+            using var kernelRomStream = GetType().Assembly.GetManifestResourceStream("Dotnemulator.Platforms.Commodore64.Roms.kernel.901227-03.bin") ?? 
+                throw new InvalidOperationException("Failed to load KERNEL ROM");
 
-        MemoryMap.LoadRoms(basicRomStream, charRomStream, kernelRomStream);
+            MemoryMap.LoadRoms(basicRomStream, charRomStream, kernelRomStream);
+        }
     }
 
     public void Start()
