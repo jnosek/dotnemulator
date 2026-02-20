@@ -4,7 +4,7 @@ namespace Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
 
 abstract class AddressModeInstruction : IInstruction
 {
-    public static IInstruction[] Build<T>(MOS6510Cpu cpu, AddressMode[] addressModes) where T : AddressModeInstruction
+    public static IInstruction[] Build<T>(MOS6510Cpu cpu, int[] addressModes) where T : AddressModeInstruction
     {
         var instructions = new IInstruction[addressModes.Length];
         for (int i = 0; i < addressModes.Length; i++)
@@ -18,18 +18,19 @@ abstract class AddressModeInstruction : IInstruction
 
     public int OpCode { get; }
 
-    public byte BaseOpCode { get; }
-    
-    public AddressMode AddressMode { get; }
+    public int BaseOpCode { get; }
+
+    public int AddressModeCode { get; }
 
     public int Cycles => throw new NotImplementedException();
 
-    protected AddressModeInstruction(MOS6510Cpu cpu, byte baseCode, AddressMode addressMode)
+    protected AddressModeInstruction(MOS6510Cpu cpu, int baseCode, int addressMode)
     {
         CPU = cpu;
-        OpCode = (byte)(baseCode | ((byte)addressMode << 2));
+
         BaseOpCode = baseCode;
-        AddressMode = addressMode;
+        AddressModeCode = addressMode;
+        OpCode = baseCode | addressMode;
 
         DecodeOperand = addressMode switch 
         {

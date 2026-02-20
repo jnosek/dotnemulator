@@ -7,10 +7,12 @@ namespace Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
 /// </summary>
 /// <param name="cpu"></param>
 /// <param name="addressMode"></param>
-class ORA(MOS6510Cpu cpu, AddressMode addressMode) : 
-    AddressModeInstruction(cpu, 0x81, addressMode)
+class ORA(MOS6510Cpu cpu, int addressMode) : 
+    AddressModeInstruction(cpu, BASE_OP_CODE, addressMode)
 {
-    public static readonly AddressMode[] AddressModes = [
+    public const int BASE_OP_CODE = 0x01;
+
+    public static readonly int[] AddressModes = [
         AddressMode.Immediate,
         AddressMode.Absolute,
         AddressMode.AbsoluteX,

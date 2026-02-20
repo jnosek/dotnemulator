@@ -1,14 +1,13 @@
 namespace Dotnemulator.Platforms.Commodore64.Architecture;
 
-public enum AddressMode
+public static class AddressMode
 {
-    Indexed_Indirect = 0b000,
-    ZeroPage = 0b001,
-    Immediate = 0b010,
-    Absolute = 0b011,
-    
-    Indirect_Indexed = 0b100,
-    ZeroPageX = 0b101,
-    AbsoluteY = 0b110,
-    AbsoluteX = 0b111
+    public const int Indexed_Indirect = 0b000 << 2;
+    public const int ZeroPage = 0b001 << 2;
+    public const int Immediate = 0b010 << 2;
+    public const int Absolute = 0b011 << 2;
+    public const int Indirect_Indexed = 0b100 << 2;
+    public const int ZeroPageX = 0b101 << 2;
+    public const int AbsoluteY = 0b110 << 2;
+    public const int AbsoluteX = 0b111 << 2;
 }

@@ -3,10 +3,12 @@ namespace Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
 /// <summary>
 /// Store Accumulator Instruction
 /// </summary>
-class STA(MOS6510Cpu cpu, AddressMode addressMode) : 
-    AddressModeInstruction(cpu, 0x81, addressMode)
+class STA(MOS6510Cpu cpu, int addressMode) : 
+    AddressModeInstruction(cpu, BASE_OP_CODE, addressMode)
 {
-    public static readonly AddressMode[] AddressModes = [
+    public const int BASE_OP_CODE = 0x81;
+
+    public static readonly int[] AddressModes = [
         AddressMode.Absolute,
         AddressMode.AbsoluteX,
         AddressMode.AbsoluteY,
@@ -22,6 +24,7 @@ class STA(MOS6510Cpu cpu, AddressMode addressMode) :
     {
         var address = DecodeOperand();
         CPU.AddressBus.Drive(address);
+        CPU.AddressBus.Trigger();
         CPU.Write(CPU.A.Read());
     }
 }
