@@ -1,6 +1,5 @@
 namespace Dotnemulator.Platforms.Commodore64.Architecture;
 
-using System.Xml;
 using Dotnemulator.Abstraction.Hardware;
 using Dotnemulator.Abstraction.Operations;
 
@@ -63,19 +62,39 @@ class MOS6510Cpu
         instructionSet = new MOS6510InstructionSet(this);
     }
 
+    private void InitializePC()
+    {
+        // set default memory mode
+        AddressBus.Drive(0x0001);
+        Write(0b0000_0111);
+
+        // load PC from reset vector
+        AddressBus.Drive(0xFFFC);
+        AddressBus.Trigger();
+        int value = DataBus.Read();
+
+        AddressBus.Drive(0xFFFD);
+        AddressBus.Trigger();
+        value |= DataBus.Read() << 8;
+        PC.Write(value);
+    }
+
     /// <summary>
     /// Load PC from memory location 0xFFFC/0xFFFD
+    /// in little-endian order
     /// </summary>
     public void Reset()
     {
-        AddressBus.Drive(0xFFFC);
-        int value = DataBus.Read() << 8;
-
-        AddressBus.Drive(0xFFFD);
-        value += DataBus.Read();
-        PC.Write(value);
+        InitializePC();
 
         RunLoop();
+    }
+
+    internal void Test()
+    {
+        InitializePC();
+
+        TestLoop();
     }
 
     /// <summary> 
@@ -90,6 +109,32 @@ class MOS6510Cpu
             AddressBus.Trigger();
 
             int instruction = DataBus.Read();
+
+            // decode
+            var operation = instructionSet[instruction];
+
+            // execute
+            operation.Execute(instruction);
+        }
+    }
+    
+    /// <summary> 
+    /// Executes the instruction fetch-decode-execute loop. 
+    /// This method will run until a NOP instruction is encountered. 
+    /// </summary>
+    private void TestLoop()
+    {
+        while(true)
+        {
+            // fetch
+            AddressBus.Drive(PC.Read());
+            AddressBus.Trigger();
+
+            int instruction = DataBus.Read();
+
+            // NOP instruction
+            if(instruction == 0xEA) 
+                break;
 
             // decode
             var operation = instructionSet[instruction];

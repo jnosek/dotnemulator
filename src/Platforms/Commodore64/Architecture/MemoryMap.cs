@@ -32,6 +32,18 @@ class MemoryMap
        _kernelRom.Load(kernelRomStream);       
     }
 
+    public void LoadTestKernel(byte[] kernel)
+    {
+        for (int i = 0; i < kernel.Length; i++)
+        {
+            _kernelRom.Write(0xE000 + i, kernel[i]);
+        }
+        
+        // set CPU start address to beginning of kernel rom
+        _kernelRom.Write(0xFFFC, 0x00);
+        _kernelRom.Write(0xFFFD, 0xE0);
+    }
+
     public string[] GetRomHashes()
     {
         return
@@ -100,5 +112,16 @@ class MemoryMap
         }
 
         _dataBus.Drive(value);
+    }
+
+    /// <summary>
+    /// Reads a value from the RAM at the specified address without affecting the CPU state.
+    /// For testing purposes only
+    /// </summary>
+    /// <param name="address">The address in RAM to read from.</param>
+    /// <returns>The value stored at the specified RAM address.</returns>
+    public int PeekRam(int address)
+    {
+        return _ram.Read(address);
     }
 }
