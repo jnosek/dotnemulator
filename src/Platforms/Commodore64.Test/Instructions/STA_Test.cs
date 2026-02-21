@@ -1,14 +1,13 @@
-using System;
 using Dotnemulator.Platforms.Commodore64;
 using Dotnemulator.Platforms.Commodore64.Architecture;
-using Mono.Cecil.Cil;
+using Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
+using Dotnemulator.Platforms.Commodore64.Test;
 
 namespace Commodore64.Test.Instructions;
 
-using Instruction = Dotnemulator.Platforms.Commodore64.Architecture.Instruction.STA;
 
 [TestClass]
-public sealed class STA
+public sealed class STA_Test
 {
 
     [TestMethod]
@@ -16,7 +15,7 @@ public sealed class STA
     {
         // arrange
         var emulator = new TestEmulator([
-            Instruction.BASE_OP_CODE | AddressMode.ZeroPage,
+            STA.BASE_OP_CODE | AddressMode.ZeroPage,
             0x03,
             0xEA
         ]);
@@ -27,7 +26,7 @@ public sealed class STA
         emulator.Start();
 
         // assert
-        Assert.AreEqual(0b1010_1010, emulator.MemoryMap.PeekRam(0x03));
+        Assert.AreEqual(0b1010_1010, emulator.PeekRam(0x03));
 
     }
 }
