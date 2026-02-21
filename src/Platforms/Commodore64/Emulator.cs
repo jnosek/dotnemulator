@@ -6,9 +6,9 @@ using Dotnemulator.Platforms.Commodore64.Architecture;
 
 public class Emulator
 {
-    internal Bus AddressBus { get; } 
-    internal Bus DataBus { get; }
-    internal Bus PortBus { get; }
+    internal Bus AddressBus { get; } = new Bus(16);
+    internal Bus DataBus { get; } = new Bus(8);
+    internal Bus PortBus { get; } = new Bus(8);
 
     internal MOS6510Cpu Cpu { get; }
     internal MemoryPla Pla { get; }
@@ -18,15 +18,14 @@ public class Emulator
     {
     }
 
-    protected Emulator(bool loadRoms)
+    protected Emulator(
+        bool loadRoms, 
+        Func<Bus, Bus, Bus, MemoryMap>? memoryMapFactory = null)
     {
-        AddressBus = new Bus(16);
-        DataBus = new Bus(8);
-        PortBus = new Bus(8);
-
         Cpu = new MOS6510Cpu(AddressBus, DataBus, PortBus);
         Pla = new MemoryPla(AddressBus, PortBus);
-        MemoryMap = new MemoryMap(AddressBus, DataBus, Pla.MemoryBankBus);
+        MemoryMap = memoryMapFactory?.Invoke(AddressBus, DataBus, Pla.MemoryBankBus) ?? 
+            new MemoryMap(AddressBus, DataBus, Pla.MemoryBankBus);
 
         if(loadRoms)
         {

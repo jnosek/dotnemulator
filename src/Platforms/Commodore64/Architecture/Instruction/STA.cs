@@ -23,8 +23,6 @@ class STA(MOS6510Cpu cpu, int addressMode) :
     public override void Execute(int instruction)
     {
         var address = DecodeOperand();
-        CPU.AddressBus.Drive(address);
-        CPU.AddressBus.Trigger();
-        CPU.Write(CPU.A.Read());
+        CPU.Write(address, CPU.A.Read());
     }
 }

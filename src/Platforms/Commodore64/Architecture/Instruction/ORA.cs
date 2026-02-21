@@ -30,9 +30,7 @@ class ORA(MOS6510Cpu cpu, int addressMode) :
         var address = DecodeOperand();
         
         // get value at address
-        CPU.AddressBus.Drive(address);
-        CPU.AddressBus.Trigger();
-        var value = CPU.Read();
+        var value = CPU.Read(address);
 
         // perform OR operation and write back to accumulator
         CPU.A.Write(CPU.A.Read() | value);

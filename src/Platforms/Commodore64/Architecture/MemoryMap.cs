@@ -2,13 +2,13 @@ namespace Dotnemulator.Platforms.Commodore64.Architecture;
 
 using Dotnemulator.Abstraction.Hardware;
 
-class MemoryMap
+public class MemoryMap
 {
-    private readonly MemorySegment _ram = new MemorySegment(0x1_0000);
-    private readonly MemorySegment _basicRom = new MemorySegment(0x_2000, 0xA000);
-    private readonly MemorySegment _charRom = new MemorySegment(0x0_1000, 0xD000);
-    private readonly MemorySegment _kernelRom = new MemorySegment(0x0_2000, 0xE000);
-    private readonly MemorySegment _io = new MemorySegment(0x0_1000, 0xD000);
+    protected readonly MemorySegment _ram = new MemorySegment(0x1_0000);
+    protected readonly MemorySegment _basicRom = new MemorySegment(0x_2000, 0xA000);
+    protected readonly MemorySegment _charRom = new MemorySegment(0x0_1000, 0xD000);
+    protected readonly MemorySegment _kernelRom = new MemorySegment(0x0_2000, 0xE000);
+    protected readonly MemorySegment _io = new MemorySegment(0x0_1000, 0xD000);
 
     private readonly Bus _addressBus;
     private readonly Bus _dataBus;
@@ -67,10 +67,10 @@ class MemoryMap
             case MemoryPla.CHAR_ROM:
             case MemoryPla.KERNEL_ROM:
             case MemoryPla.RAM:
-                _ram.Write(data, address);
+                _ram.Write(address, data);
                 break;
             case MemoryPla.IO:
-                _io.Write(data, address);
+                _io.Write(address, data);
                 break;
             case MemoryPla.UNMAPPED:
                 // do nothing, unmapped memory writes are ignored
@@ -112,16 +112,5 @@ class MemoryMap
         }
 
         _dataBus.Drive(value);
-    }
-
-    /// <summary>
-    /// Reads a value from the RAM at the specified address without affecting the CPU state.
-    /// For testing purposes only
-    /// </summary>
-    /// <param name="address">The address in RAM to read from.</param>
-    /// <returns>The value stored at the specified RAM address.</returns>
-    public int PeekRam(int address)
-    {
-        return _ram.Read(address);
     }
 }

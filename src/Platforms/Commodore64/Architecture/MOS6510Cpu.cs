@@ -3,7 +3,7 @@ namespace Dotnemulator.Platforms.Commodore64.Architecture;
 using Dotnemulator.Abstraction.Hardware;
 using Dotnemulator.Abstraction.Operations;
 
-class MOS6510Cpu
+public class MOS6510Cpu
 {
     /// <summary>
     /// Program Counter
@@ -37,8 +37,11 @@ class MOS6510Cpu
     internal readonly Register Address1 = new Register(8);
     
     /// <summary>
-    /// Address Bus
+    /// Address Bus used to specify the memory address for read and write operations.
     /// </summary>
+    /// <remarks>
+    /// A trigger of the AddressBus will always cause the memory map to drive the value to the DataBus for a subsequent read operation.
+    /// </remarks>
     internal readonly Bus AddressBus;
 
     internal readonly InstructionSet instructionSet;
@@ -65,18 +68,13 @@ class MOS6510Cpu
     private void InitializePC()
     {
         // set default memory mode
-        AddressBus.Drive(0x0001);
-        Write(0b0000_0111);
+        Write(0x0001, 0b0000_0111);
 
         // load PC from reset vector
-        AddressBus.Drive(0xFFFC);
-        AddressBus.Trigger();
-        int value = DataBus.Read();
+        PC.Write(0xFFFC);
+        var address = ReadNextWord();
 
-        AddressBus.Drive(0xFFFD);
-        AddressBus.Trigger();
-        value |= DataBus.Read() << 8;
-        PC.Write(value);
+        PC.Write(address);
     }
 
     /// <summary>
@@ -105,10 +103,7 @@ class MOS6510Cpu
         while(true)
         {
             // fetch
-            AddressBus.Drive(PC.Read());
-            AddressBus.Trigger();
-
-            int instruction = DataBus.Read();
+            int instruction = ReadNextByte();
 
             // decode
             var operation = instructionSet[instruction];
@@ -127,10 +122,7 @@ class MOS6510Cpu
         while(true)
         {
             // fetch
-            AddressBus.Drive(PC.Read());
-            AddressBus.Trigger();
-
-            int instruction = DataBus.Read();
+            int instruction = ReadNextByte();
 
             // NOP instruction
             if(instruction == 0xEA) 
@@ -152,13 +144,14 @@ class MOS6510Cpu
     /// This method takes that into account when writing values.
     /// </remarks>
     /// <param name="value"></param>
-    internal void Write(int value)
+    internal void Write(int address, int value)
     {
-        var address = AddressBus.Read();
-
         // if address bus is greater than 1, write to data bus
         if(address > 1)
         {
+            AddressBus.Drive(address);
+            AddressBus.Trigger();
+
             DataBus.Drive(value);
             DataBus.Trigger();
         }
@@ -176,14 +169,15 @@ class MOS6510Cpu
         }
     }
 
-    internal int Read()
+    internal int Read(int address)
     {
-        // if address bus is greater than 1, read from data bus
-        var address = AddressBus.Read();
-
         // if address bus is greater than 1, read from data bus
         if(address > 1)
         {
+            // drive value to AddressBus and trigger for next read
+            AddressBus.Drive(address);
+            AddressBus.Trigger();
+
             return DataBus.Read();
         }
         // if address bus is 0, read from port bus control register
@@ -206,10 +200,8 @@ class MOS6510Cpu
     public int ReadNextByte()
     {
         var address = PC.Read();
-        AddressBus.Drive(address);
-        AddressBus.Trigger();
 
-        return Read();
+        return Read(address);
     }
 
     /// <summary>

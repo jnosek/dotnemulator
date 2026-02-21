@@ -6,7 +6,7 @@ using System.Diagnostics;
 /// <summary>
 /// Programmable Logic Array for Memory Bank Switching
 /// </summary>
-class MemoryPla
+public class MemoryPla
 {
     // TODO: expand to 7 for Cartridge High and Low lines
     public Bus MemoryBankBus = new Bus(5);

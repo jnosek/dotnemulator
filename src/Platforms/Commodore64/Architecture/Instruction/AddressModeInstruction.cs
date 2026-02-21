@@ -102,14 +102,10 @@ abstract class AddressModeInstruction : IInstruction
         address = (address + CPU.X.Read()) & 0xFF;
 
         // get low byte
-        CPU.AddressBus.Drive(address);
-        CPU.AddressBus.Trigger();
-        var operand = CPU.Read();
+        var operand = CPU.Read(address);
 
         // get high byte
-        CPU.AddressBus.Drive((address + 1) & 0xFF);
-        CPU.AddressBus.Trigger();
-        operand |= CPU.Read() << 8;
+        operand |= CPU.Read((address + 1) & 0xFF) << 8;
 
         return operand;
     }
@@ -119,14 +115,10 @@ abstract class AddressModeInstruction : IInstruction
         var address = CPU.ReadNextByte();
         
         // get low byte
-        CPU.AddressBus.Drive(address);
-        CPU.AddressBus.Trigger();
-        var operand = CPU.Read();
+        var operand = CPU.Read(address);
 
         // get high byte
-        CPU.AddressBus.Drive((address + 1) & 0xFF);
-        CPU.AddressBus.Trigger();
-        operand |= CPU.Read() << 8;
+        operand |= CPU.Read((address + 1) & 0xFF) << 8;
         
         // add y
         operand = (operand + CPU.Y.Read()) & 0xFFFF;
