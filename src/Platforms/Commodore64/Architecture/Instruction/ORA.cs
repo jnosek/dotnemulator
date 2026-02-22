@@ -36,7 +36,7 @@ class ORA(MOS6510Cpu cpu, int addressMode) :
         CPU.A.Write(CPU.A.Read() | value);
 
         // set flags
-        CPU.P.SetFlag(StatusFlag.Negative, (CPU.A.Read() & 0x80) != 0);
-        CPU.P.SetFlag(StatusFlag.Zero, CPU.A.Read() == 0);
+        CPU.P.NegativeFlag = (CPU.A.Read() & 0x80) != 0;
+        CPU.P.ZeroFlag = CPU.A.Read() == 0;
     }
 }
