@@ -10,7 +10,7 @@ namespace Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
 class ORA(MOS6510Cpu cpu, int addressMode) : 
     AddressModeInstruction(cpu, BASE_OP_CODE, addressMode)
 {
-    public const int BASE_OP_CODE = 0x00;
+    public const int BASE_OP_CODE = 0x01;
 
     public static readonly int[] AddressModes = [
         AddressMode.Immediate,

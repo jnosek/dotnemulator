@@ -5,7 +5,7 @@ namespace Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
 class EOR(MOS6510Cpu cpu, int addressMode) : 
     AddressModeInstruction(cpu, BASE_OP_CODE, addressMode)
 {
-    public const int BASE_OP_CODE = 0x40;
+    public const int BASE_OP_CODE = 0x41;
 
     public static readonly int[] AddressModes = [
         AddressMode.Immediate,

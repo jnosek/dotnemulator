@@ -8,7 +8,7 @@ namespace Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
 class AND(MOS6510Cpu cpu, int addressMode) : 
     AddressModeInstruction(cpu, BASE_OP_CODE, addressMode)
 {
-    public const int BASE_OP_CODE = 0x20;
+    public const int BASE_OP_CODE = 0x21;
 
     public static readonly int[] AddressModes = [
         AddressMode.Immediate,
