@@ -3,6 +3,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <AssemblyName>Dotnemulator.Platforms.Commodore64</AssemblyName>
+    <RootNamespace>Dotnemulator.Platforms.Commodore64</RootNamespace>
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>

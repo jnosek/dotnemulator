@@ -1,10 +1,8 @@
-using Dotnemulator.Platforms.Commodore64;
 using Dotnemulator.Platforms.Commodore64.Architecture;
 using Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
-using Dotnemulator.Platforms.Commodore64.Test;
+using Dotnemulator.Platforms.Commodore64.Test.Mocks;
 
-namespace Commodore64.Test.Instructions;
-
+namespace Dotnemulator.Platforms.Commodore64.Test.Instructions;
 
 [TestClass]
 public sealed class STA_Test

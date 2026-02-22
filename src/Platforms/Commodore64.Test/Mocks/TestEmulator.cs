@@ -1,9 +1,6 @@
-using System;
-using System.ComponentModel;
-using Commodore64.Test.Mocks;
 using Dotnemulator.Abstraction.Hardware;
 
-namespace Dotnemulator.Platforms.Commodore64.Test;
+namespace Dotnemulator.Platforms.Commodore64.Test.Mocks;
 
 internal class TestEmulator : Emulator
 {   

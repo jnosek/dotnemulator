@@ -1,8 +1,7 @@
-using System;
 using Dotnemulator.Abstraction.Hardware;
 using Dotnemulator.Platforms.Commodore64.Architecture;
 
-namespace Commodore64.Test.Mocks;
+namespace Dotnemulator.Platforms.Commodore64.Test.Mocks;
 
 public class TestMemoryMap : MemoryMap
 {

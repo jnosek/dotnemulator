@@ -1,7 +1,6 @@
-using Dotnemulator.Platforms.Commodore64.Test;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Dotnemulator.Platforms.Commodore64.Test.Mocks;
 
-namespace Commodore64.Test;
+namespace Dotnemulator.Platforms.Commodore64.Test;
 
 [TestClass]
 public class MemoryMap_Test
