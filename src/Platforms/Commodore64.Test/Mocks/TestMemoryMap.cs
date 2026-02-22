@@ -25,4 +25,15 @@ public class TestMemoryMap : MemoryMap
     {
         return _ram.Read(address);
     }
+
+    /// <summary>
+    /// Set a value in the ram at the specified address without affecting the CPU State.
+    /// For testing purposes only
+    /// </summary>
+    /// <param name="address"></param>
+    /// <param name="value"></param>
+    public void PokeRam(int address, int value)
+    {
+        _ram.Write(address, value);
+    }
 }

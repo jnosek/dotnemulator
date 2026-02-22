@@ -32,9 +32,7 @@ internal class TestEmulator : Emulator
         {
             foreach (var (address, value) in ram)
             {
-                AddressBus.Drive(address);
-                DataBus.Drive(value);
-                DataBus.Trigger();
+                _testMemoryMap.PokeRam(address, value);
             }
         }
     }
@@ -48,6 +46,18 @@ internal class TestEmulator : Emulator
     {
         get => Cpu.A.Read();
         set => Cpu.A.Write(value);
+    }
+
+    public int X
+    {
+        get => Cpu.X.Read();
+        set => Cpu.X.Write(value);
+    }
+
+    public int Y
+    {
+        get => Cpu.Y.Read();
+        set => Cpu.Y.Write(value);
     }
 
     public new void Start()
