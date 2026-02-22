@@ -1,0 +1,37 @@
+using System;
+
+namespace Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
+
+class EOR(MOS6510Cpu cpu, int addressMode) : 
+    AddressModeInstruction(cpu, BASE_OP_CODE, addressMode)
+{
+    public const int BASE_OP_CODE = 0x40;
+
+    public static readonly int[] AddressModes = [
+        AddressMode.Immediate,
+        AddressMode.Absolute,
+        AddressMode.AbsoluteX,
+        AddressMode.AbsoluteY,
+        AddressMode.ZeroPage,
+        AddressMode.ZeroPageX,
+        AddressMode.Indexed_Indirect,
+        AddressMode.Indirect_Indexed,
+    ];
+
+    public readonly int[] Cycles = [4, 5, 5, 3, 4, 6, 6];
+
+    public override void Execute(int instruction)
+    {
+        var address = DecodeOperand();
+        
+        // get value at address
+        var value = CPU.Read(address);
+
+        // perform XOR operation and write back to accumulator
+        CPU.A.Write(CPU.A.Read() ^ value);
+
+        // set flags
+        CPU.P.NegativeFlag = (CPU.A.Read() & 0x80) != 0;
+        CPU.P.ZeroFlag = CPU.A.Read() == 0;
+    }
+}
