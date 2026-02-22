@@ -35,6 +35,11 @@ public class Register
             _data &= ~(flag & Mask);
     }
 
+    public virtual bool GetFlag(int flag)
+    {
+        return (_data & flag) != 0;
+    }
+
     public virtual int Read()
     {
         return _data & Mask;

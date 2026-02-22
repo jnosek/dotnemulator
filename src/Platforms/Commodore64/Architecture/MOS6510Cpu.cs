@@ -13,7 +13,7 @@ public class MOS6510Cpu
     /// <summary>
     /// Status Register
     /// </summary>
-    internal readonly Register P = new Register(8);
+    internal readonly StatusRegister P = new StatusRegister();
 
     /// <summary>
     /// Accumulator
