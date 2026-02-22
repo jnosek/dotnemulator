@@ -10,5 +10,6 @@ class MOS6510InstructionSet : InstructionSet
         // build instruction set
         Add(AddressModeInstruction.Build<STA>(cpu, STA.AddressModes));
         Add(AddressModeInstruction.Build<ORA>(cpu, ORA.AddressModes));
+        Add(AddressModeInstruction.Build<AND>(cpu, AND.AddressModes));
     }
 }
