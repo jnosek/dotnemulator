@@ -2,6 +2,7 @@ namespace Dotnemulator.Platforms.Commodore64.Architecture;
 
 public static class AddressMode
 {
+    public const int Implied = 0x00;
     public const int Indexed_Indirect = 0b000 << 2;
     public const int ZeroPage = 0b001 << 2;
     public const int Immediate = 0b010 << 2;

@@ -7,7 +7,9 @@ class MOS6510InstructionSet : InstructionSet
 {
     public MOS6510InstructionSet(MOS6510Cpu cpu) : base(256)
     {
-        // build instruction set
+        Add(new BRK(cpu));
+
+        // build Accumulator Instructions
         Add(AddressModeInstruction.Build<STA>(cpu, STA.AddressModes));
         Add(AddressModeInstruction.Build<ORA>(cpu, ORA.AddressModes));
         Add(AddressModeInstruction.Build<AND>(cpu, AND.AddressModes));
