@@ -44,4 +44,16 @@ public class Register
     {
         return _data & Mask;
     }
+
+    public int Increment()
+    {
+        _data = (_data + 1) & Mask;
+        return _data;
+    }
+
+    public int Decrement()
+    {
+        _data = (_data - 1) & Mask;
+        return _data;
+    }
 }

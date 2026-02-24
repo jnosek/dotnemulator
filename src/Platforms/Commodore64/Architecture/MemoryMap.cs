@@ -40,8 +40,12 @@ public class MemoryMap
         }
         
         // set CPU start address to beginning of kernel rom
-        _kernelRom.Write(0xFFFC, 0x00);
-        _kernelRom.Write(0xFFFD, 0xE0);
+        _kernelRom.Write(MOS6510Cpu.RESET_VECTOR,     0x00);
+        _kernelRom.Write(MOS6510Cpu.RESET_VECTOR + 1, 0xE0);
+
+        // set IRQ vector to beginning of PAGE 1 of RAM
+        _kernelRom.Write(MOS6510Cpu.IRQ_VECTOR,     0x00);
+        _kernelRom.Write(MOS6510Cpu.IRQ_VECTOR + 1, 0x01);
     }
 
     public string[] GetRomHashes()

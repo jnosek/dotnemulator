@@ -5,6 +5,13 @@ using Dotnemulator.Abstraction.Operations;
 
 public class MOS6510Cpu
 {
+    public const int STACK_START_ADDRESS = 0x01FF;
+    public const int STACK_END_ADDRESS = 0x0100;
+
+    public const int RESET_VECTOR = 0xFFFC;
+    public const int IRQ_VECTOR = 0xFFFE;
+    public const int NMI_VECTOR = 0xFFFA;
+
     /// <summary>
     /// Program Counter
     /// </summary>
@@ -14,6 +21,16 @@ public class MOS6510Cpu
     /// Status Register
     /// </summary>
     internal readonly StatusRegister P = new StatusRegister();
+
+    /// <summary>
+    /// Internal Register to track place of the Stack Pointer
+    /// </summary>
+    /// <remarks>
+    /// In the 6510, this is actually an 8 bit register, used as an offset to the
+    /// 0x0100 Stack End Address. For cleaner implementation in the emulator, the whole 
+    /// address is stored in a 16-bit register
+    /// </remarks>
+    internal readonly Register SP = new Register(16);
 
     /// <summary>
     /// Accumulator
@@ -63,6 +80,9 @@ public class MOS6510Cpu
         PortBus = portBus;
 
         instructionSet = new MOS6510InstructionSet(this);
+
+        // set start of stack pointer offset
+        SP.Write(STACK_START_ADDRESS);
     }
 
     private void InitializePC()
@@ -71,14 +91,14 @@ public class MOS6510Cpu
         Write(0x0001, 0b0000_0111);
 
         // load PC from reset vector
-        PC.Write(0xFFFC);
+        PC.Write(RESET_VECTOR);
         var address = ReadNextWord();
 
         PC.Write(address);
     }
 
     /// <summary>
-    /// Load PC from memory location 0xFFFC/0xFFFD
+    /// Load PC from RESET_VECTOR memory location (0xFFFC/0xFFFD)
     /// in little-endian order
     /// </summary>
     public void Reset()
