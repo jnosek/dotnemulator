@@ -29,16 +29,14 @@ public class BRK_Test
         // Current PC
         Assert.AreEqual(0x0101, emulator.Cpu.PC.Read());
 
-        var sp = emulator.Cpu.SP.Read();
-
         // stack - status register
         Assert.AreEqual(
             StatusFlag.BreakCommand, 
-            emulator.Cpu.Read(sp));
+            emulator.Cpu.StackPop());
 
         // stack - return PC
-        Assert.AreEqual(0x02, emulator.Cpu.Read(sp + 1));
-        Assert.AreEqual(0xE0 , emulator.Cpu.Read(sp + 2));
+        Assert.AreEqual(0x02, emulator.Cpu.StackPop());
+        Assert.AreEqual(0xE0 , emulator.Cpu.StackPop());
 
         // status register
         Assert.IsTrue(emulator.Cpu.P.BreakCommandFlag);

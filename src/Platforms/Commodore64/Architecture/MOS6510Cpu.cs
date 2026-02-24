@@ -1,5 +1,6 @@
 namespace Dotnemulator.Platforms.Commodore64.Architecture;
 
+using System.Xml.Serialization;
 using Dotnemulator.Abstraction.Hardware;
 using Dotnemulator.Abstraction.Operations;
 
@@ -30,7 +31,9 @@ public class MOS6510Cpu
     /// 0x0100 Stack End Address. For cleaner implementation in the emulator, the whole 
     /// address is stored in a 16-bit register
     /// </remarks>
-    internal readonly Register SP = new Register(16);
+    private readonly Register _sp = new Register(16);
+
+    internal int SP => _sp.Read();
 
     /// <summary>
     /// Accumulator
@@ -82,7 +85,7 @@ public class MOS6510Cpu
         instructionSet = new MOS6510InstructionSet(this);
 
         // set start of stack pointer offset
-        SP.Write(STACK_START_ADDRESS);
+        _sp.Write(STACK_START_ADDRESS);
     }
 
     private void InitializePC()
@@ -239,5 +242,19 @@ public class MOS6510Cpu
         address |= ReadNextByte() << 8;
 
         return address;
+    }
+
+    internal void StackPush(int value)
+    {
+       Write(
+            _sp.Decrement(),
+            value);
+    }
+
+    internal int StackPop()
+    {
+        var result = Read(_sp.Read());
+        _sp.Increment();
+        return result;
     }
 }

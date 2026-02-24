@@ -25,19 +25,11 @@ class BRK(MOS6510Cpu cpu) : IInstruction
         // push PC and status register to stack
         // since the stack point address grows down
         // we write the high byte first, then the low byte
-         _cpu.Write(
-            _cpu.SP.Decrement(), 
-            pc >> 8);
-        
-        _cpu.Write(
-            _cpu.SP.Decrement(),
-            pc & 0xFF);
-       
+        _cpu.StackPush(pc >> 8);
+        _cpu.StackPush(pc & 0xFF);
 
         // store status flag register
-        _cpu.Write(
-            _cpu.SP.Decrement(),
-            _cpu.P.Read());
+        _cpu.StackPush(_cpu.P.Read());
 
         // read IRQ/BRK vector
         var low  = _cpu.Read(MOS6510Cpu.IRQ_VECTOR);
