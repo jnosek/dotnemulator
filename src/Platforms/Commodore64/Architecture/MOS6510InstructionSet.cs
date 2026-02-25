@@ -1,5 +1,6 @@
 using Dotnemulator.Abstraction.Operations;
 using Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
+using Microsoft.VisualBasic;
 
 namespace Dotnemulator.Platforms.Commodore64.Architecture;
 
@@ -8,6 +9,7 @@ class MOS6510InstructionSet : InstructionSet
     public MOS6510InstructionSet(MOS6510Cpu cpu) : base(256)
     {
         Add(new BRK(cpu));
+        Add(new PHP(cpu));
 
         // build Accumulator Instructions
         Add(AddressModeInstruction.Build<STA>(cpu, STA.AddressModes));

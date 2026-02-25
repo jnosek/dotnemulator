@@ -2,6 +2,10 @@ using Dotnemulator.Abstraction.Operations;
 
 namespace Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
 
+/// <summary>
+/// Break instruction
+/// </summary>
+/// <param name="cpu"></param>
 class BRK(MOS6510Cpu cpu) : IInstruction
 {
     private readonly MOS6510Cpu _cpu = cpu;

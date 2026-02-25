@@ -11,7 +11,7 @@ public class BRK_Test
 {
 
     [TestMethod]
-    public void Break()
+    public void Implied()
     {
         // arrange
         var emulator = new TestEmulator([
@@ -32,11 +32,11 @@ public class BRK_Test
         // stack - status register
         Assert.AreEqual(
             StatusFlag.BreakCommand, 
-            emulator.Cpu.StackPop());
+            emulator.PeekRam(MOS6510Cpu.STACK_START_ADDRESS - 2));
 
         // stack - return PC
-        Assert.AreEqual(0x02, emulator.Cpu.StackPop());
-        Assert.AreEqual(0xE0 , emulator.Cpu.StackPop());
+        Assert.AreEqual(0x02, emulator.PeekRam(MOS6510Cpu.STACK_START_ADDRESS - 1));
+        Assert.AreEqual(0xE0 , emulator.PeekRam(MOS6510Cpu.STACK_START_ADDRESS - 0));
 
         // status register
         Assert.IsTrue(emulator.Cpu.P.BreakCommandFlag);

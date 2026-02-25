@@ -57,6 +57,12 @@ internal class TestEmulator : Emulator
         set => Cpu.Y.Value = value;
     }
 
+    public int P 
+    {
+        get => Cpu.P.Value;
+        set => Cpu.P.Value = value;
+    } 
+
     public new void Start()
     {
         Cpu.Test();
