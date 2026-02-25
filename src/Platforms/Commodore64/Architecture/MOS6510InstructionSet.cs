@@ -11,6 +11,9 @@ class MOS6510InstructionSet : InstructionSet
         Add(new BRK(cpu));
         Add(new PHP(cpu));
 
+        // branch instructions
+        Add(new BPL(cpu));
+
         // build Accumulator Instructions
         Add(AddressModeInstruction.Build<STA>(cpu, STA.AddressModes));
         Add(AddressModeInstruction.Build<ORA>(cpu, ORA.AddressModes));
