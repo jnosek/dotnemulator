@@ -31,10 +31,10 @@ class AND(MOS6510Cpu cpu, int addressMode) :
         var value = CPU.Read(address);
 
         // perform AND operation and write back to accumulator
-        CPU.A.Write(CPU.A.Read() & value);
+        CPU.A.Value = CPU.A.Value & value;
 
         // set flags
-        CPU.P.NegativeFlag = (CPU.A.Read() & 0x80) != 0;
-        CPU.P.ZeroFlag = CPU.A.Read() == 0;
+        CPU.P.NegativeFlag = (CPU.A.Value & 0x80) != 0;
+        CPU.P.ZeroFlag = CPU.A.Value == 0;
     }
 }

@@ -22,11 +22,13 @@ public class Register
         Mask = (1 << size) - 1;
     }
 
-    public virtual void Write(int value)
+    // TODO: replace with Value property
+    public virtual int Value
     {
-        _data = value & Mask;
+        get => _data;
+        set => _data = value & Mask;
     }
-
+    
     public virtual void SetFlag(int flag, bool value)
     {
         if(value)
@@ -40,15 +42,19 @@ public class Register
         return (_data & flag) != 0;
     }
 
-    public virtual int Read()
-    {
-        return _data & Mask;
-    }
-
     public int Increment()
     {
         _data = (_data + 1) & Mask;
         return _data;
+    }
+
+    public int Advance()
+    {
+        var value = _data;
+
+        Increment();
+
+        return value;
     }
 
     public int Decrement()

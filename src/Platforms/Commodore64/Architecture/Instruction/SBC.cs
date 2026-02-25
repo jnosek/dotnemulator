@@ -27,7 +27,7 @@ class SBC(MOS6510Cpu cpu, int addressMode) :
     {
         var address = DecodeOperand();
 
-        var accumulator = CPU.A.Read();
+        var accumulator = CPU.A.Value;
         var value = CPU.Read(address);
         int borrow = CPU.P.CarryFlag ? 0 : 1;
 
@@ -57,16 +57,16 @@ class SBC(MOS6510Cpu cpu, int addressMode) :
                 borrow = 0;
             }
 
-            CPU.A.Write(low | high);
+            CPU.A.Value = low | high;
             CPU.P.CarryFlag = borrow == 0;
         }
         else
         {
             var result = accumulator - value - borrow;
-            CPU.A.Write(result);
+            CPU.A.Value = result;
 
-            CPU.P.NegativeFlag = (CPU.A.Read() & 0x80) != 0;
-            CPU.P.ZeroFlag = CPU.A.Read() == 0;
+            CPU.P.NegativeFlag = (CPU.A.Value & 0x80) != 0;
+            CPU.P.ZeroFlag = CPU.A.Value == 0;
             CPU.P.CarryFlag = result >= 0;
             CPU.P.OverflowFlag = ((accumulator ^ value) & (accumulator ^ result) & 0x80) != 0;
         }

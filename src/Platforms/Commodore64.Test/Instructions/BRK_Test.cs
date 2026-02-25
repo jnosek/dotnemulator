@@ -27,7 +27,7 @@ public class BRK_Test
 
         // assert
         // Current PC
-        Assert.AreEqual(0x0101, emulator.Cpu.PC.Read());
+        Assert.AreEqual(0x0101, emulator.Cpu.PC.Advance());
 
         // stack - status register
         Assert.AreEqual(

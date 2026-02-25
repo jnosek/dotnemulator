@@ -29,7 +29,7 @@ class ADC(MOS6510Cpu cpu, int addressMode) :
         
         // get value at address
         var value = CPU.Read(address);
-        var accumulator = CPU.A.Read();
+        var accumulator = CPU.A.Value;
 
         if(CPU.P.DecimalModeFlag)
         {
@@ -61,18 +61,18 @@ class ADC(MOS6510Cpu cpu, int addressMode) :
             }
 
             // combine nibbles
-            CPU.A.Write(low | high);
+            CPU.A.Value = low | high;
             CPU.P.CarryFlag = carry != 0;
         }
         else
         {
             // perform ADD operation and write back to accumulator
             var result = accumulator + value + (CPU.P.CarryFlag ? 1 : 0);
-            CPU.A.Write(result);
+            CPU.A.Value = result;
 
             // set flags
-            CPU.P.NegativeFlag = (CPU.A.Read() & 0x80) != 0;
-            CPU.P.ZeroFlag = CPU.A.Read() == 0;
+            CPU.P.NegativeFlag = (CPU.A.Value & 0x80) != 0;
+            CPU.P.ZeroFlag = CPU.A.Value == 0;
             CPU.P.CarryFlag = result > 0xFF;
             CPU.P.OverflowFlag = 
                 // check the sign bit

@@ -31,7 +31,7 @@ class CMP(MOS6510Cpu cpu, int addressMode) :
         var address = DecodeOperand();
         
         // get value at address
-        var accumulator = CPU.A.Read();
+        var accumulator = CPU.A.Value;
         var value = CPU.Read(address);
 
         var result = accumulator - value;

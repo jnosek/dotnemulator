@@ -29,6 +29,8 @@ public class Bus : SlimEventSource
     /// </summary>
     /// <remarks>
     /// This is useful for requesting reads from the bus without trigger write notifications
+    /// value is property masked before stored
+    /// </remarks>
     /// <param name="value"></param>
     public void Drive(int value)
     {

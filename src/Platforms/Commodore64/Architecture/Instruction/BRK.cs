@@ -20,7 +20,7 @@ class BRK(MOS6510Cpu cpu) : IInstruction
         // and read next Instruction Address
         // for returning to after IRQ routine
         _cpu.PC.Increment();
-        var pc = _cpu.PC.Read();
+        var pc = _cpu.PC.Advance();
 
         // push PC and status register to stack
         // since the stack point address grows down
@@ -29,12 +29,16 @@ class BRK(MOS6510Cpu cpu) : IInstruction
         _cpu.StackPush(pc & 0xFF);
 
         // store status flag register
-        _cpu.StackPush(_cpu.P.Read());
+        _cpu.StackPush(_cpu.P.Value);
 
         // read IRQ/BRK vector
-        var low  = _cpu.Read(MOS6510Cpu.IRQ_VECTOR);
-        var high = _cpu.Read(MOS6510Cpu.IRQ_VECTOR + 1);
-        _cpu.PC.Write((high << 8) | low);
+
+        // get low byte
+        var address = _cpu.Read(MOS6510Cpu.IRQ_VECTOR);
+        // get high byte
+        address |= _cpu.Read(MOS6510Cpu.IRQ_VECTOR + 1) << 8;
+
+        _cpu.PC.Value = address;
         
         // then set I flag
         _cpu.P.InterruptDisableFlag = true;       

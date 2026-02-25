@@ -8,7 +8,7 @@ namespace Dotnemulator.Platforms.Commodore64.Test.Instructions;
 [TestClass]
 public class LDA_Test
 {
- [TestMethod]
+    [TestMethod]
     public void Immediate()
     {
         // arrange

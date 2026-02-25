@@ -41,20 +41,20 @@ internal class TestEmulator : Emulator
 
     public int Accumulator
     {
-        get => Cpu.A.Read();
-        set => Cpu.A.Write(value);
+        get => Cpu.A.Value;
+        set => Cpu.A.Value = value;
     }
 
     public int X
     {
-        get => Cpu.X.Read();
-        set => Cpu.X.Write(value);
+        get => Cpu.X.Value;
+        set => Cpu.X.Value = value;
     }
 
     public int Y
     {
-        get => Cpu.Y.Read();
-        set => Cpu.Y.Write(value);
+        get => Cpu.Y.Value;
+        set => Cpu.Y.Value = value;
     }
 
     public new void Start()

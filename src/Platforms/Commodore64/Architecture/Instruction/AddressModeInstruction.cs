@@ -22,8 +22,6 @@ abstract class AddressModeInstruction : IInstruction
 
     public int AddressModeCode { get; }
 
-    public int Cycles => throw new NotImplementedException();
-
     protected AddressModeInstruction(MOS6510Cpu cpu, int baseCode, int addressMode)
     {
         CPU = cpu;
@@ -52,7 +50,7 @@ abstract class AddressModeInstruction : IInstruction
 
     private int GetImmediateOperand()
     {
-        var operand = CPU.PC.Read();
+        var operand = CPU.PC.Advance();
         return operand;
     }
 
@@ -66,7 +64,7 @@ abstract class AddressModeInstruction : IInstruction
     private int GetZeroPageXOperand()
     {
         var operand = CPU.ReadNextByte();
-        operand = (operand + CPU.X.Read()) & 0xFF;
+        operand = (operand + CPU.X.Value) & 0xFF;
 
         return operand;
     }
@@ -82,7 +80,7 @@ abstract class AddressModeInstruction : IInstruction
     {
         var operand = CPU.ReadNextWord();
 
-        operand = (operand + CPU.X.Read()) & 0xFFFF;
+        operand = (operand + CPU.X.Value) & 0xFFFF;
 
         return operand;
     }
@@ -91,7 +89,7 @@ abstract class AddressModeInstruction : IInstruction
     {
         var operand = CPU.ReadNextWord();
 
-        operand = (operand + CPU.Y.Read()) & 0xFFFF;
+        operand = (operand + CPU.Y.Value) & 0xFFFF;
 
         return operand;
     }
@@ -99,13 +97,13 @@ abstract class AddressModeInstruction : IInstruction
     private int GetIndexedIndirectOperand()
     {
         var address = CPU.ReadNextByte();
-        address = (address + CPU.X.Read()) & 0xFF;
+        address = (address + CPU.X.Value) & 0xFF;
 
         // get low byte
         var operand = CPU.Read(address);
 
         // get high byte
-        operand |= CPU.Read((address + 1) & 0xFF) << 8;
+        operand |= CPU.Read(address + 1) << 8;
 
         return operand;
     }
@@ -118,10 +116,10 @@ abstract class AddressModeInstruction : IInstruction
         var operand = CPU.Read(address);
 
         // get high byte
-        operand |= CPU.Read((address + 1) & 0xFF) << 8;
+        operand |= CPU.Read(address + 1) << 8;
         
         // add y
-        operand = (operand + CPU.Y.Read()) & 0xFFFF;
+        operand = (operand + CPU.Y.Value) & 0xFFFF;
 
         return operand;
     }

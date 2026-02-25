@@ -1,6 +1,5 @@
 namespace Dotnemulator.Platforms.Commodore64.Architecture;
 
-using System.Xml.Serialization;
 using Dotnemulator.Abstraction.Hardware;
 using Dotnemulator.Abstraction.Operations;
 
@@ -16,7 +15,7 @@ public class MOS6510Cpu
     /// <summary>
     /// Program Counter
     /// </summary>
-    internal readonly IncrementRegister PC = new IncrementRegister(16);
+    internal readonly Register PC = new Register(16);
 
     /// <summary>
     /// Status Register
@@ -33,7 +32,7 @@ public class MOS6510Cpu
     /// </remarks>
     private readonly Register _sp = new Register(16);
 
-    internal int SP => _sp.Read();
+    internal int SP => _sp.Value;
 
     /// <summary>
     /// Accumulator
@@ -85,7 +84,7 @@ public class MOS6510Cpu
         instructionSet = new MOS6510InstructionSet(this);
 
         // set start of stack pointer offset
-        _sp.Write(STACK_START_ADDRESS);
+        _sp.Value = STACK_START_ADDRESS;
     }
 
     private void InitializePC()
@@ -94,10 +93,10 @@ public class MOS6510Cpu
         Write(0x0001, 0b0000_0111);
 
         // load PC from reset vector
-        PC.Write(RESET_VECTOR);
+        PC.Value = RESET_VECTOR;
         var address = ReadNextWord();
 
-        PC.Write(address);
+        PC.Value = address;
     }
 
     /// <summary>
@@ -165,6 +164,7 @@ public class MOS6510Cpu
     /// <remarks>
     /// The MOS6510 has a unique feature where internally the first two addresses (0 and 1) are mapped to special registers that control the port bus. 
     /// This method takes that into account when writing values.
+    /// Value is properly masked before stored
     /// </remarks>
     /// <param name="value"></param>
     internal void Write(int address, int value)
@@ -181,12 +181,12 @@ public class MOS6510Cpu
         // if address bus is 0, write to port bus control register
         else if(address == 0)
         {
-            Address0.Write(value);
+            Address0.Value = value;
         }
         // else, address bus is 1, write to port bus data register, and the bus itself
         else
         {
-            Address1.Write(value);
+            Address1.Value = value;
             PortBus.Drive(value);
             PortBus.Trigger();
         }
@@ -206,12 +206,12 @@ public class MOS6510Cpu
         // if address bus is 0, read from port bus control register
         else if(address == 0)
         {
-            return Address0.Read();
+            return Address0.Value;
         }
         // else, address bus is 1, read from port bus data register
         else
         {
-            return Address1.Read();
+            return Address1.Value;
         }
     }
 
@@ -222,7 +222,7 @@ public class MOS6510Cpu
     /// <returns></returns>
     public int ReadNextByte()
     {
-        var address = PC.Read();
+        var address = PC.Advance();
 
         return Read(address);
     }
@@ -253,7 +253,7 @@ public class MOS6510Cpu
 
     internal int StackPop()
     {
-        var result = Read(_sp.Read());
+        var result = Read(_sp.Value);
         _sp.Increment();
         return result;
     }

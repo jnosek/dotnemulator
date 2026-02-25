@@ -31,10 +31,10 @@ class LDA (MOS6510Cpu cpu, int addressMode) :
         
         // get value at address
         var value = CPU.Read(address);
-        CPU.A.Write(value);
+        CPU.A.Value = value;
 
         // set flags
-        CPU.P.NegativeFlag = (CPU.A.Read() & 0x80) != 0;
-        CPU.P.ZeroFlag = CPU.A.Read() == 0;
+        CPU.P.NegativeFlag = (CPU.A.Value & 0x80) != 0;
+        CPU.P.ZeroFlag = CPU.A.Value == 0;
     }
 }
