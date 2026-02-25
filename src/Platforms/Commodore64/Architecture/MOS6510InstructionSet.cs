@@ -17,6 +17,9 @@ class MOS6510InstructionSet : InstructionSet
         // process/status flag instructions
         Add(new CLC(cpu));
 
+        // jump instructions
+        Add(new JSR(cpu));
+
         // build Accumulator Instructions
         Add(AddressModeInstruction.Build<STA>(cpu, STA.AddressModes));
         Add(AddressModeInstruction.Build<ORA>(cpu, ORA.AddressModes));
