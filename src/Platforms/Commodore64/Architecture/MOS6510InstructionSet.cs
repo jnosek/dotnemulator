@@ -14,6 +14,9 @@ class MOS6510InstructionSet : InstructionSet
         // branch instructions
         Add(new BPL(cpu));
 
+        // process/status flag instructions
+        Add(new CLC(cpu));
+
         // build Accumulator Instructions
         Add(AddressModeInstruction.Build<STA>(cpu, STA.AddressModes));
         Add(AddressModeInstruction.Build<ORA>(cpu, ORA.AddressModes));
