@@ -1,23 +1,19 @@
-using Dotnemulator.Abstraction.Operations;
-
 namespace Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
 
 /// <summary>
 /// Push Processor Flags to Stack Instruction
 /// </summary>
 /// <param name="cpu"></param>
-public class PHP(MOS6510Cpu cpu) : IInstruction
+public class PHP(MOS6510Cpu cpu) : ImmediateInstruction(cpu)
 {
-    private readonly MOS6510Cpu _cpu = cpu;
-
     public int Cycles => 3;
 
     public const int OP_CODE = 0x08 | AddressMode.Implied;
 
-    public int OpCode => OP_CODE;
+    public override int OpCode => OP_CODE;
 
-    public void Execute(int instruction)
+    public override void Execute(int instruction)
     {
-        _cpu.StackPush(_cpu.P.Value);
+        CPU.StackPush(CPU.P.Value);
     }
 }
