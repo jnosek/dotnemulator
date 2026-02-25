@@ -6,7 +6,7 @@ using Dotnemulator.Abstraction.Operations;
 public class MOS6510Cpu
 {
     public const int STACK_START_ADDRESS = 0x01FF;
-    public const int STACK_END_ADDRESS = 0x0100;
+    public const int STACK_BASE_ADDRESS = 0x0100;
 
     public const int RESET_VECTOR = 0xFFFC;
     public const int IRQ_VECTOR = 0xFFFE;
@@ -26,12 +26,14 @@ public class MOS6510Cpu
     /// Internal Register to track place of the Stack Pointer
     /// </summary>
     /// <remarks>
-    /// In the 6510, this is actually an 8 bit register, used as an offset to the
-    /// 0x0100 Stack End Address. For cleaner implementation in the emulator, the whole 
-    /// address is stored in a 16-bit register
+    /// This 8 bit register will correctly replicate the overflow 
+    /// and underflow behavior of the stack pointer
     /// </remarks>
-    private readonly Register _sp = new Register(16);
+    private readonly Register _sp = new Register(8);
 
+    /// <summary>
+    /// Current value of the Stack Pointer
+    /// </summary>
     internal int SP => _sp.Value;
 
     /// <summary>
@@ -83,8 +85,8 @@ public class MOS6510Cpu
 
         instructionSet = new MOS6510InstructionSet(this);
 
-        // set start of stack pointer offset
-        _sp.Value = STACK_START_ADDRESS;
+        // set start of stack pointer offset (last byte)
+        _sp.Value = STACK_START_ADDRESS & 0xFF;
     }
 
     private void InitializePC()
@@ -244,15 +246,29 @@ public class MOS6510Cpu
         return address;
     }
 
+    /// <summary>
+    /// Pushes a value onto the stack. The stack grows downwards from 0x01FF to 0x0100.
+    /// </summary>
+    /// <remarks>
+    /// For a stack overflow, the value of 0x00 will wrap around to 0xFF without an error
+    /// <remarks>
+    /// <param name="value"></param>
     internal void StackPush(int value)
     {
-       Write( _sp.Value, value);
+       Write(STACK_BASE_ADDRESS | _sp.Value, value);
        _sp.Decrement();
     }
 
+    /// <summary>
+    /// Pops a value from the stack. The stack shrinks upwards from 0x0100 to 0x01FF.
+    /// </summary>
+    /// <remarks>
+    /// For a stack underflow, the value of 0xFF will wrap around to 0x00 without an error
+    /// <remarks>
+    /// <returns></returns>
     internal int StackPop()
     {
         var address = _sp.Increment();
-        return Read(address);
+        return Read(STACK_BASE_ADDRESS | address);
     }
 }
