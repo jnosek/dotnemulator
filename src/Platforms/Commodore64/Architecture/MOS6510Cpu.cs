@@ -246,15 +246,13 @@ public class MOS6510Cpu
 
     internal void StackPush(int value)
     {
-       Write(
-            _sp.Decrement(),
-            value);
+       Write( _sp.Value, value);
+       _sp.Decrement();
     }
 
     internal int StackPop()
     {
-        var result = Read(_sp.Value);
-        _sp.Increment();
-        return result;
+        var address = _sp.Increment();
+        return Read(address);
     }
 }
