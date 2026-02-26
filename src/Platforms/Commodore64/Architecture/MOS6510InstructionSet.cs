@@ -26,6 +26,9 @@ class MOS6510InstructionSet : InstructionSet
         // jump instructions
         Add(new JSR(cpu));
 
+        // interrupt instructions
+        Add(new RTI(cpu));
+
         // build Accumulator Instructions
         AddSet<STA>(cpu);
         AddSet<ORA>(cpu);
