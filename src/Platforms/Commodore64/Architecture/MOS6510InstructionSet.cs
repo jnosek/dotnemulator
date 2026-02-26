@@ -12,6 +12,7 @@ class MOS6510InstructionSet : InstructionSet
 
         // stack instructions
         Add(new PHP(cpu));
+        Add(new PLP(cpu));
 
         // branch instructions
         Add(new BPL(cpu));
