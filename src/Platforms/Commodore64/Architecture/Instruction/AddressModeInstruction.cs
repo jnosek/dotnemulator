@@ -4,16 +4,6 @@ namespace Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
 
 abstract class AddressModeInstruction : IInstruction
 {
-    public static IInstruction[] Build<T>(MOS6510Cpu cpu, int[] addressModes) where T : AddressModeInstruction
-    {
-        var instructions = new IInstruction[addressModes.Length];
-        for (int i = 0; i < addressModes.Length; i++)
-        {
-            instructions[i] = (IInstruction)Activator.CreateInstance(typeof(T), cpu, addressModes[i])!;
-        }
-        return instructions;
-    }
-
     protected readonly MOS6510Cpu CPU;
 
     public int OpCode { get; }
@@ -22,6 +12,32 @@ abstract class AddressModeInstruction : IInstruction
 
     public int AddressModeCode { get; }
 
+    /// <summary>
+    /// Constructor for instructions without specific address mode. It will set the OpCode to base code and address mode code to undefined.
+    /// </summary>
+    /// <remarks>
+    /// The implement instruction can use the address mode helper methods to decode the operand as needed.
+    /// </remarks>
+    /// <param name="cpu"></param>
+    /// <param name="opCode"></param>
+    protected AddressModeInstruction(MOS6510Cpu cpu, int opCode)
+    {
+        CPU = cpu;
+
+        BaseOpCode = opCode;
+        AddressModeCode = AddressMode.Undefined;
+        OpCode = opCode;
+
+        DecodeOperand = GetUndefinedOperand;
+    }
+
+    /// <summary>
+    /// Constructor for instructions with specific address mode. It will set the OpCode by combining base code and address mode code.
+    /// </summary>
+    /// <param name="cpu"></param>
+    /// <param name="baseCode"></param>
+    /// <param name="addressMode"></param>
+    /// <exception cref="InvalidOperationException"></exception>
     protected AddressModeInstruction(MOS6510Cpu cpu, int baseCode, int addressMode)
     {
         CPU = cpu;
@@ -48,20 +64,20 @@ abstract class AddressModeInstruction : IInstruction
 
     public Func<int> DecodeOperand { get; }
 
-    private int GetImmediateOperand()
+    protected int GetImmediateOperand()
     {
         var operand = CPU.PC.Advance();
         return operand;
     }
 
-    private int GetZeroPageOperand()
+    protected int GetZeroPageOperand()
     {
         var operand = CPU.ReadNextByte();
 
         return operand;
     }
 
-    private int GetZeroPageXOperand()
+    protected int GetZeroPageXOperand()
     {
         var operand = CPU.ReadNextByte();
         operand = (operand + CPU.X.Value) & 0xFF;
@@ -69,14 +85,14 @@ abstract class AddressModeInstruction : IInstruction
         return operand;
     }
 
-    private int GetAbsoluteOperand()
+    protected int GetAbsoluteOperand()
     {
         var operand = CPU.ReadNextWord();
 
         return operand;
     } 
 
-    private int GetAbsoluteXOperand()
+    protected int GetAbsoluteXOperand()
     {
         var operand = CPU.ReadNextWord();
 
@@ -85,7 +101,7 @@ abstract class AddressModeInstruction : IInstruction
         return operand;
     }
 
-    private int GetAbsoluteYOperand()
+    protected int GetAbsoluteYOperand()
     {
         var operand = CPU.ReadNextWord();
 
@@ -94,7 +110,7 @@ abstract class AddressModeInstruction : IInstruction
         return operand;
     }
 
-    private int GetIndexedIndirectOperand()
+    protected int GetIndexedIndirectOperand()
     {
         var address = CPU.ReadNextByte();
         address = (address + CPU.X.Value) & 0xFF;
@@ -108,7 +124,7 @@ abstract class AddressModeInstruction : IInstruction
         return operand;
     }
 
-    private int GetIndirectIndexedOperand()
+    protected int GetIndirectIndexedOperand()
     {
         var address = CPU.ReadNextByte();
         
@@ -122,5 +138,10 @@ abstract class AddressModeInstruction : IInstruction
         operand = (operand + CPU.Y.Value) & 0xFFFF;
 
         return operand;
+    }
+
+    protected int GetUndefinedOperand()
+    {
+        return 0;   
     }
 }

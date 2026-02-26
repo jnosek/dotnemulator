@@ -8,7 +8,10 @@ class MOS6510InstructionSet : InstructionSet
 {
     public MOS6510InstructionSet(MOS6510Cpu cpu) : base(256)
     {
+        // system instructions
         Add(new BRK(cpu));
+
+        // stack instructions
         Add(new PHP(cpu));
 
         // branch instructions
@@ -21,13 +24,24 @@ class MOS6510InstructionSet : InstructionSet
         Add(new JSR(cpu));
 
         // build Accumulator Instructions
-        Add(AddressModeInstruction.Build<STA>(cpu, STA.AddressModes));
-        Add(AddressModeInstruction.Build<ORA>(cpu, ORA.AddressModes));
-        Add(AddressModeInstruction.Build<AND>(cpu, AND.AddressModes));
-        Add(AddressModeInstruction.Build<EOR>(cpu, EOR.AddressModes));
-        Add(AddressModeInstruction.Build<ADC>(cpu, ADC.AddressModes));
-        Add(AddressModeInstruction.Build<LDA>(cpu, LDA.AddressModes));
-        Add(AddressModeInstruction.Build<CMP>(cpu, CMP.AddressModes));
-        Add(AddressModeInstruction.Build<SBC>(cpu, SBC.AddressModes));
+        AddSet<STA>(cpu);
+        AddSet<ORA>(cpu);
+        AddSet<AND>(cpu);
+        AddSet<EOR>(cpu);
+        AddSet<ADC>(cpu);
+        AddSet<LDA>(cpu);
+        AddSet<CMP>(cpu);
+        AddSet<SBC>(cpu);
+    }
+
+    public void AddSet<T>(MOS6510Cpu cpu) where T : AddressModeInstruction
+    {
+        var addressModes = typeof(T).GetField("AddressModes", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)?.GetValue(null) as int[] ??
+            throw new InvalidOperationException($"Instruction {typeof(T).Name} does not define Static AddressModes field");
+
+        foreach(var addressMode in addressModes)
+        {
+            Add((IInstruction)Activator.CreateInstance(typeof(T), cpu, addressMode)!);
+        }
     }
 }

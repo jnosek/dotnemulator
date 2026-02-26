@@ -13,4 +13,6 @@ public static class AddressMode
     public const int ZeroPageX = 0b101 << 2;
     public const int AbsoluteY = 0b110 << 2;
     public const int AbsoluteX = 0b111 << 2;
+    
+    public const int Undefined = 0xFF;
 }
