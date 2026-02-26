@@ -3,7 +3,7 @@ namespace Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
 /// <summary>
 /// Clear Carry Instruction
 /// </summary>
-public class CLC(MOS6510Cpu cpu) : ImmediateInstruction(cpu)
+public class CLC(MOS6510Cpu cpu) : ImpliedInstruction(cpu)
 {
     public const int OP_CODE = 0x18 | AddressMode.Implied;
 

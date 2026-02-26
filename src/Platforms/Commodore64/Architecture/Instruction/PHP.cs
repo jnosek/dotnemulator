@@ -4,7 +4,7 @@ namespace Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
 /// Push Processor Flags to Stack Instruction
 /// </summary>
 /// <param name="cpu"></param>
-public class PHP(MOS6510Cpu cpu) : ImmediateInstruction(cpu)
+public class PHP(MOS6510Cpu cpu) : ImpliedInstruction(cpu)
 {
     public int Cycles => 3;
 

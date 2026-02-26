@@ -4,7 +4,7 @@ namespace Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
 /// Pull Processor Flags Instruction
 /// </summary>
 /// <param name="cpu"></param>
-class PLP(MOS6510Cpu cpu) : ImmediateInstruction(cpu)
+class PLP(MOS6510Cpu cpu) : ImpliedInstruction(cpu)
 {
     public int Cycles => 4;
 

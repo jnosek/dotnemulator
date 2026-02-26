@@ -2,7 +2,7 @@ using Dotnemulator.Abstraction.Operations;
 
 namespace Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
 
-public abstract class ImmediateInstruction(MOS6510Cpu cpu) : IInstruction
+public abstract class ImpliedInstruction(MOS6510Cpu cpu) : IInstruction
 {
     protected readonly MOS6510Cpu CPU = cpu;
 
