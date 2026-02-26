@@ -1,6 +1,5 @@
 using Dotnemulator.Abstraction.Operations;
 using Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
-using Microsoft.VisualBasic;
 
 namespace Dotnemulator.Platforms.Commodore64.Architecture;
 
@@ -18,6 +17,7 @@ class MOS6510InstructionSet : InstructionSet
         Add(new BPL(cpu));
 
         // process/status flag instructions
+        AddSet<BIT>(cpu);
         Add(new CLC(cpu));
 
         // jump instructions
