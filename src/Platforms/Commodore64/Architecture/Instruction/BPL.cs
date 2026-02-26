@@ -3,17 +3,13 @@ namespace Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
 /// <summary>
 /// Branch if Positive (BPL) instruction.
 /// </summary>
-class BPL : RelativeAddressInstruction
+class BPL(MOS6510Cpu cpu) : AddressModeInstruction(cpu, OP_CODE, AddressMode.Relative)
 {
-    public BPL(MOS6510Cpu cpu) : base(cpu) { }
-
-    public const int OP_CODE = 0x00 | AddressMode.Relative;
-
-    public override int OpCode => OP_CODE;
+    public const int OP_CODE = 0x10;
 
     public override void Execute(int instruction)
     {
-        var address = GetRelativeOperand();
+        var address = DecodeOperand();
 
         if(!CPU.P.NegativeFlag)
         {

@@ -3,17 +3,13 @@ namespace Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
 /// <summary>
 /// Branch if Minus instruction
 /// </summary>
-class BMI : RelativeAddressInstruction
+class BMI(MOS6510Cpu cpu) : AddressModeInstruction(cpu, OP_CODE, AddressMode.Relative)
 {
-    public BMI(MOS6510Cpu cpu) : base(cpu) { }
-
-    public const int OP_CODE = 0x20 | AddressMode.Relative;
-
-    public override int OpCode => OP_CODE;
+    public const int OP_CODE = 0x30;
 
     public override void Execute(int instruction)
     {
-        var address = GetRelativeOperand();
+        var address = DecodeOperand();
 
         if(CPU.P.NegativeFlag)
         {
