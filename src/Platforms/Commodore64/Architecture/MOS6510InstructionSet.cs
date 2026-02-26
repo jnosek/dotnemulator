@@ -21,6 +21,7 @@ class MOS6510InstructionSet : InstructionSet
         // process/status flag instructions
         AddSet<BIT>(cpu);
         Add(new CLC(cpu));
+        Add(new SEC(cpu));
 
         // jump instructions
         Add(new JSR(cpu));
