@@ -38,6 +38,8 @@ public static class AddressMode
     public const int Implied = 0x00_00;
     public const int Relative = 0x01_10;
 
+    public const int Indirect = 0x01_0C;
+
     public const int Explicit_Indexed_Indirect = 0x1000 | (0b000 << 2);
     public const int Explicit_ZeroPage = 0x1000 | (0b001 << 2);
     public const int Explicit_Immediate = 0x1000 | (0b010 << 2);

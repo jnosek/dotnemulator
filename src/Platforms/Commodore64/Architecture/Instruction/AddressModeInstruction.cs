@@ -1,5 +1,3 @@
-using System;
-
 using Dotnemulator.Abstraction.Operations;
 
 namespace Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
@@ -13,25 +11,6 @@ abstract class AddressModeInstruction : IInstruction
     public int BaseOpCode { get; }
 
     public int AddressModeCode { get; }
-
-    /// <summary>
-    /// Constructor for instructions without specific address mode. It will set the OpCode to base code and address mode code to undefined.
-    /// </summary>
-    /// <remarks>
-    /// The implement instruction can use the address mode helper methods to decode the operand as needed.
-    /// </remarks>
-    /// <param name="cpu"></param>
-    /// <param name="opCode"></param>
-    protected AddressModeInstruction(MOS6510Cpu cpu, int opCode)
-    {
-        CPU = cpu;
-
-        BaseOpCode = opCode;
-        AddressModeCode = AddressMode.Undefined;
-        OpCode = opCode;
-
-        DecodeOperand = GetUndefinedOperand;
-    }
 
     /// <summary>
     /// Constructor for instructions with specific address mode. It will set the OpCode by combining base code and address mode code.
@@ -72,6 +51,7 @@ abstract class AddressModeInstruction : IInstruction
 
             // explicit address modes
             AddressMode.Relative => GetRelativeOperand,
+            AddressMode.Indirect => GetIndirectOperand,
             AddressMode.Explicit_Immediate => GetImmediateOperand,
             AddressMode.Explicit_ZeroPage => GetZeroPageOperand,
             AddressMode.Explicit_ZeroPageX => GetZeroPageXOperand,
@@ -175,5 +155,18 @@ abstract class AddressModeInstruction : IInstruction
         var operand = CPU.ReadNextByte();
 
         return (CPU.PC.Value + operand) & 0xFFFF;
+    }
+
+    private int GetIndirectOperand()
+    {
+        var address = CPU.ReadNextWord();
+
+        // get low byte
+        var operand = CPU.Read(address);
+
+        // get high byte
+        operand |= CPU.Read(address + 1) << 8;
+
+        return operand;
     }
 }
