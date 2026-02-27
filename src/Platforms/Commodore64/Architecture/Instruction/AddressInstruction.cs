@@ -2,7 +2,7 @@ using Dotnemulator.Abstraction.Operations;
 
 namespace Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
 
-abstract class AddressModeInstruction : IInstruction
+abstract class AddressInstruction : IInstruction
 {
     protected readonly MOS6510Cpu CPU;
 
@@ -19,7 +19,7 @@ abstract class AddressModeInstruction : IInstruction
     /// <param name="baseCode"></param>
     /// <param name="addressMode"></param>
     /// <exception cref="InvalidOperationException"></exception>
-    protected AddressModeInstruction(MOS6510Cpu cpu, int baseCode, int addressMode)
+    protected AddressInstruction(MOS6510Cpu cpu, int baseCode, int addressMode)
     {
         CPU = cpu;
 
@@ -40,6 +40,7 @@ abstract class AddressModeInstruction : IInstruction
         DecodeOperand = addressMode switch 
         {
             // intrinsic address modes
+            // these modes are include in the coding of opcodes
             AddressMode.Immediate => GetImmediateOperand,
             AddressMode.ZeroPage => GetZeroPageOperand,
             AddressMode.ZeroPageX => GetZeroPageXOperand,
@@ -50,6 +51,7 @@ abstract class AddressModeInstruction : IInstruction
             AddressMode.Indirect_Indexed => GetIndirectIndexedOperand,
 
             // explicit address modes
+            // these codes are used to specify the exact operand logic to use for an opcode
             AddressMode.Relative => GetRelativeOperand,
             AddressMode.Indirect => GetIndirectOperand,
             AddressMode.Explicit_Immediate => GetImmediateOperand,
@@ -65,9 +67,15 @@ abstract class AddressModeInstruction : IInstruction
         };
     }
 
-    public abstract void Execute(int instruction);
+    public void Execute(int instruction)
+    {
+        var operand = DecodeOperand();
+        Execute(instruction, operand);
+    }
 
-    public Func<int> DecodeOperand { get; }
+    public abstract void Execute(int instruction, int address);
+
+    private Func<int> DecodeOperand { get; }
 
     private int GetImmediateOperand()
     {

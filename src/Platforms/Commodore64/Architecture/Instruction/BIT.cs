@@ -12,18 +12,16 @@ namespace Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
 /// </remarks>
 /// <param name="cpu"></param>
 /// <param name="addressMode"></param>
-class BIT(MOS6510Cpu cpu, int addressMode) : AddressModeInstruction(cpu, BASE_OP_CODE, addressMode)
+class BIT(MOS6510Cpu cpu, int addressMode) : AddressInstruction(cpu, BASE_OP_CODE, addressMode)
 {
     public const int BASE_OP_CODE = 0x20;
     public static readonly int[] AddressModes = [
         AddressMode.Absolute,
         AddressMode.ZeroPage];
 
-    public override void Execute(int instruction)
+    public override void Execute(int instruction, int address)
     {
-        var operand = DecodeOperand();
-
-        var value = CPU.Read(operand);
+        var value = CPU.Read(address);
 
         // set flags
         CPU.P.OverflowFlag = (value & 0x40) != 0;

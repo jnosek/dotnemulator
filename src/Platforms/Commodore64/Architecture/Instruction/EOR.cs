@@ -1,9 +1,7 @@
-using System;
-
 namespace Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
 
 class EOR(MOS6510Cpu cpu, int addressMode) : 
-    AddressModeInstruction(cpu, BASE_OP_CODE, addressMode)
+    AddressInstruction(cpu, BASE_OP_CODE, addressMode)
 {
     public const int BASE_OP_CODE = 0x41;
 
@@ -20,9 +18,8 @@ class EOR(MOS6510Cpu cpu, int addressMode) :
 
     public readonly int[] Cycles = [4, 5, 5, 3, 4, 6, 6];
 
-    public override void Execute(int instruction)
+    public override void Execute(int instruction, int address)
     {
-        var address = DecodeOperand();
         
         // get value at address
         var value = CPU.Read(address);

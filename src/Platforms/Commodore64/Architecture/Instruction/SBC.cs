@@ -1,12 +1,10 @@
-using System;
-
 namespace Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
 
 /// <summary>
 /// Subtract with Carry instruction. Computes A = A - M - (1 - C).
 /// </summary>
 class SBC(MOS6510Cpu cpu, int addressMode) :
-    AddressModeInstruction(cpu, BASE_OP_CODE, addressMode)
+    AddressInstruction(cpu, BASE_OP_CODE, addressMode)
 {
     public const int BASE_OP_CODE = 0xE1;
 
@@ -23,10 +21,8 @@ class SBC(MOS6510Cpu cpu, int addressMode) :
 
     public readonly int[] Cycles = [2, 4, 4, 4, 3, 4, 6, 5];
 
-    public override void Execute(int instruction)
+    public override void Execute(int instruction, int address)
     {
-        var address = DecodeOperand();
-
         var accumulator = CPU.A.Value;
         var value = CPU.Read(address);
         int borrow = CPU.P.CarryFlag ? 0 : 1;

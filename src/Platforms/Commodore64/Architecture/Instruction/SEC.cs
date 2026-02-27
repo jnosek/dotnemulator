@@ -1,4 +1,3 @@
-
 namespace Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
 
 /// <summary>

@@ -6,13 +6,12 @@ namespace Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
 /// </summary>
 /// <param name="cpu"></param>
 class JSR(MOS6510Cpu cpu) : 
-    AddressModeInstruction(cpu, OP_CODE, AddressMode.Explicit_Absolute)
+    AddressInstruction(cpu, OP_CODE, AddressMode.Explicit_Absolute)
 {
     public const int OP_CODE = 0x20;
 
-    public override void Execute(int instruction)
+    public override void Execute(int instruction, int address)
     {
-        var operand = DecodeOperand();
         
         // push return address to stack
         var returnAddress = CPU.PC.Value;
@@ -20,6 +19,6 @@ class JSR(MOS6510Cpu cpu) :
         CPU.StackPush(returnAddress & 0xFF); // low byte
 
         // set PC to target address
-        CPU.PC.Value = operand;
+        CPU.PC.Value = address;
     }
 }

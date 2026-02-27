@@ -3,7 +3,7 @@ namespace Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
 /// <summary>
 /// Jump Instruction
 /// </summary>
-class JMP : AddressModeInstruction
+class JMP : AddressInstruction
 {
     private JMP(MOS6510Cpu cpu, int opCode, int addressMode) : 
         base(cpu, opCode, addressMode)
@@ -20,10 +20,9 @@ class JMP : AddressModeInstruction
     public const int ABSOLUTE_OP_CODE = 0x4C;
     public const int INDIRECT_OP_CODE = 0x6C;
 
-    public override void Execute(int instruction)
+   public override void Execute(int instruction, int address)
     {
-        int operand = DecodeOperand();
 
-        CPU.PC.Value = operand;
+        CPU.PC.Value = address;
     }
 }

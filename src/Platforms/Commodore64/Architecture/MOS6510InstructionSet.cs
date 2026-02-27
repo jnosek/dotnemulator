@@ -42,7 +42,7 @@ class MOS6510InstructionSet : InstructionSet
         AddSet<SBC>(cpu);
     }
 
-    public void AddSet<T>(MOS6510Cpu cpu) where T : AddressModeInstruction
+    public void AddSet<T>(MOS6510Cpu cpu) where T : AddressInstruction
     {
         var addressModes = typeof(T).GetField("AddressModes", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)?.GetValue(null) as int[] ??
             throw new InvalidOperationException($"Instruction {typeof(T).Name} does not define Static AddressModes field");

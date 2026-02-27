@@ -1,12 +1,10 @@
-using Dotnemulator.Abstraction.Operations;
-
 namespace Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
 
 /// <summary>
 /// Break instruction
 /// </summary>
 /// <param name="cpu"></param>
-class BRK(MOS6510Cpu cpu) : IInstruction
+class BRK(MOS6510Cpu cpu) : ImpliedInstruction(cpu)
 {
     private readonly MOS6510Cpu _cpu = cpu;
 
@@ -14,9 +12,9 @@ class BRK(MOS6510Cpu cpu) : IInstruction
 
     public const int OP_CODE = 0x00 | AddressMode.Implied;
 
-    public int OpCode => OP_CODE;
+    public override int OpCode => OP_CODE;
 
-    public void Execute(int instruction)
+    public override void Execute(int instruction)
     {
         _cpu.P.BreakCommandFlag = true;
 

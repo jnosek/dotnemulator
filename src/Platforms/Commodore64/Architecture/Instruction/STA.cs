@@ -4,7 +4,7 @@ namespace Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
 /// Store Accumulator Instruction
 /// </summary>
 class STA(MOS6510Cpu cpu, int addressMode) : 
-    AddressModeInstruction(cpu, BASE_OP_CODE, addressMode)
+    AddressInstruction(cpu, BASE_OP_CODE, addressMode)
 {
     public const int BASE_OP_CODE = 0x81;
 
@@ -20,9 +20,8 @@ class STA(MOS6510Cpu cpu, int addressMode) :
 
     public readonly int[] Cycles = [4, 5, 5, 3, 4, 6, 6];
 
-    public override void Execute(int instruction)
+    public override void Execute(int instruction, int address)
     {
-        var address = DecodeOperand();
         CPU.Write(address, CPU.A.Value);
     }
 }
