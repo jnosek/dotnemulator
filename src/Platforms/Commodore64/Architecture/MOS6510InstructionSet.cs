@@ -24,6 +24,7 @@ class MOS6510InstructionSet : InstructionSet
         AddSet<BIT>(cpu);
         Add(new CLC(cpu));
         Add(new SEC(cpu));
+        Add(new CLI(cpu));
 
         // jump instructions
         Add(new JSR(cpu));
