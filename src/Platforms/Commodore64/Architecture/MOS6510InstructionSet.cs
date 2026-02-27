@@ -29,6 +29,7 @@ class MOS6510InstructionSet : InstructionSet
         // jump instructions
         Add(new JSR(cpu));
         Add(JMP.Build(cpu));
+        Add(new RTS(cpu));
 
         // interrupt instructions
         Add(new RTI(cpu));

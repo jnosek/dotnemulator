@@ -12,7 +12,6 @@ class JSR(MOS6510Cpu cpu) :
 
     public override void Execute(int instruction, int address)
     {
-        
         // push return address to stack
         var returnAddress = CPU.PC.Value;
         CPU.StackPush(returnAddress >> 8); // high byte
