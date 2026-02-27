@@ -5,14 +5,14 @@ using Dotnemulator.Platforms.Commodore64.Test.Mocks;
 namespace Dotnemulator.Platforms.Commodore64.Test.Instructions;
 
 [TestClass]
-public class BPL_Test
+public class BVC_Test
 {
-    [TestMethod]
+ [TestMethod]
     public void Relative_Branch()
     {
         // arrange
         var emulator = new TestEmulator([
-            BPL.OP_CODE,
+            BVC.OP_CODE,
             0x03,
             0x00,
             0x00,
@@ -20,7 +20,7 @@ public class BPL_Test
             0xEA
         ])
         {
-            P = ~StatusFlag.Negative
+            P = ~StatusFlag.Overflow
         };
 
         // act
@@ -36,7 +36,7 @@ public class BPL_Test
     {
         // arrange
         var emulator = new TestEmulator([
-            BPL.OP_CODE,
+            BVC.OP_CODE,
             0x03,
             0xEA,
             0x00,
@@ -44,7 +44,7 @@ public class BPL_Test
             0x00
         ])
         {
-            P = StatusFlag.Negative
+            P = StatusFlag.Overflow
         };
 
         // act
