@@ -8,7 +8,7 @@ class PLP(MOS6510Cpu cpu) : ImpliedInstruction(cpu)
 {
     public int Cycles => 4;
 
-    public const int OP_CODE = 0x28 | AddressMode.Implied;
+    public const int OP_CODE = 0x28;
 
     public override int OpCode => OP_CODE;
 

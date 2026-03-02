@@ -5,7 +5,7 @@ namespace Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
 /// </summary>
 public class CLC(MOS6510Cpu cpu) : ImpliedInstruction(cpu)
 {
-    public const int OP_CODE = 0x18 | AddressMode.Implied;
+    public const int OP_CODE = 0x18;
 
     public override int OpCode => OP_CODE;
 

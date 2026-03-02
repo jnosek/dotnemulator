@@ -7,7 +7,7 @@ class RTI(MOS6510Cpu cpu) : ImpliedInstruction(cpu)
 {
     public int Cycles => 6;
 
-    public const int OP_CODE = 0x40 | AddressMode.Implied;
+    public const int OP_CODE = 0x40;
 
     public override int OpCode => OP_CODE;
 

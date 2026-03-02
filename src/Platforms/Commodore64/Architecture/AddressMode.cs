@@ -31,11 +31,6 @@ public static class AddressMode
     // these address modes are explicit and not represented as part of the opcode
     // they are specified by instruction that needs them
 
-    /// <summary>
-    /// Implied should not bused with the AddressModeInstruction class
-    /// This is added for syntax completeness
-    /// </summary>
-    public const int Implied = 0x00_00;
     public const int Relative = 0x01_10;
 
     public const int Indirect = 0x01_0C;

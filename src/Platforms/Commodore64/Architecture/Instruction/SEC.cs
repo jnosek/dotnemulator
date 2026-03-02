@@ -6,7 +6,7 @@ namespace Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
 /// <param name="cpu"></param>
 public class SEC(MOS6510Cpu cpu) : ImpliedInstruction(cpu)
 {
-    public const int OP_CODE = 0x38 | AddressMode.Implied;
+    public const int OP_CODE = 0x38;
 
     public override int OpCode => OP_CODE;
 
