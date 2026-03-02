@@ -20,6 +20,7 @@ class MOS6510InstructionSet : InstructionSet
         Add(new BPL(cpu));
         Add(new BMI(cpu));
         Add(new BVC(cpu));
+        Add(new BVS(cpu));
 
         // process/status flag instructions
         AddSet<BIT>(cpu);
