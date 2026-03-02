@@ -1,9 +1,29 @@
+using System.Reflection;
 using Dotnemulator.Abstraction.Operations;
 
 namespace Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
 
 abstract class AddressInstruction : IInstruction
 {
+    public static T[] Build<T>(MOS6510Cpu cpu) where T : AddressInstruction
+    {
+        var addressModes = typeof(T)
+            .GetField("AddressModes", BindingFlags.Public | BindingFlags.Static)
+            ?.GetValue(null) as int[]
+            ?? throw new InvalidOperationException(
+                $"Instruction {typeof(T).Name} does not define static AddressModes field");
+
+        var ctor = typeof(T).GetConstructor(
+            BindingFlags.NonPublic | BindingFlags.Instance,
+            [typeof(MOS6510Cpu), typeof(int)])
+            ?? throw new InvalidOperationException(
+                $"Instruction {typeof(T).Name} does not define a private constructor (MOS6510Cpu, int)");
+
+        return addressModes
+            .Select(mode => (T)ctor.Invoke([cpu, mode]))
+            .ToArray();
+    }
+
     protected readonly MOS6510Cpu CPU;
 
     public int OpCode { get; }
@@ -52,7 +72,6 @@ abstract class AddressInstruction : IInstruction
 
             // explicit address modes
             // these codes are used to specify the exact operand logic to use for an opcode
-            AddressMode.Relative => GetRelativeOperand,
             AddressMode.Indirect => GetIndirectOperand,
             AddressMode.Explicit_Immediate => GetImmediateOperand,
             AddressMode.Explicit_ZeroPage => GetZeroPageOperand,
@@ -156,13 +175,6 @@ abstract class AddressInstruction : IInstruction
     private int GetUndefinedOperand()
     {
         throw new InvalidOperationException("should not be using undefined operand addressing");  
-    }
-
-    private int GetRelativeOperand()
-    {
-        var operand = CPU.ReadNextByte();
-
-        return (CPU.PC.Value + operand) & 0xFFFF;
     }
 
     private int GetIndirectOperand()

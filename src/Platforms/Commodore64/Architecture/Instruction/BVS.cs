@@ -4,7 +4,7 @@ namespace Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
 /// Branch if Overflow Set Instruction
 /// </summary>
 /// <param name="cpu"></param>
-class BVS(MOS6510Cpu cpu) : AddressInstruction(cpu, OP_CODE, AddressMode.Relative)
+class BVS(MOS6510Cpu cpu) : RelativeInstruction(cpu, OP_CODE)
 {
     public const int OP_CODE = 0x70;
 

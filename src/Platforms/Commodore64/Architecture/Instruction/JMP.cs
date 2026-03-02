@@ -10,6 +10,15 @@ class JMP : AddressInstruction
     {
     }
 
+    /// <summary>
+    /// Build the jump instructions for its two possible address modes
+    /// </summary>
+    /// <remarks>
+    /// JMP is an exception in the instruction set, as its two addressable modes
+    /// have different base opcodes
+    /// <remarks>
+    /// <param name="cpu"></param>
+    /// <returns></returns>
     public static JMP[] Build(MOS6510Cpu cpu) => [
         new JMP(cpu, ABSOLUTE_OP_CODE, AddressMode.Explicit_Absolute),
         new JMP(cpu, INDIRECT_OP_CODE, AddressMode.Indirect)

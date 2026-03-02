@@ -23,7 +23,7 @@ class MOS6510InstructionSet : InstructionSet
         Add(new BVS(cpu));
 
         // process/status flag instructions
-        AddSet<BIT>(cpu);
+        Add(AddressInstruction.Build<BIT>(cpu));
         Add(new CLC(cpu));
         Add(new SEC(cpu));
         Add(new CLI(cpu));
@@ -38,24 +38,13 @@ class MOS6510InstructionSet : InstructionSet
         Add(new RTI(cpu));
 
         // build Accumulator Instructions
-        AddSet<STA>(cpu);
-        AddSet<ORA>(cpu);
-        AddSet<AND>(cpu);
-        AddSet<EOR>(cpu);
-        AddSet<ADC>(cpu);
-        AddSet<LDA>(cpu);
-        AddSet<CMP>(cpu);
-        AddSet<SBC>(cpu);
-    }
-
-    public void AddSet<T>(MOS6510Cpu cpu) where T : AddressInstruction
-    {
-        var addressModes = typeof(T).GetField("AddressModes", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)?.GetValue(null) as int[] ??
-            throw new InvalidOperationException($"Instruction {typeof(T).Name} does not define Static AddressModes field");
-
-        foreach(var addressMode in addressModes)
-        {
-            Add((IInstruction)Activator.CreateInstance(typeof(T), cpu, addressMode)!);
-        }
+        Add(AddressInstruction.Build<STA>(cpu));
+        Add(AddressInstruction.Build<ORA>(cpu));
+        Add(AddressInstruction.Build<AND>(cpu));
+        Add(AddressInstruction.Build<EOR>(cpu));
+        Add(AddressInstruction.Build<ADC>(cpu));
+        Add(AddressInstruction.Build<LDA>(cpu));
+        Add(AddressInstruction.Build<CMP>(cpu));
+        Add(AddressInstruction.Build<SBC>(cpu));
     }
 }

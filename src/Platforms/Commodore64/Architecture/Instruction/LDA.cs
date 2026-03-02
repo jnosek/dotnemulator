@@ -5,8 +5,7 @@ namespace Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
 /// </summary>
 /// <param name="cpu"></param>
 /// <param name="addressMode"></param>
-class LDA (MOS6510Cpu cpu, int addressMode) : 
-    AddressInstruction(cpu, BASE_OP_CODE, addressMode)
+class LDA : AddressInstruction
 {
     public const int BASE_OP_CODE = 0xA1;
 
@@ -22,6 +21,8 @@ class LDA (MOS6510Cpu cpu, int addressMode) :
     ];
 
     public readonly int[] Cycles = [4, 5, 5, 3, 4, 6, 6];
+
+    private LDA(MOS6510Cpu cpu, int addressMode) : base(cpu, BASE_OP_CODE, addressMode) { }
 
     public override void Execute(int instruction, int address)
     {
