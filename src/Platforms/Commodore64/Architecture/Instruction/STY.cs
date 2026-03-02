@@ -2,7 +2,7 @@ namespace Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
 
 class STY : AddressInstruction
 {
-    public const int BASE_OP_CODE = 0x21;
+    public const int BASE_OP_CODE = 0x80;
 
     public static readonly int[] AddressModes = [
         AddressMode.Absolute,

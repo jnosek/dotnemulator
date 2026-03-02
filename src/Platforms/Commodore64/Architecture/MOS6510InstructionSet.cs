@@ -46,5 +46,8 @@ class MOS6510InstructionSet : InstructionSet
         Add(AddressInstruction.Build<LDA>(cpu));
         Add(AddressInstruction.Build<CMP>(cpu));
         Add(AddressInstruction.Build<SBC>(cpu));
+
+        // build X/Y Instructions
+        Add(AddressInstruction.Build<STY>(cpu));
     }
 }
