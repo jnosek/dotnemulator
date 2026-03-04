@@ -22,6 +22,7 @@ class MOS6510InstructionSet : InstructionSet
         Add(new BVC(cpu));
         Add(new BVS(cpu));
         Add(new BCC(cpu));
+        Add(new BCS(cpu));
 
         // process/status flag instructions
         Add(AddressInstruction.Build<BIT>(cpu));
