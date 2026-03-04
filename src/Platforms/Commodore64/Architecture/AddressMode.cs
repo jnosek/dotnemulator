@@ -5,28 +5,7 @@ public static class AddressMode
     // These address modes and intrinsic to the structure of the opcode
 
     // 0x00
-    public const int Indexed_Indirect = 0b000 << 2;
-
-    // 0x04
-    public const int ZeroPage = 0b001 << 2;
-
-    // 0x08
-    public const int Immediate = 0b010 << 2;
-
-    // 0x0C
-    public const int Absolute = 0b011 << 2;
-
-    // 0x10
-    public const int Indirect_Indexed = 0b100 << 2;
-
-    // 0x14
-    public const int ZeroPageX = 0b101 << 2;
-
-    // 0x18
-    public const int AbsoluteY = 0b110 << 2;
-
-    // 0x1C
-    public const int AbsoluteX = 0b111 << 2;
+    
 
     // these address modes are explicit and not represented as part of the opcode
     // they are specified by instruction that needs them

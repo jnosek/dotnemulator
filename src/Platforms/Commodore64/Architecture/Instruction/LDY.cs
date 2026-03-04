@@ -3,16 +3,16 @@ namespace Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
 /// <summary>
 /// Load Y Instruction
 /// </summary>
-class LDY : AddressInstruction
+class LDY : ControlInstruction
 {
     public const int BASE_OP_CODE = 0xA0;
 
     public static readonly int[] AddressModes = [
-        AddressMode.Immediate,
-        AddressMode.Absolute,
-        AddressMode.AbsoluteX,
-        AddressMode.ZeroPage,
-        AddressMode.ZeroPageX
+        Immediate,
+        Absolute,
+        AbsoluteX,
+        ZeroPage,
+        ZeroPageX
     ];
 
     public readonly int[] Cycles = [2, 4, 4, 3, 4];

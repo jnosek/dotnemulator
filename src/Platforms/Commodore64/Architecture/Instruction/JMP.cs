@@ -5,9 +5,24 @@ namespace Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
 /// </summary>
 class JMP : AddressInstruction
 {
+    // Address Modes
+
+    // 0x0C
+    private const int Absolute = 0x0C;
+    private const int Indirect = 0x0C;
+
+    // op codes
+    public const int ABSOLUTE_OP_CODE = 0x4C;
+    public const int INDIRECT_OP_CODE = 0x6C;
+
     private JMP(MOS6510Cpu cpu, int opCode, int addressMode) : 
         base(cpu, opCode, addressMode)
     {
+        DecodeOperand = opCode switch {
+            ABSOLUTE_OP_CODE => GetAbsoluteOperand,
+            INDIRECT_OP_CODE => GetIndirectOperand,
+             _ => throw new InvalidOperationException($"Unsupported address mode: {addressMode}")
+        };
     }
 
     /// <summary>
@@ -20,16 +35,17 @@ class JMP : AddressInstruction
     /// <param name="cpu"></param>
     /// <returns></returns>
     public static JMP[] Build(MOS6510Cpu cpu) => [
-        new JMP(cpu, ABSOLUTE_OP_CODE, AddressMode.Explicit_Absolute),
-        new JMP(cpu, INDIRECT_OP_CODE, AddressMode.Indirect)
+        new JMP(cpu, ABSOLUTE_OP_CODE, Absolute),
+        new JMP(cpu, INDIRECT_OP_CODE, Indirect)
     ];
 
     public static readonly int[] Cycles = [3, 5];
 
-    public const int ABSOLUTE_OP_CODE = 0x4C;
-    public const int INDIRECT_OP_CODE = 0x6C;
 
-   public override void Execute(int instruction, int address)
+
+    protected override Func<int> DecodeOperand { get; }
+
+    public override void Execute(int instruction, int address)
     {
 
         CPU.PC.Value = address;

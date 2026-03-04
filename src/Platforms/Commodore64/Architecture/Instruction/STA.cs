@@ -3,18 +3,18 @@ namespace Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
 /// <summary>
 /// Store Accumulator Instruction
 /// </summary>
-class STA : AddressInstruction
+class STA : AccumulatorInstruction
 {
     public const int BASE_OP_CODE = 0x81;
 
     public static readonly int[] AddressModes = [
-        AddressMode.Absolute,
-        AddressMode.AbsoluteX,
-        AddressMode.AbsoluteY,
-        AddressMode.ZeroPage,
-        AddressMode.ZeroPageX,
-        AddressMode.Indexed_Indirect,
-        AddressMode.Indirect_Indexed,
+        Absolute,
+        AbsoluteX,
+        AbsoluteY,
+        ZeroPage,
+        ZeroPageX,
+        Indexed_Indirect,
+        Indirect_Indexed
     ];
 
     public readonly int[] Cycles = [4, 5, 5, 3, 4, 6, 6];

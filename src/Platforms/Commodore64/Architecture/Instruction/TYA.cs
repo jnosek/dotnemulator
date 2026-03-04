@@ -15,7 +15,7 @@ class TYA(MOS6510Cpu cpu) : ImpliedInstruction(cpu)
         CPU.A.Value = y;
 
         // set status flags
-        CPU.P.NegativeFlag = (CPU.A.Value & 0x80) != 0;
-        CPU.P.ZeroFlag = CPU.A.Value == 0;
+        CPU.P.NegativeFlag = (y & 0x80) != 0;
+        CPU.P.ZeroFlag = y == 0;
     }
 }

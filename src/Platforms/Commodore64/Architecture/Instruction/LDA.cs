@@ -5,20 +5,11 @@ namespace Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
 /// </summary>
 /// <param name="cpu"></param>
 /// <param name="addressMode"></param>
-class LDA : AddressInstruction
+class LDA : AccumulatorInstruction
 {
     public const int BASE_OP_CODE = 0xA1;
 
-    public static readonly int[] AddressModes = [
-        AddressMode.Immediate,
-        AddressMode.Absolute,
-        AddressMode.AbsoluteX,
-        AddressMode.AbsoluteY,
-        AddressMode.ZeroPage,
-        AddressMode.ZeroPageX,
-        AddressMode.Indexed_Indirect,
-        AddressMode.Indirect_Indexed,
-    ];
+    public static readonly int[] AddressModes = Default_Modes;
 
     public readonly int[] Cycles = [4, 5, 5, 3, 4, 6, 6];
 

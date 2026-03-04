@@ -13,7 +13,7 @@ public class CMP_Test
     {
         // arrange
         var emulator = new TestEmulator([
-            CMP.BASE_OP_CODE | AddressMode.Immediate,
+            CMP.BASE_OP_CODE | AccumulatorInstruction.Immediate,
             0b0000_0110,
             0xEA
         ])
@@ -36,7 +36,7 @@ public class CMP_Test
     {
         // arrange
         var emulator = new TestEmulator([
-            CMP.BASE_OP_CODE | AddressMode.ZeroPage,
+            CMP.BASE_OP_CODE | AccumulatorInstruction.ZeroPage,
             0x03,
             0xEA
         ],
@@ -60,7 +60,7 @@ public class CMP_Test
     {
         // arrange
         var emulator = new TestEmulator([
-            CMP.BASE_OP_CODE | AddressMode.ZeroPageX,
+            CMP.BASE_OP_CODE | AccumulatorInstruction.ZeroPageX,
             0x03,
             0xEA
         ],
@@ -85,7 +85,7 @@ public class CMP_Test
     {
         // arrange
         var emulator = new TestEmulator([
-            CMP.BASE_OP_CODE | AddressMode.Absolute,
+            CMP.BASE_OP_CODE | AccumulatorInstruction.Absolute,
             0x00,
             0xC0,
             0xEA
@@ -110,7 +110,7 @@ public class CMP_Test
     {
         // arrange
         var emulator = new TestEmulator([
-            CMP.BASE_OP_CODE | AddressMode.AbsoluteX,
+            CMP.BASE_OP_CODE | AccumulatorInstruction.AbsoluteX,
             0x00,
             0xC0,
             0xEA
@@ -136,7 +136,7 @@ public class CMP_Test
     {
         // arrange
         var emulator = new TestEmulator([
-            CMP.BASE_OP_CODE | AddressMode.AbsoluteY,
+            CMP.BASE_OP_CODE | AccumulatorInstruction.AbsoluteY,
             0x00,
             0xC0,
             0xEA
@@ -162,7 +162,7 @@ public class CMP_Test
     {
         // arrange
         var emulator = new TestEmulator([
-            CMP.BASE_OP_CODE | AddressMode.Indexed_Indirect,
+            CMP.BASE_OP_CODE | AccumulatorInstruction.Indexed_Indirect,
             0x02,
             0xEA
         ],
@@ -193,7 +193,7 @@ public class CMP_Test
         var emulator = new TestEmulator(
         // rom
         [
-            CMP.BASE_OP_CODE | AddressMode.Indirect_Indexed,
+            CMP.BASE_OP_CODE | AccumulatorInstruction.Indirect_Indexed,
             0x02,
             0xEA
         ],

@@ -13,7 +13,7 @@ public sealed class STA_Test
     {
         // arrange
         var emulator = new TestEmulator([
-            STA.BASE_OP_CODE | AddressMode.ZeroPage,
+            STA.BASE_OP_CODE | AccumulatorInstruction.ZeroPage,
             0x03,
             0xEA
         ]);
@@ -32,7 +32,7 @@ public sealed class STA_Test
     {
         // arrange
         var emulator = new TestEmulator([
-            STA.BASE_OP_CODE | AddressMode.ZeroPageX,
+            STA.BASE_OP_CODE | AccumulatorInstruction.ZeroPageX,
             0x03,
             0xEA
         ]);
@@ -52,7 +52,7 @@ public sealed class STA_Test
     {
         // arrange
         var emulator = new TestEmulator([
-            STA.BASE_OP_CODE | AddressMode.Absolute,
+            STA.BASE_OP_CODE | AccumulatorInstruction.Absolute,
             0x00,
             0xC0,
             0xEA
@@ -72,7 +72,7 @@ public sealed class STA_Test
     {
         // arrange
         var emulator = new TestEmulator([
-            STA.BASE_OP_CODE | AddressMode.AbsoluteX,
+            STA.BASE_OP_CODE | AccumulatorInstruction.AbsoluteX,
             0x00,
             0xC0,
             0xEA
@@ -93,7 +93,7 @@ public sealed class STA_Test
     {
         // arrange
         var emulator = new TestEmulator([
-            STA.BASE_OP_CODE | AddressMode.AbsoluteY,
+            STA.BASE_OP_CODE | AccumulatorInstruction.AbsoluteY,
             0x00,
             0xC0,
             0xEA
@@ -114,7 +114,7 @@ public sealed class STA_Test
     {
         // arrange
         var emulator = new TestEmulator([
-            STA.BASE_OP_CODE | AddressMode.Indexed_Indirect,
+            STA.BASE_OP_CODE | AccumulatorInstruction.Indexed_Indirect,
             0x02,
             0xEA
         ],
@@ -141,7 +141,7 @@ public sealed class STA_Test
         var emulator = new TestEmulator(
         // rom
         [
-            STA.BASE_OP_CODE | AddressMode.Indirect_Indexed,
+            STA.BASE_OP_CODE | AccumulatorInstruction.Indirect_Indexed,
             0x02,
             0xEA
         ],

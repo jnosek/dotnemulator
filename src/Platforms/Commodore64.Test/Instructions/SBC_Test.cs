@@ -13,7 +13,7 @@ public class SBC_Test
     {
         // arrange: 7 - 3 - 0(borrow) = 4
         var emulator = new TestEmulator([
-            SBC.BASE_OP_CODE | AddressMode.Immediate,
+            SBC.BASE_OP_CODE | AccumulatorInstruction.Immediate,
             0x03,
             0xEA
         ])
@@ -38,7 +38,7 @@ public class SBC_Test
     {
         // arrange: 5 - 10 - 0(borrow) = -5 = 0xFB, borrow occurs
         var emulator = new TestEmulator([
-            SBC.BASE_OP_CODE | AddressMode.ZeroPage,
+            SBC.BASE_OP_CODE | AccumulatorInstruction.ZeroPage,
             0x10,
             0xEA
         ],
@@ -64,7 +64,7 @@ public class SBC_Test
     {
         // arrange: 8 - 8 - 0(borrow) = 0, zero result
         var emulator = new TestEmulator([
-            SBC.BASE_OP_CODE | AddressMode.ZeroPageX,
+            SBC.BASE_OP_CODE | AccumulatorInstruction.ZeroPageX,
             0x04,
             0xEA
         ],
@@ -91,7 +91,7 @@ public class SBC_Test
     {
         // arrange: 16 - 1 - 1(borrow) = 14 = 0x0E, carry-in is clear
         var emulator = new TestEmulator([
-            SBC.BASE_OP_CODE | AddressMode.Absolute,
+            SBC.BASE_OP_CODE | AccumulatorInstruction.Absolute,
             0x00,
             0xC0,
             0xEA
@@ -118,7 +118,7 @@ public class SBC_Test
     {
         // arrange: 0x50(+80) - 0xB0(-80 signed) - 0(borrow) = -96 = 0xA0, signed overflow
         var emulator = new TestEmulator([
-            SBC.BASE_OP_CODE | AddressMode.AbsoluteX,
+            SBC.BASE_OP_CODE | AccumulatorInstruction.AbsoluteX,
             0x00,
             0xC0,
             0xEA
@@ -146,7 +146,7 @@ public class SBC_Test
     {
         // arrange: 0xD0(-48 signed) - 0x70(+112) - 0(borrow) = 0x60(+96), signed overflow
         var emulator = new TestEmulator([
-            SBC.BASE_OP_CODE | AddressMode.AbsoluteY,
+            SBC.BASE_OP_CODE | AccumulatorInstruction.AbsoluteY,
             0x00,
             0xC0,
             0xEA
@@ -174,7 +174,7 @@ public class SBC_Test
     {
         // arrange: 0x20 - 0x05 - 1(borrow) = 0x1A = 26, carry-in clear
         var emulator = new TestEmulator([
-            SBC.BASE_OP_CODE | AddressMode.Indexed_Indirect,
+            SBC.BASE_OP_CODE | AccumulatorInstruction.Indexed_Indirect,
             0x02,
             0xEA
         ],
@@ -207,7 +207,7 @@ public class SBC_Test
         var emulator = new TestEmulator(
         // rom
         [
-            SBC.BASE_OP_CODE | AddressMode.Indirect_Indexed,
+            SBC.BASE_OP_CODE | AccumulatorInstruction.Indirect_Indexed,
             0x02,
             0xEA
         ],

@@ -12,7 +12,7 @@ public class AND_Test
     {
         // arrange
         var emulator = new TestEmulator([
-            AND.BASE_OP_CODE | AddressMode.Immediate,
+            AND.BASE_OP_CODE | AccumulatorInstruction.Immediate,
             0b0000_0010,
             0xEA
         ])
@@ -34,7 +34,7 @@ public class AND_Test
     {
         // arrange
         var emulator = new TestEmulator([
-            AND.BASE_OP_CODE | AddressMode.Immediate,
+            AND.BASE_OP_CODE | AccumulatorInstruction.Immediate,
             0b0000_0001,
             0xEA
         ])
@@ -56,7 +56,7 @@ public class AND_Test
     {
         // arrange
         var emulator = new TestEmulator([
-            AND.BASE_OP_CODE | AddressMode.ZeroPage,
+            AND.BASE_OP_CODE | AccumulatorInstruction.ZeroPage,
             0x03,
             0xEA
         ],
@@ -79,7 +79,7 @@ public class AND_Test
     {
         // arrange
         var emulator = new TestEmulator([
-            AND.BASE_OP_CODE | AddressMode.ZeroPageX,
+            AND.BASE_OP_CODE | AccumulatorInstruction.ZeroPageX,
             0x03,
             0xEA
         ],
@@ -103,7 +103,7 @@ public class AND_Test
     {
         // arrange
         var emulator = new TestEmulator([
-            AND.BASE_OP_CODE | AddressMode.Absolute,
+            AND.BASE_OP_CODE | AccumulatorInstruction.Absolute,
             0x00,
             0xC0,
             0xEA
@@ -128,7 +128,7 @@ public class AND_Test
     {
         // arrange
         var emulator = new TestEmulator([
-            AND.BASE_OP_CODE | AddressMode.AbsoluteX,
+            AND.BASE_OP_CODE | AccumulatorInstruction.AbsoluteX,
             0x00,
             0xC0,
             0xEA
@@ -153,7 +153,7 @@ public class AND_Test
     {
         // arrange
         var emulator = new TestEmulator([
-            AND.BASE_OP_CODE | AddressMode.AbsoluteY,
+            AND.BASE_OP_CODE | AccumulatorInstruction.AbsoluteY,
             0x00,
             0xC0,
             0xEA
@@ -178,7 +178,7 @@ public class AND_Test
     {
         // arrange
         var emulator = new TestEmulator([
-            AND.BASE_OP_CODE | AddressMode.Indexed_Indirect,
+            AND.BASE_OP_CODE | AccumulatorInstruction.Indexed_Indirect,
             0x02,
             0xEA
         ],
@@ -208,7 +208,7 @@ public class AND_Test
         var emulator = new TestEmulator(
         // rom
         [
-            AND.BASE_OP_CODE | AddressMode.Indirect_Indexed,
+            AND.BASE_OP_CODE | AccumulatorInstruction.Indirect_Indexed,
             0x02,
             0xEA
         ],

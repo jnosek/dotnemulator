@@ -12,7 +12,7 @@ public class ADC_Test
     {
         // arrange
         var emulator = new TestEmulator([
-            ADC.BASE_OP_CODE | AddressMode.Immediate,
+            ADC.BASE_OP_CODE | AccumulatorInstruction.Immediate,
             0b0000_0100,
             0xEA
         ])
@@ -36,7 +36,7 @@ public class ADC_Test
     {
         // arrange
         var emulator = new TestEmulator([
-            ADC.BASE_OP_CODE | AddressMode.ZeroPage,
+            ADC.BASE_OP_CODE | AccumulatorInstruction.ZeroPage,
             0x03,
             0xEA
         ],
@@ -61,7 +61,7 @@ public class ADC_Test
     {
         // arrange
         var emulator = new TestEmulator([
-            ADC.BASE_OP_CODE | AddressMode.Immediate,
+            ADC.BASE_OP_CODE | AccumulatorInstruction.Immediate,
             0b1111_1111,
             0xEA
         ])
@@ -85,7 +85,7 @@ public class ADC_Test
     {
         // arrange
         var emulator = new TestEmulator([
-            ADC.BASE_OP_CODE | AddressMode.Absolute,
+            ADC.BASE_OP_CODE | AccumulatorInstruction.Absolute,
             0x00,
             0xC0,
             0xEA
@@ -113,7 +113,7 @@ public class ADC_Test
     {
         // arrange
         var emulator = new TestEmulator([
-            ADC.BASE_OP_CODE | AddressMode.AbsoluteX,
+            ADC.BASE_OP_CODE | AccumulatorInstruction.AbsoluteX,
             0x00,
             0xC0,
             0xEA
@@ -142,7 +142,7 @@ public class ADC_Test
     {
         // arrange
         var emulator = new TestEmulator([
-            ADC.BASE_OP_CODE | AddressMode.AbsoluteY,
+            ADC.BASE_OP_CODE | AccumulatorInstruction.AbsoluteY,
             0x00,
             0xC0,
             0xEA
@@ -171,7 +171,7 @@ public class ADC_Test
     {
         // arrange
         var emulator = new TestEmulator([
-            ADC.BASE_OP_CODE | AddressMode.Indexed_Indirect,
+            ADC.BASE_OP_CODE | AccumulatorInstruction.Indexed_Indirect,
             0x02,
             0xEA
         ],
@@ -203,7 +203,7 @@ public class ADC_Test
         var emulator = new TestEmulator(
         // rom
         [
-            ADC.BASE_OP_CODE | AddressMode.Indirect_Indexed,
+            ADC.BASE_OP_CODE | AccumulatorInstruction.Indirect_Indexed,
             0x02,
             0xEA
         ],

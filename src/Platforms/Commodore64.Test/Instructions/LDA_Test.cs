@@ -13,7 +13,7 @@ public class LDA_Test
     {
         // arrange
         var emulator = new TestEmulator([
-            LDA.BASE_OP_CODE | AddressMode.Immediate,
+            LDA.BASE_OP_CODE | AccumulatorInstruction.Immediate,
             0b0000_0010,
             0xEA
         ]);
@@ -32,7 +32,7 @@ public class LDA_Test
     {
         // arrange
         var emulator = new TestEmulator([
-            LDA.BASE_OP_CODE | AddressMode.ZeroPage,
+            LDA.BASE_OP_CODE | AccumulatorInstruction.ZeroPage,
             0x03,
             0xEA
         ],
@@ -52,7 +52,7 @@ public class LDA_Test
     {
         // arrange
         var emulator = new TestEmulator([
-            LDA.BASE_OP_CODE | AddressMode.ZeroPageX,
+            LDA.BASE_OP_CODE | AccumulatorInstruction.ZeroPageX,
             0x03,
             0xEA
         ],
@@ -75,7 +75,7 @@ public class LDA_Test
     {
         // arrange
         var emulator = new TestEmulator([
-            LDA.BASE_OP_CODE | AddressMode.Absolute,
+            LDA.BASE_OP_CODE | AccumulatorInstruction.Absolute,
             0x00,
             0xC0,
             0xEA
@@ -97,7 +97,7 @@ public class LDA_Test
     {
         // arrange
         var emulator = new TestEmulator([
-            LDA.BASE_OP_CODE | AddressMode.AbsoluteX,
+            LDA.BASE_OP_CODE | AccumulatorInstruction.AbsoluteX,
             0x00,
             0xC0,
             0xEA
@@ -121,7 +121,7 @@ public class LDA_Test
     {
         // arrange
         var emulator = new TestEmulator([
-            LDA.BASE_OP_CODE | AddressMode.AbsoluteY,
+            LDA.BASE_OP_CODE | AccumulatorInstruction.AbsoluteY,
             0x00,
             0xC0,
             0xEA
@@ -145,7 +145,7 @@ public class LDA_Test
     {
         // arrange
         var emulator = new TestEmulator([
-            LDA.BASE_OP_CODE | AddressMode.Indexed_Indirect,
+            LDA.BASE_OP_CODE | AccumulatorInstruction.Indexed_Indirect,
             0x02,
             0xEA
         ],
@@ -174,7 +174,7 @@ public class LDA_Test
         var emulator = new TestEmulator(
         // rom
         [
-            ORA.BASE_OP_CODE | AddressMode.Indirect_Indexed,
+            ORA.BASE_OP_CODE | AccumulatorInstruction.Indirect_Indexed,
             0x02,
             0xEA
         ],

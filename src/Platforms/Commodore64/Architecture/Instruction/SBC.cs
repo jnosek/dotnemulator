@@ -3,20 +3,11 @@ namespace Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
 /// <summary>
 /// Subtract with Carry instruction. Computes A = A - M - (1 - C).
 /// </summary>
-class SBC : AddressInstruction
+class SBC : AccumulatorInstruction
 {
     public const int BASE_OP_CODE = 0xE1;
 
-    public static readonly int[] AddressModes = [
-        AddressMode.Immediate,
-        AddressMode.Absolute,
-        AddressMode.AbsoluteX,
-        AddressMode.AbsoluteY,
-        AddressMode.ZeroPage,
-        AddressMode.ZeroPageX,
-        AddressMode.Indexed_Indirect,
-        AddressMode.Indirect_Indexed,
-    ];
+    public static readonly int[] AddressModes = Default_Modes;
 
     public readonly int[] Cycles = [2, 4, 4, 4, 3, 4, 6, 5];
 

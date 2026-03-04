@@ -5,10 +5,19 @@ namespace Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
 /// It pushes the return address to stack and sets the program counter to target address.
 /// </summary>
 /// <param name="cpu"></param>
-class JSR(MOS6510Cpu cpu) : 
-    AddressInstruction(cpu, OP_CODE, AddressMode.Explicit_Absolute)
+class JSR : AddressInstruction
 {
     public const int OP_CODE = 0x20;
+
+    protected override Func<int> DecodeOperand { get; }
+
+    public JSR(MOS6510Cpu cpu) : 
+        base(cpu, OP_CODE, 0x00)
+    {
+        // JSR only supports absolute addressing mode, at a different address mode code 
+        // than the rest of the instruction set
+        DecodeOperand = GetAbsoluteOperand;
+    }
 
     public override void Execute(int instruction, int address)
     {

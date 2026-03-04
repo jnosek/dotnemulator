@@ -1,13 +1,13 @@
 namespace Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
 
-class STY : AddressInstruction
+class STY : ControlInstruction
 {
     public const int BASE_OP_CODE = 0x80;
 
     public static readonly int[] AddressModes = [
-        AddressMode.Absolute,
-        AddressMode.ZeroPage,
-        AddressMode.ZeroPageX
+        Absolute,
+        ZeroPage,
+        ZeroPageX
     ];
 
     public static readonly int[] Cycles = [4, 3, 4];
