@@ -1,5 +1,9 @@
 namespace Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
 
+/// <summary>
+/// Base class for control instructions (branching and jumping)
+/// and the applicable memory addressing modes
+/// </summary>
 abstract class ControlInstruction : AddressInstruction
 {
     // Control Address Modes

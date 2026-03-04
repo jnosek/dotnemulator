@@ -1,5 +1,8 @@
 namespace Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
 
+/// <summary>
+/// Exclusive OR instruction
+/// </summary>
 class EOR : AccumulatorInstruction
 {
     public const int BASE_OP_CODE = 0x41;

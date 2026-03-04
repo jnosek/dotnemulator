@@ -1,5 +1,9 @@
 namespace Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
 
+/// <summary>
+/// Transfer Y to Accumulator instruction
+/// </summary>
+/// <param name="cpu"></param>
 class TYA(MOS6510Cpu cpu) : ImpliedInstruction(cpu)
 {
     public const int OP_CODE = 0x98;

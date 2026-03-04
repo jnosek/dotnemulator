@@ -1,5 +1,9 @@
 namespace Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
 
+/// <summary>
+/// Branch if Carry Clear instruction
+/// </summary>
+/// <param name="cpu"></param>
 class BCC(MOS6510Cpu cpu) : RelativeInstruction(cpu, OP_CODE)
 {
     public const int OP_CODE = 0x90;

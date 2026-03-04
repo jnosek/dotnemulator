@@ -2,6 +2,10 @@ using Dotnemulator.Abstraction.Operations;
 
 namespace Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
 
+/// <summary>
+/// Base class for relative instructions, which have a single byte operand 
+/// that is added to the program counter if the branch is taken
+/// </summary>
 abstract class RelativeInstruction : IInstruction
 {
     protected readonly MOS6510Cpu CPU;

@@ -1,4 +1,3 @@
-
 using Dotnemulator.Platforms.Commodore64.Architecture;
 using Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
 using Dotnemulator.Platforms.Commodore64.Test.Mocks;
@@ -8,7 +7,7 @@ namespace Dotnemulator.Platforms.Commodore64.Test.Instructions;
 [TestClass]
 public class BCC_Test
 {
-[TestMethod]
+    [TestMethod]
     public void Relative_Branch()
     {
         // arrange
