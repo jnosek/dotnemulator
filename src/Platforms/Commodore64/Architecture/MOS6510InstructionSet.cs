@@ -54,6 +54,7 @@ class MOS6510InstructionSet : InstructionSet
         Add(AddressInstruction.Build<STY>(cpu));
         Add(AddressInstruction.Build<LDY>(cpu));
         Add(new DEY(cpu));
+        Add(new INY(cpu));
         Add(new TYA(cpu));
         Add(new TAY(cpu));
         Add(AddressInstruction.Build<CPY>(cpu));
