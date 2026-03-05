@@ -34,6 +34,7 @@ class MOS6510InstructionSet : InstructionSet
         Add(new SEI(cpu));
         Add(new CLV(cpu));
         Add(new CLD(cpu));
+        Add(new SED(cpu));
 
         // jump instructions
         Add(new JSR(cpu));
