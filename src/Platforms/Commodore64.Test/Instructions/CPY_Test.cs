@@ -12,18 +12,18 @@ public class CPY_Test
         // arrange
         var emulator = new TestEmulator([
             CPY.BASE_OP_CODE | ControlInstruction.Immediate,
-            0b0000_0010,
+            0b0100_0010,
             0xEA
         ])
         {
-            Y = 0b1000_0000
+            Y = 0b0000_0010
         };
 
         // act
         emulator.Start();
 
         // assert
-        Assert.AreEqual(0b1000_0000, emulator.Y);
+        Assert.AreEqual(0b0000_0010, emulator.Y);
         Assert.IsFalse(emulator.Cpu.P.ZeroFlag);
         Assert.IsTrue(emulator.Cpu.P.NegativeFlag);
         Assert.IsFalse(emulator.Cpu.P.CarryFlag);
@@ -38,7 +38,7 @@ public class CPY_Test
             0x03,
             0xEA
         ],
-        [ (0x3, 0b1111_1111) ])
+        [ (0x3, 0b0000_0001) ])
         {
             Y = 0b0000_0001
         };
