@@ -1,11 +1,11 @@
 namespace Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
 
 /// <summary>
-/// Compare Y Register instruction
+/// Compare X Register (CPX) instruction
 /// </summary>
-class CPY : ControlInstruction
+class CPX: ControlInstruction
 {
-    public const int BASE_OP_CODE = 0xC0;
+    public const int BASE_OP_CODE = 0xE0;
 
     public static readonly int[] AddressModes = [
         Immediate,
@@ -15,14 +15,14 @@ class CPY : ControlInstruction
 
     public static readonly int[] Cycles = [2, 3, 4];
 
-    private CPY(MOS6510Cpu cpu, int addressMode) : base(cpu, BASE_OP_CODE, addressMode) { }
+    private CPX(MOS6510Cpu cpu, int addressMode) : base(cpu, BASE_OP_CODE, addressMode) { }
 
     public override void Execute(int instruction, int address)
     {
-        var y = CPU.Y.Value;
+        var x = CPU.X.Value;
         var value = CPU.Read(address);
 
-        var result = y - value;
+        var result = x - value;
 
         CPU.P.NegativeFlag = (0x80 & result) != 0;
         CPU.P.ZeroFlag = result == 0;
