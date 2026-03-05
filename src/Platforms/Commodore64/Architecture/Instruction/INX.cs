@@ -4,7 +4,7 @@ namespace Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
 /// Increment X Register (INX) instruction
 /// </summary>
 /// <param name="cpu"></param>
-public class INX(MOS6510Cpu cpu) : ImpliedInstruction(cpu)
+class INX(MOS6510Cpu cpu) : ImpliedInstruction(cpu)
 {
     public const int OP_CODE = 0xE8;
 
