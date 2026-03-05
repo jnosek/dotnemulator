@@ -90,6 +90,14 @@ abstract class AddressInstruction : IInstruction
         return operand;
     }
 
+    protected int GetZeroPageYOperand()
+    {
+        var operand = CPU.ReadNextByte();
+        operand = (operand + CPU.Y.Value) & 0xFF;
+
+        return operand;
+    }
+
     protected int GetAbsoluteOperand()
     {
         var operand = CPU.ReadNextWord();

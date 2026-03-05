@@ -3,7 +3,7 @@ namespace Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
 /// <summary>
 /// Compare Y Register instruction
 /// </summary>
-class CPY : ControlInstruction
+class CPY : XAddressInstruction
 {
     public const int BASE_OP_CODE = 0xC0;
 

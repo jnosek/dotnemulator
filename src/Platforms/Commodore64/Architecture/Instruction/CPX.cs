@@ -3,7 +3,7 @@ namespace Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
 /// <summary>
 /// Compare X Register (CPX) instruction
 /// </summary>
-class CPX: ControlInstruction
+class CPX: XAddressInstruction
 {
     public const int BASE_OP_CODE = 0xE0;
 

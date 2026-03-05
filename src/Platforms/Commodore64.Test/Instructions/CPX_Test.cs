@@ -11,7 +11,7 @@ public class CPX_Test
     {
         // arrange
         var emulator = new TestEmulator([
-            CPX.BASE_OP_CODE | ControlInstruction.Immediate,
+            CPX.BASE_OP_CODE | XAddressInstruction.Immediate,
             0b0100_0010,
             0xEA
         ])
@@ -34,7 +34,7 @@ public class CPX_Test
     {
         // arrange
         var emulator = new TestEmulator([
-            CPX.BASE_OP_CODE | ControlInstruction.ZeroPage,
+            CPX.BASE_OP_CODE | XAddressInstruction.ZeroPage,
             0x03,
             0xEA
         ],
@@ -58,7 +58,7 @@ public class CPX_Test
     {
         // arrange
         var emulator = new TestEmulator([
-            CPX.BASE_OP_CODE | ControlInstruction.Absolute,
+            CPX.BASE_OP_CODE | XAddressInstruction.Absolute,
             0x00,
             0xC0,
             0xEA

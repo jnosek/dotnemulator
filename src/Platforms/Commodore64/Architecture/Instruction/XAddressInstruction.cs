@@ -1,12 +1,12 @@
 namespace Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
 
 /// <summary>
-/// Base class for control instructions (branching and jumping)
-/// and the applicable memory addressing modes
+/// Base class for instructions that function on addresses 
+/// with an X register offset, such as Zero Page,X or Absolute,X
 /// </summary>
-abstract class ControlInstruction : AddressInstruction
+abstract class XAddressInstruction : AddressInstruction
 {
-    // Control Address Modes
+    // Address Modes
 
     // 0x00
     public const int Immediate = 0b000 << 2;
@@ -32,7 +32,7 @@ abstract class ControlInstruction : AddressInstruction
         ZeroPageX
     ];
 
-    protected ControlInstruction(MOS6510Cpu cpu, int baseCode, int addressMode) : base(cpu, baseCode, addressMode)
+    protected XAddressInstruction(MOS6510Cpu cpu, int baseCode, int addressMode) : base(cpu, baseCode, addressMode)
     {
         DecodeOperand = addressMode switch 
         {

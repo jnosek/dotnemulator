@@ -12,7 +12,7 @@ namespace Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
 /// </remarks>
 /// <param name="cpu"></param>
 /// <param name="addressMode"></param>
-class BIT : ControlInstruction
+class BIT : XAddressInstruction
 {
     public const int BASE_OP_CODE = 0x20;
     public static readonly int[] AddressModes = [

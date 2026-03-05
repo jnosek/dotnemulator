@@ -13,7 +13,7 @@ public class LDY_Test
     {
         // arrange
         var emulator = new TestEmulator([
-            LDY.BASE_OP_CODE | ControlInstruction.Immediate,
+            LDY.BASE_OP_CODE | XAddressInstruction.Immediate,
             0b0000_0010,
             0xEA
         ]);
@@ -32,7 +32,7 @@ public class LDY_Test
     {
         // arrange
         var emulator = new TestEmulator([
-            LDY.BASE_OP_CODE | ControlInstruction.ZeroPage,
+            LDY.BASE_OP_CODE | XAddressInstruction.ZeroPage,
             0x03,
             0xEA
         ],
@@ -52,7 +52,7 @@ public class LDY_Test
     {
         // arrange
         var emulator = new TestEmulator([
-            LDY.BASE_OP_CODE | ControlInstruction.ZeroPageX,
+            LDY.BASE_OP_CODE | XAddressInstruction.ZeroPageX,
             0x03,
             0xEA
         ],
@@ -75,7 +75,7 @@ public class LDY_Test
     {
         // arrange
         var emulator = new TestEmulator([
-            LDY.BASE_OP_CODE | ControlInstruction.Absolute,
+            LDY.BASE_OP_CODE | XAddressInstruction.Absolute,
             0x00,
             0xC0,
             0xEA
@@ -97,7 +97,7 @@ public class LDY_Test
     {
         // arrange
         var emulator = new TestEmulator([
-            LDY.BASE_OP_CODE | ControlInstruction.AbsoluteX,
+            LDY.BASE_OP_CODE | XAddressInstruction.AbsoluteX,
             0x00,
             0xC0,
             0xEA

@@ -3,7 +3,7 @@ namespace Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
 /// <summary>
 /// Load Y Instruction
 /// </summary>
-class LDY : ControlInstruction
+class LDY : XAddressInstruction
 {
     public const int BASE_OP_CODE = 0xA0;
 

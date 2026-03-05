@@ -3,7 +3,7 @@ namespace Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
 /// <summary>
 /// Store Y Register instruction
 /// </summary>
-class STY : ControlInstruction
+class STY : XAddressInstruction
 {
     public const int BASE_OP_CODE = 0x80;
 

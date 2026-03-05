@@ -14,7 +14,7 @@ public sealed class STY_Test
     {
         // arrange
         var emulator = new TestEmulator([
-            STY.BASE_OP_CODE | ControlInstruction.ZeroPage,
+            STY.BASE_OP_CODE | XAddressInstruction.ZeroPage,
             0x03,
             0xEA
         ])
@@ -34,7 +34,7 @@ public sealed class STY_Test
     {
         // arrange
         var emulator = new TestEmulator([
-            STY.BASE_OP_CODE | ControlInstruction.ZeroPageX,
+            STY.BASE_OP_CODE | XAddressInstruction.ZeroPageX,
             0x03,
             0xEA
         ])
@@ -55,7 +55,7 @@ public sealed class STY_Test
     {
         // arrange
         var emulator = new TestEmulator([
-            STY.BASE_OP_CODE | ControlInstruction.Absolute,
+            STY.BASE_OP_CODE | XAddressInstruction.Absolute,
             0x00,
             0xC0,
             0xEA

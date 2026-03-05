@@ -13,7 +13,7 @@ public class BIT_Test
     {
         // arrange
         var emulator = new TestEmulator([
-            BIT.BASE_OP_CODE | ControlInstruction.ZeroPage,
+            BIT.BASE_OP_CODE | XAddressInstruction.ZeroPage,
             0x03,
             0xEA
         ],
@@ -37,7 +37,7 @@ public class BIT_Test
     {
         // arrange
         var emulator = new TestEmulator([
-            BIT.BASE_OP_CODE | ControlInstruction.ZeroPage,
+            BIT.BASE_OP_CODE | XAddressInstruction.ZeroPage,
             0x03,
             0xEA
         ],
@@ -61,7 +61,7 @@ public class BIT_Test
     {
         // arrange
         var emulator = new TestEmulator([
-            BIT.BASE_OP_CODE | ControlInstruction.Absolute,
+            BIT.BASE_OP_CODE | XAddressInstruction.Absolute,
             0x00,
             0xC0,
             0xEA
@@ -86,7 +86,7 @@ public class BIT_Test
     {
         // arrange
         var emulator = new TestEmulator([
-            BIT.BASE_OP_CODE | ControlInstruction.Absolute,
+            BIT.BASE_OP_CODE | XAddressInstruction.Absolute,
             0x00,
             0xC0,
             0xEA
