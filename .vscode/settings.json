@@ -1,6 +1,7 @@
 {
     "dotnet.defaultSolution": "Dotnemulator.sln",
     "cSpell.words": [
+        "ASLA",
         "Dotnemulator"
     ]
 }

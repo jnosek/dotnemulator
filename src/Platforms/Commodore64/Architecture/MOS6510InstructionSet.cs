@@ -40,8 +40,6 @@ class MOS6510InstructionSet : InstructionSet
         Add(new JSR(cpu));
         Add(JMP.Build(cpu));
         Add(new RTS(cpu));
-
-        // interrupt instructions
         Add(new RTI(cpu));
 
         // build Accumulator Instructions
@@ -64,5 +62,9 @@ class MOS6510InstructionSet : InstructionSet
         Add(AddressInstruction.Build<CPY>(cpu));
         Add(new INX(cpu));
         Add(AddressInstruction.Build<CPX>(cpu));
+
+        // Read Modify Write Instructions
+        Add(AddressInstruction.Build<ASL>(cpu));
+        Add(new ASLA(cpu));
     }
 }
