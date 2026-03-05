@@ -66,5 +66,7 @@ class MOS6510InstructionSet : InstructionSet
         // Read Modify Write Instructions
         Add(AddressInstruction.Build<ASL>(cpu));
         Add(new ASLA(cpu));
+        Add(AddressInstruction.Build<ROL>(cpu));
+        Add(new ROLA(cpu));
     }
 }
