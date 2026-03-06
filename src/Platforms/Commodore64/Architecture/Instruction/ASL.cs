@@ -33,10 +33,13 @@ class ASL : XAddressInstruction
 
     public static int ShiftLeft(MOS6510Cpu cpu, int value)
     {
-        value <<= 1;
-        var result = value & 0xFF;
+        // check for new carry flag
+        cpu.P.CarryFlag = (value & 0x80) != 0;
 
-        cpu.P.CarryFlag = (value & 0x1_00) != 0;
+        // shift left and truncate
+        var result = (value << 1) & 0xFF;
+
+        // set flags
         cpu.P.ZeroFlag = result == 0;
         cpu.P.NegativeFlag = (result & 0x80) != 0;
 

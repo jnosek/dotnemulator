@@ -7,7 +7,7 @@ namespace Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
 /// <param name="cpu"></param>
 class RORA(MOS6510Cpu cpu) : ImpliedInstruction(cpu)
 {
-     public const int OP_CODE = 0x6A;
+    public const int OP_CODE = 0x6A;
 
     public override int OpCode => OP_CODE;
 

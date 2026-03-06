@@ -34,9 +34,13 @@ class ROL : XAddressInstruction
 
     public static int RotateLeft(MOS6510Cpu cpu, int value)
     {
+        // rotate left
         value <<= 1;
+
+        // truncate value and add current carry to bit 0
         var result = (value & 0xFF) | (cpu.P.CarryFlag ? 0x01 : 0x00);
 
+        // set new carry and check flags
         cpu.P.CarryFlag = (value & 0x1_00) != 0;
         cpu.P.ZeroFlag = result == 0;
         cpu.P.NegativeFlag = (result & 0x80) != 0;

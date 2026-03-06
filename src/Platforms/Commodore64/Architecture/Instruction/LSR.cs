@@ -33,9 +33,13 @@ class LSR : XAddressInstruction
 
     public static int ShiftRight(MOS6510Cpu cpu, int value)
     {
+        // check for new carry flag
+        cpu.P.CarryFlag = (value & 0x01) != 0;
+
+        // shift right
         var result = (value & 0xFF) >> 1;
 
-        cpu.P.CarryFlag = (value & 0x01) != 0;
+        // check flags       
         cpu.P.ZeroFlag = result == 0;
         cpu.P.NegativeFlag = false;
 

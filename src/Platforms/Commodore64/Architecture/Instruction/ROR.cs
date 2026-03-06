@@ -33,11 +33,14 @@ class ROR : XAddressInstruction
 
     public static int RotateRight(MOS6510Cpu cpu, int value)
     {
+        // grab new carry before shit
         var carry = (value & 0x01) != 0;
 
+        // shift and bring in current carry
         value >>= 1;
         var result = (value & 0xFF) | (cpu.P.CarryFlag ? 0x80 : 0x00);
 
+        // set new carry and check flags
         cpu.P.CarryFlag = carry;
         cpu.P.ZeroFlag = result == 0;
         cpu.P.NegativeFlag = (result & 0x80) != 0;
