@@ -62,6 +62,7 @@ class MOS6510InstructionSet : InstructionSet
         Add(AddressInstruction.Build<CPY>(cpu));
 
         Add(AddressInstruction.Build<STX>(cpu));
+        Add(AddressInstruction.Build<LDX>(cpu));
         Add(new INX(cpu));
         Add(new TXA(cpu));
         Add(new TXS(cpu));
