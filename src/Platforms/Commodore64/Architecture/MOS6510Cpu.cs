@@ -33,8 +33,13 @@ public class MOS6510Cpu
 
     /// <summary>
     /// Current value of the Stack Pointer
+    /// Set, only for use by the TXS Instruction
     /// </summary>
-    internal int SP => _sp.Value;
+    internal int SP 
+    {
+        get => _sp.Value;
+        set => _sp.Value = value;
+    }
 
     /// <summary>
     /// Accumulator
