@@ -9,6 +9,7 @@ class MOS6510InstructionSet : InstructionSet
     {
         // system instructions
         Add(new BRK(cpu));
+        Add(new NOP(cpu));
 
         // stack instructions
         Add(new PHP(cpu));
