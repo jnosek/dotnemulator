@@ -67,6 +67,7 @@ class MOS6510InstructionSet : InstructionSet
         Add(new TXA(cpu));
         Add(new TAX(cpu));
         Add(new TXS(cpu));
+        Add(new TSX(cpu));
         Add(AddressInstruction.Build<CPX>(cpu));
 
         // Read Modify Write Instructions
