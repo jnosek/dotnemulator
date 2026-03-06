@@ -68,19 +68,22 @@ public class MOS6510Cpu
     /// <remarks>
     /// A trigger of the AddressBus will always cause the memory map to drive the value to the DataBus for a subsequent read operation.
     /// </remarks>
-    internal readonly Bus AddressBus;
-
-    internal readonly InstructionSet instructionSet;
+    public readonly Bus AddressBus;
 
     /// <summary>
     /// Data Bus
     /// </summary>
-    readonly Bus DataBus;
+    public readonly Bus DataBus;
 
     /// <summary>
     /// Port Bus
     /// </summary>
-    readonly Bus PortBus;
+    public readonly Bus PortBus;
+
+    public readonly Wire InterruptRequest = new Wire();
+    public readonly Wire NonMaskableInterrupt = new Wire();
+
+    private readonly InstructionSet instructionSet;
     
     public MOS6510Cpu(Bus addressBus, Bus dataBus, Bus portBus)
     {
@@ -89,6 +92,9 @@ public class MOS6510Cpu
         PortBus = portBus;
 
         instructionSet = new MOS6510InstructionSet(this);
+
+        InterruptRequest.Subscribe(InterruptRequestHandler);
+        NonMaskableInterrupt.Subscribe(NonMaskableInterruptHandler);
 
         // set start of stack pointer offset (last byte)
         _sp.Value = STACK_START_ADDRESS & 0xFF;
@@ -122,6 +128,42 @@ public class MOS6510Cpu
         InitializePC();
 
         TestLoop();
+    }
+
+    internal void InterruptRequestHandler(bool value)
+    {
+        // if the signal goes low, or if the interrupt disable flag is set, ignore the interrupt request
+        if(!value || P.InterruptDisableFlag)
+            return;
+
+        // push PC and status register to stack
+        StackPush((PC.Value >> 8) & 0xFF);
+        StackPush(PC.Value & 0xFF);
+        StackPush(P.Value);
+
+        // load PC from interrupt vector
+        PC.Value = IRQ_VECTOR;
+        var address = ReadNextWord();
+
+        PC.Value = address;
+    }
+
+    internal void NonMaskableInterruptHandler(bool value)
+    {
+        // if the signal goes low, ignore the interrupt request
+        if(!value)
+            return;
+
+        // push PC and status register to stack
+        StackPush((PC.Value >> 8) & 0xFF);
+        StackPush(PC.Value & 0xFF);
+        StackPush(P.Value);
+
+        // load PC from NMI vector
+        PC.Value = NMI_VECTOR;
+        var address = ReadNextWord();
+
+        PC.Value = address;
     }
 
     /// <summary> 
