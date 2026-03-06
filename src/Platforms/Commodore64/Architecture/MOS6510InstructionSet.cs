@@ -81,5 +81,6 @@ class MOS6510InstructionSet : InstructionSet
         Add(AddressInstruction.Build<ROR>(cpu));
         Add(new RORA(cpu));
         Add(AddressInstruction.Build<DEC>(cpu));
+        Add(AddressInstruction.Build<INC>(cpu));
     }
 }
