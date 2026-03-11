@@ -123,6 +123,12 @@ public class MOS6510Cpu
         RunLoop();
     }
 
+    /// <summary>
+    /// Stars the CPU processing loop, but will stop when a NOP instruction is encountered. 
+    /// </summary>
+    /// <remarks>
+    /// This is useful for unit testing, where we want to execute a specific set of instructions and then stop to assert the state of the CPU.
+    /// </remarks>
     internal void Test()
     {
         InitializePC();

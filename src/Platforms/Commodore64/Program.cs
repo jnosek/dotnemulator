@@ -12,7 +12,7 @@ class Program
     {
         Debug.WriteLine("Commodore64 Emulator Starting...");
 
-        var emulator = new Emulator();
+        var emulator = new EmulatorBuilder().Build();
         emulator.Start();
     }
 }

@@ -2,7 +2,7 @@ namespace Dotnemulator.Platforms.Commodore64.Architecture;
 
 using Dotnemulator.Abstraction.Hardware;
 
-public class MemoryMap
+internal class MemoryMap
 {
     protected readonly MemorySegment _ram = new MemorySegment(0x1_0000);
     protected readonly MemorySegment _basicRom = new MemorySegment(0x_2000, 0xA000);
@@ -20,19 +20,19 @@ public class MemoryMap
         _memoryBankBus = memoryBankBus;
         _dataBus = dataBus;
         
-        _addressBus.Subscribe(Read);
-        _memoryBankBus.Subscribe(Read);
-        _dataBus.Subscribe(Write);
+        _addressBus.Subscribe(ReadHandler);
+        _memoryBankBus.Subscribe(ReadHandler);
+        _dataBus.Subscribe(WriteHandler);
     }
 
-    public void LoadRoms(Stream basicRomStream, Stream charRomStream, Stream kernelRomStream)
+    internal void LoadRoms(Stream basicRomStream, Stream charRomStream, Stream kernelRomStream)
     {
        _basicRom.Load(basicRomStream);
        _charRom.Load(charRomStream);
        _kernelRom.Load(kernelRomStream);       
     }
 
-    public void LoadTestKernel(byte[] kernel)
+    internal void LoadTestKernel(byte[] kernel)
     {
         for (int i = 0; i < kernel.Length; i++)
         {
@@ -48,6 +48,27 @@ public class MemoryMap
         _kernelRom.Write(MOS6510Cpu.IRQ_VECTOR + 1, 0x01);
     }
 
+    internal void LoadImage(byte[] image)
+    {
+        var ram = (byte[])image.Clone();
+        Array.Clear(ram, 0xA000, 0x2000); // basic rom
+        Array.Clear(ram, 0xD000, 0x1000); // char rom
+        Array.Clear(ram, 0xE000, 0x2000); // kernel rom
+        _ram.Load(new MemoryStream(ram));
+
+        _basicRom.Load(new MemoryStream(image, 0xA000, 0x2000));
+        _charRom.Load(new MemoryStream(image, 0xD000, 0x1000));
+        _kernelRom.Load(new MemoryStream(image, 0xE000, 0x2000));
+    }
+
+    internal void SetRam((int address, int value)[] values)
+    {
+        foreach (var (address, value) in values)
+        {
+            _ram.Write(address, value);
+        }
+    }
+
     public string[] GetRomHashes()
     {
         return
@@ -58,7 +79,7 @@ public class MemoryMap
         ];
     }
 
-    private void Write()
+    private void WriteHandler()
     {
         var memoryBank = _memoryBankBus.Read();
         var address = _addressBus.Read();
@@ -84,7 +105,7 @@ public class MemoryMap
         }
     }
 
-    private void Read()
+    private void ReadHandler()
     {
         int value;
         var memoryBank = _memoryBankBus.Read();
@@ -116,5 +137,31 @@ public class MemoryMap
         }
 
         _dataBus.Drive(value);
+    }
+
+    /// <summary>
+    /// Reads a value from the RAM at the specified address without affecting the CPU state.
+    /// </summary>
+    /// <remarks>
+    /// For testing purposes only
+    /// </remarks>
+    /// <param name="address">The address in RAM to read from.</param>
+    /// <returns>The value stored at the specified RAM address.</returns>
+    internal int PeekRam(int address)
+    {
+        return _ram.Read(address);
+    }
+
+    /// <summary>
+    /// Set a value in the ram at the specified address without affecting the CPU State.
+    /// </summary>
+    /// <remarks>
+    /// For testing purposes only
+    /// </remarks>
+    /// <param name="address"></param>
+    /// <param name="value"></param>
+    internal void PokeRam(int address, int value)
+    {
+        _ram.Write(address, value);
     }
 }
