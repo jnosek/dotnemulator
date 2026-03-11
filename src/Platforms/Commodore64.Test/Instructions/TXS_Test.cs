@@ -1,4 +1,3 @@
-using System;
 using Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
 
 namespace Dotnemulator.Platforms.Commodore64.Test.Instructions;

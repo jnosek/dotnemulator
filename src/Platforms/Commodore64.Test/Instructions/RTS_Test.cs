@@ -1,4 +1,3 @@
-using Dotnemulator.Platforms.Commodore64;
 using Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
 
 namespace Dotnemulator.Platforms.Commodore64.Test.Instructions;
@@ -12,7 +11,7 @@ public class RTS_Test
         // arrange
         var emulator = new EmulatorBuilder()
             .WithTestKernel([
-                RTS.OP_CODE, 
+                RTS.OP_CODE,
                 0x00,
                 0x00,
                 0xEA,

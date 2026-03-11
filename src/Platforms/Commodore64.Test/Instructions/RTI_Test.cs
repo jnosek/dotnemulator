@@ -1,4 +1,3 @@
-using Dotnemulator.Platforms.Commodore64;
 using Dotnemulator.Platforms.Commodore64.Architecture;
 using Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
 
@@ -10,7 +9,7 @@ public class RTI_Test
     [TestMethod]
     public void Implied()
     {
-         // arrange
+        // arrange
         var emulator = new EmulatorBuilder()
             .WithTestKernel([
                 RTI.OP_CODE,

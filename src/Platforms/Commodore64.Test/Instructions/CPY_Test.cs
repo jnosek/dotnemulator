@@ -1,4 +1,3 @@
-using Dotnemulator.Platforms.Commodore64;
 using Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
 
 namespace Dotnemulator.Platforms.Commodore64.Test.Instructions;
@@ -40,7 +39,7 @@ public class CPY_Test
                 0x03,
                 0xEA
             ])
-            .WithRam([ (0x3, 0b0000_0001) ])
+            .WithRam([(0x3, 0b0000_0001)])
             .Build();
 
         emulator.Cpu.Y.Value = 0b0000_0001;
@@ -66,7 +65,7 @@ public class CPY_Test
                 0xC0,
                 0xEA
             ])
-            .WithRam([ (0xC000, 0b0000_0010) ])
+            .WithRam([(0xC000, 0b0000_0010)])
             .Build();
 
         emulator.Cpu.Y.Value = 0b0000_1000;

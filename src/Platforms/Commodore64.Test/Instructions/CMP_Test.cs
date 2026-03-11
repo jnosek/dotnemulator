@@ -1,5 +1,3 @@
-using Dotnemulator.Platforms.Commodore64;
-using Dotnemulator.Platforms.Commodore64.Architecture;
 using Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
 
 namespace Dotnemulator.Platforms.Commodore64.Test.Instructions;
@@ -41,7 +39,7 @@ public class CMP_Test
                 0x03,
                 0xEA
             ])
-            .WithRam([ (0x3, 0b0000_1000) ])
+            .WithRam([(0x3, 0b0000_1000)])
             .Build();
 
         emulator.Cpu.A.Value = 0b0000_0111;
@@ -66,7 +64,7 @@ public class CMP_Test
                 0x03,
                 0xEA
             ])
-            .WithRam([ (0x06, 0b0000_0111) ])
+            .WithRam([(0x06, 0b0000_0111)])
             .Build();
 
         emulator.Cpu.A.Value = 0b0000_0111;
@@ -93,7 +91,7 @@ public class CMP_Test
                 0xC0,
                 0xEA
             ])
-            .WithRam([ (0xC000, 0b1111_1111) ])
+            .WithRam([(0xC000, 0b1111_1111)])
             .Build();
 
         emulator.Cpu.A.Value = 0b1111_1111;
@@ -119,7 +117,7 @@ public class CMP_Test
                 0xC0,
                 0xEA
             ])
-            .WithRam([ (0xC003, 0b0000_0001) ])
+            .WithRam([(0xC003, 0b0000_0001)])
             .Build();
 
         emulator.Cpu.A.Value = 0b1000_0000;
@@ -146,7 +144,7 @@ public class CMP_Test
                 0xC0,
                 0xEA
             ])
-            .WithRam([ (0xC006, 0b0000_0110) ])
+            .WithRam([(0xC006, 0b0000_0110)])
             .Build();
 
         emulator.Cpu.A.Value = 0b0000_0001;

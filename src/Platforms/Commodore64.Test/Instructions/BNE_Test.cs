@@ -1,4 +1,3 @@
-using Dotnemulator.Platforms.Commodore64;
 using Dotnemulator.Platforms.Commodore64.Architecture;
 using Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
 

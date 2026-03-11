@@ -1,4 +1,3 @@
-using Dotnemulator.Platforms.Commodore64;
 using Dotnemulator.Platforms.Commodore64.Architecture;
 using Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
 
@@ -30,7 +29,7 @@ public class PHP_Test
 
         // stack - status register
         Assert.AreEqual(
-            StatusFlag.Zero, 
+            StatusFlag.Zero,
             emulator.MemoryMap.PeekRam(MOS6510Cpu.STACK_START_ADDRESS));
     }
 }

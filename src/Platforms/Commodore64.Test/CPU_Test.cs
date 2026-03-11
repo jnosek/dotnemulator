@@ -13,7 +13,7 @@ public class CPU_Test
             .Build();
 
         // act 
-        for(int i = 1; i < 256; i++)
+        for (int i = 1; i < 256; i++)
         {
             emulator.Cpu.StackPush(i);
         }

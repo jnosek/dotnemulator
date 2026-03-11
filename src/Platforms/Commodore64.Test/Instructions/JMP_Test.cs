@@ -1,4 +1,3 @@
-using Dotnemulator.Platforms.Commodore64;
 using Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
 
 namespace Dotnemulator.Platforms.Commodore64.Test.Instructions;
@@ -12,10 +11,10 @@ public class JMP_Test
         // arrange
         var emulator = new EmulatorBuilder()
             .WithTestKernel([
-                JMP.ABSOLUTE_OP_CODE, 
+                JMP.ABSOLUTE_OP_CODE,
                 0x00,
                 0xC0,])
-            .WithRam([ (0xC000, 0xEA) ])
+            .WithRam([(0xC000, 0xEA)])
             .Build();
 
         // act
@@ -31,7 +30,7 @@ public class JMP_Test
         // arrange
         var emulator = new EmulatorBuilder()
             .WithTestKernel([
-                JMP.INDIRECT_OP_CODE, 
+                JMP.INDIRECT_OP_CODE,
                 0x00,
                 0xC0,])
             .WithRam([

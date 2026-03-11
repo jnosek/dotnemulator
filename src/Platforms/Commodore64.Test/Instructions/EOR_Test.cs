@@ -1,5 +1,3 @@
-using Dotnemulator.Platforms.Commodore64;
-using Dotnemulator.Platforms.Commodore64.Architecture;
 using Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
 
 namespace Dotnemulator.Platforms.Commodore64.Test.Instructions;
@@ -63,7 +61,7 @@ public class EOR_Test
                 0x03,
                 0xEA
             ])
-            .WithRam([ (0x3, 0b0000_0110) ])
+            .WithRam([(0x3, 0b0000_0110)])
             .Build();
 
         emulator.Cpu.A.Value = 0b0000_0101;
@@ -87,7 +85,7 @@ public class EOR_Test
                 0x03,
                 0xEA
             ])
-            .WithRam([ (0x06, 0b0000_0110) ])
+            .WithRam([(0x06, 0b0000_0110)])
             .Build();
 
         emulator.Cpu.A.Value = 0b0000_0101;
@@ -113,7 +111,7 @@ public class EOR_Test
                 0xC0,
                 0xEA
             ])
-            .WithRam([ (0xC000, 0b0000_0110) ])
+            .WithRam([(0xC000, 0b0000_0110)])
             .Build();
 
         emulator.Cpu.A.Value = 0b0000_0101;
@@ -139,7 +137,7 @@ public class EOR_Test
                 0xC0,
                 0xEA
             ])
-            .WithRam([ (0xC003, 0b1000_0110) ])
+            .WithRam([(0xC003, 0b1000_0110)])
             .Build();
 
         emulator.Cpu.A.Value = 0b0000_0101;
@@ -165,7 +163,7 @@ public class EOR_Test
                 0xC0,
                 0xEA
             ])
-            .WithRam([ (0xC006, 0b0000_0110) ])
+            .WithRam([(0xC006, 0b0000_0110)])
             .Build();
 
         emulator.Cpu.A.Value = 0b0000_0101;

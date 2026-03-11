@@ -1,4 +1,3 @@
-using Dotnemulator.Platforms.Commodore64;
 using Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
 
 namespace Dotnemulator.Platforms.Commodore64.Test.Instructions;
@@ -17,10 +16,10 @@ public class INC_Test
                 0xC0,
                 0xEA
             ])
-            .WithRam([ (0xC000, 0b0000_0010) ])
+            .WithRam([(0xC000, 0b0000_0010)])
             .Build();
 
-         // act
+        // act
         emulator.Cpu.Test();
 
         // assert
@@ -41,12 +40,12 @@ public class INC_Test
                 0xC0,
                 0xEA
             ])
-            .WithRam([ (0xC003, 0xFF) ])
+            .WithRam([(0xC003, 0xFF)])
             .Build();
 
         emulator.Cpu.X.Value = 0x03;
 
-         // act
+        // act
         emulator.Cpu.Test();
 
         // assert
@@ -66,10 +65,10 @@ public class INC_Test
                 0x03,
                 0xEA
             ])
-            .WithRam([ (0x0003, 0x06) ])
+            .WithRam([(0x0003, 0x06)])
             .Build();
 
-         // act
+        // act
         emulator.Cpu.Test();
 
         // assert
@@ -89,12 +88,12 @@ public class INC_Test
                 0x03,
                 0xEA
             ])
-            .WithRam([ (0x0006, 0b1100_0000) ])
+            .WithRam([(0x0006, 0b1100_0000)])
             .Build();
 
         emulator.Cpu.X.Value = 0x03;
 
-         // act
+        // act
         emulator.Cpu.Test();
 
         // assert

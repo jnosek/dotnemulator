@@ -1,4 +1,3 @@
-using Dotnemulator.Platforms.Commodore64;
 using Dotnemulator.Platforms.Commodore64.Architecture;
 using Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
 
@@ -18,7 +17,7 @@ public class BRK_Test
                 // this is skipped by the break instruction            
                 0xEA
             ])
-            .WithRam([ (0x0100, 0xEA) ])
+            .WithRam([(0x0100, 0xEA)])
             .Build();
 
         // act
@@ -30,12 +29,12 @@ public class BRK_Test
 
         // stack - status register
         Assert.AreEqual(
-            StatusFlag.BreakCommand, 
+            StatusFlag.BreakCommand,
             emulator.MemoryMap.PeekRam(MOS6510Cpu.STACK_START_ADDRESS - 2));
 
         // stack - return PC
         Assert.AreEqual(0x02, emulator.MemoryMap.PeekRam(MOS6510Cpu.STACK_START_ADDRESS - 1));
-        Assert.AreEqual(0xE0 , emulator.MemoryMap.PeekRam(MOS6510Cpu.STACK_START_ADDRESS - 0));
+        Assert.AreEqual(0xE0, emulator.MemoryMap.PeekRam(MOS6510Cpu.STACK_START_ADDRESS - 0));
 
         // status register
         Assert.IsTrue(emulator.Cpu.P.BreakCommandFlag);

@@ -10,10 +10,10 @@ public class MemoryMap_Test
         var emulator = new EmulatorBuilder()
             .WithTestKernel([])
             .Build();
-        
+
         emulator.PortBus.Drive(0b0000_0111);
         emulator.PortBus.Trigger();
-            
+
         emulator.AddressBus.Drive(0x03);
         emulator.AddressBus.Trigger();
 

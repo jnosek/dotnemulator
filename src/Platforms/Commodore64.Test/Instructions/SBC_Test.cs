@@ -1,5 +1,3 @@
-using Dotnemulator.Platforms.Commodore64;
-using Dotnemulator.Platforms.Commodore64.Architecture;
 using Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
 
 namespace Dotnemulator.Platforms.Commodore64.Test.Instructions;
@@ -43,7 +41,7 @@ public class SBC_Test
                 0x10,
                 0xEA
             ])
-            .WithRam([ (0x10, 0x0A) ])
+            .WithRam([(0x10, 0x0A)])
             .Build();
 
         emulator.Cpu.A.Value = 0x05;
@@ -70,7 +68,7 @@ public class SBC_Test
                 0x04,
                 0xEA
             ])
-            .WithRam([ (0x07, 0x08) ])
+            .WithRam([(0x07, 0x08)])
             .Build();
 
         emulator.Cpu.A.Value = 0x08;
@@ -99,7 +97,7 @@ public class SBC_Test
                 0xC0,
                 0xEA
             ])
-            .WithRam([ (0xC000, 0x01) ])
+            .WithRam([(0xC000, 0x01)])
             .Build();
 
         emulator.Cpu.A.Value = 0x10;
@@ -127,7 +125,7 @@ public class SBC_Test
                 0xC0,
                 0xEA
             ])
-            .WithRam([ (0xC003, 0xB0) ])
+            .WithRam([(0xC003, 0xB0)])
             .Build();
 
         emulator.Cpu.A.Value = 0x50;
@@ -156,7 +154,7 @@ public class SBC_Test
                 0xC0,
                 0xEA
             ])
-            .WithRam([ (0xC006, 0x70) ])
+            .WithRam([(0xC006, 0x70)])
             .Build();
 
         emulator.Cpu.A.Value = 0xD0;

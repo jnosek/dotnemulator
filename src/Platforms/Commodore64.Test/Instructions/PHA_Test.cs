@@ -1,4 +1,3 @@
-using Dotnemulator.Platforms.Commodore64;
 using Dotnemulator.Platforms.Commodore64.Architecture;
 using Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
 
@@ -30,7 +29,7 @@ public class PHA_Test
 
         // stack contents
         Assert.AreEqual(
-            0b0101_0101, 
+            0b0101_0101,
             emulator.MemoryMap.PeekRam(MOS6510Cpu.STACK_START_ADDRESS));
 
         // accumulator

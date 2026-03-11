@@ -1,5 +1,3 @@
-using Dotnemulator.Platforms.Commodore64;
-using Dotnemulator.Platforms.Commodore64.Architecture;
 using Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
 
 namespace Dotnemulator.Platforms.Commodore64.Test.Instructions;
@@ -18,15 +16,15 @@ public class ADC_Test
                 0xC0,
                 0xEA
             ])
-            .WithRam([ (0xC003, 0b1001_0000) ])
+            .WithRam([(0xC003, 0b1001_0000)])
             .Build();
 
-            emulator.Cpu.X.Value = 0x03;
-            emulator.Cpu.A.Value = 0b0001_0001;
-            emulator.Cpu.P.DecimalModeFlag = true;
+        emulator.Cpu.X.Value = 0x03;
+        emulator.Cpu.A.Value = 0b0001_0001;
+        emulator.Cpu.P.DecimalModeFlag = true;
 
-            // act
-            emulator.Cpu.Test();
+        // act
+        emulator.Cpu.Test();
 
         // assert
         Assert.AreEqual(0b0000_1001, emulator.Cpu.A.Value);
@@ -46,7 +44,7 @@ public class ADC_Test
                 0x03,
                 0xEA
             ])
-            .WithRam([ (0x3, 0b1111_1111) ])
+            .WithRam([(0x3, 0b1111_1111)])
             .Build();
 
         emulator.Cpu.A.Value = 0b0000_0010;
@@ -98,7 +96,7 @@ public class ADC_Test
                 0xC0,
                 0xEA
             ])
-            .WithRam([ (0xC000, 0b0001_0010) ])
+            .WithRam([(0xC000, 0b0001_0010)])
             .Build();
 
         emulator.Cpu.A.Value = 0b0011_0001;
@@ -126,7 +124,7 @@ public class ADC_Test
                 0xC0,
                 0xEA
             ])
-            .WithRam([ (0xC003, 0b1001_0000) ])
+            .WithRam([(0xC003, 0b1001_0000)])
             .Build();
 
         emulator.Cpu.X.Value = 0x03;
@@ -155,7 +153,7 @@ public class ADC_Test
                 0xC0,
                 0xEA
             ])
-            .WithRam([ (0xC003, 0b1001_0001) ])
+            .WithRam([(0xC003, 0b1001_0001)])
             .Build();
 
         emulator.Cpu.Y.Value = 0x03;

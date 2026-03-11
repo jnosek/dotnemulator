@@ -1,5 +1,3 @@
-using Dotnemulator.Platforms.Commodore64;
-using Dotnemulator.Platforms.Commodore64.Architecture;
 using Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
 
 namespace Dotnemulator.Platforms.Commodore64.Test.Instructions;
@@ -143,7 +141,7 @@ public sealed class STA_Test
 
         // assert
         Assert.AreEqual(0b1010_1010, emulator.MemoryMap.PeekRam(0xC006));
-    }   
+    }
 
     [TestMethod]
     public void IndirectIndexed()

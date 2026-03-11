@@ -1,4 +1,3 @@
-using Dotnemulator.Platforms.Commodore64;
 using Dotnemulator.Platforms.Commodore64.Architecture;
 using Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
 
@@ -57,7 +56,7 @@ public class PLA_Test
         Assert.AreEqual(MOS6510Cpu.STACK_START_ADDRESS & 0xFF, emulator.Cpu.SP);
     }
 
-     [TestMethod]
+    [TestMethod]
     public void Implied_ZeroValue()
     {
         // arrange

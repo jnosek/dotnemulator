@@ -1,4 +1,3 @@
-using Dotnemulator.Platforms.Commodore64;
 using Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
 
 namespace Dotnemulator.Platforms.Commodore64.Test.Instructions;
@@ -37,7 +36,7 @@ public class LDX_Test
                 0x03,
                 0xEA
             ])
-            .WithRam([ (0x3, 0b0000_0000) ])
+            .WithRam([(0x3, 0b0000_0000)])
             .Build();
 
         // act
@@ -59,7 +58,7 @@ public class LDX_Test
                 0x03,
                 0xEA
             ])
-            .WithRam([ (0x06, 0b1000_0010) ])
+            .WithRam([(0x06, 0b1000_0010)])
             .Build();
 
         emulator.Cpu.Y.Value = 0x03;
@@ -84,7 +83,7 @@ public class LDX_Test
                 0xC0,
                 0xEA
             ])
-            .WithRam([ (0xC000, 0b0000_0010) ])
+            .WithRam([(0xC000, 0b0000_0010)])
             .Build();
 
         // act
@@ -108,7 +107,7 @@ public class LDX_Test
                 0xC0,
                 0xEA
             ])
-            .WithRam([ (0xC003, 0b1000_0010) ])
+            .WithRam([(0xC003, 0b1000_0010)])
             .Build();
 
         emulator.Cpu.Y.Value = 0x03;
