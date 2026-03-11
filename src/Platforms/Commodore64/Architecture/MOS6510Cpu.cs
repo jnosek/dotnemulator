@@ -123,6 +123,16 @@ public class MOS6510Cpu
         RunLoop();
     }
 
+    internal void Start(int pcValue)
+    {
+        InitializePC();
+
+        // explicitly set PC to provided value, which is useful for testing
+        PC.Value = pcValue;
+
+        RunLoop();
+    }
+
     /// <summary>
     /// Stars the CPU processing loop, but will stop when a NOP instruction is encountered. 
     /// </summary>

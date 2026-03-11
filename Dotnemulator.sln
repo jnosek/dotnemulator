@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Abstraction", "src\Abstract
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Commodore64", "src\Platforms\Commodore64\Commodore64.csproj", "{1368E548-BC96-40FE-9EE6-7CA3A222D5E9}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Commodore64.FunctionalTest", "src\Platforms\Commodore64.FunctionalTest\Commodore64.FunctionalTest.csproj", "{8A1A2468-D2F3-4855-B001-4E9014DC1665}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -59,6 +61,18 @@ Global
 		{1368E548-BC96-40FE-9EE6-7CA3A222D5E9}.Release|x64.Build.0 = Release|Any CPU
 		{1368E548-BC96-40FE-9EE6-7CA3A222D5E9}.Release|x86.ActiveCfg = Release|Any CPU
 		{1368E548-BC96-40FE-9EE6-7CA3A222D5E9}.Release|x86.Build.0 = Release|Any CPU
+		{8A1A2468-D2F3-4855-B001-4E9014DC1665}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8A1A2468-D2F3-4855-B001-4E9014DC1665}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8A1A2468-D2F3-4855-B001-4E9014DC1665}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{8A1A2468-D2F3-4855-B001-4E9014DC1665}.Debug|x64.Build.0 = Debug|Any CPU
+		{8A1A2468-D2F3-4855-B001-4E9014DC1665}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{8A1A2468-D2F3-4855-B001-4E9014DC1665}.Debug|x86.Build.0 = Debug|Any CPU
+		{8A1A2468-D2F3-4855-B001-4E9014DC1665}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8A1A2468-D2F3-4855-B001-4E9014DC1665}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8A1A2468-D2F3-4855-B001-4E9014DC1665}.Release|x64.ActiveCfg = Release|Any CPU
+		{8A1A2468-D2F3-4855-B001-4E9014DC1665}.Release|x64.Build.0 = Release|Any CPU
+		{8A1A2468-D2F3-4855-B001-4E9014DC1665}.Release|x86.ActiveCfg = Release|Any CPU
+		{8A1A2468-D2F3-4855-B001-4E9014DC1665}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -68,5 +82,6 @@ Global
 		{6BADF2C7-AA42-4943-B930-65A96B799CB1} = {82099983-647E-F067-E69A-CD800643A918}
 		{72AC447B-921B-461D-9906-5AC4DBBCF182} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 		{1368E548-BC96-40FE-9EE6-7CA3A222D5E9} = {82099983-647E-F067-E69A-CD800643A918}
+		{8A1A2468-D2F3-4855-B001-4E9014DC1665} = {82099983-647E-F067-E69A-CD800643A918}
 	EndGlobalSection
 EndGlobal

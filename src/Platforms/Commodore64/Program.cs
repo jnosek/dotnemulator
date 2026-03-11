@@ -1,6 +1,7 @@
 using System.Runtime.CompilerServices;
 
 [assembly: InternalsVisibleTo("Dotnemulator.Platforms.Commodore64.Test")]
+[assembly: InternalsVisibleTo("Dotnemulator.Platforms.Commodore64.FunctionalTest")]
 
 namespace Dotnemulator.Platforms.Commodore64;
 
