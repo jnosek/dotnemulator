@@ -1,5 +1,5 @@
+using Dotnemulator.Platforms.Commodore64;
 using Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
-using Dotnemulator.Platforms.Commodore64.Test.Mocks;
 
 namespace Dotnemulator.Platforms.Commodore64.Test.Instructions;
 
@@ -10,20 +10,21 @@ public class INX_Test
     public void Implied()
     {
         // arrange
-        var emulator = new TestEmulator([
-            INX.OP_CODE,
-            0xEA
-        ])
-        {
-            X = 0x03
-        };
+        var emulator = new EmulatorBuilder()
+            .WithTestKernel([
+                INX.OP_CODE,
+                0xEA
+            ])
+            .Build();
+
+        emulator.Cpu.X.Value = 0x03;
 
         // act
-        emulator.Start();
+        emulator.Cpu.Test();
 
         // assert
         // Current P
-        Assert.AreEqual(0x04, emulator.X);
+        Assert.AreEqual(0x04, emulator.Cpu.X.Value);
         Assert.IsFalse(emulator.Cpu.P.ZeroFlag);
         Assert.IsFalse(emulator.Cpu.P.NegativeFlag);
     }
@@ -32,20 +33,21 @@ public class INX_Test
     public void Implied_Zero()
     {
         // arrange
-        var emulator = new TestEmulator([
-            INX.OP_CODE,
-            0xEA
-        ])
-        {
-            X = 0xFF
-        };
+        var emulator = new EmulatorBuilder()
+            .WithTestKernel([
+                INX.OP_CODE,
+                0xEA
+            ])
+            .Build();
+
+        emulator.Cpu.X.Value = 0xFF;
 
         // act
-        emulator.Start();
+        emulator.Cpu.Test();
 
         // assert
         // Current P
-        Assert.AreEqual(0x00, emulator.X);
+        Assert.AreEqual(0x00, emulator.Cpu.X.Value);
         Assert.IsTrue(emulator.Cpu.P.ZeroFlag);
         Assert.IsFalse(emulator.Cpu.P.NegativeFlag);
     }
@@ -54,20 +56,21 @@ public class INX_Test
     public void Implied_Negative()
     {
         // arrange
-        var emulator = new TestEmulator([
-            INX.OP_CODE,
-            0xEA
-        ])
-        {
-            X = 0x83
-        };
+        var emulator = new EmulatorBuilder()
+            .WithTestKernel([
+                INX.OP_CODE,
+                0xEA
+            ])
+            .Build();
+
+        emulator.Cpu.X.Value = 0x83;
 
         // act
-        emulator.Start();
+        emulator.Cpu.Test();
 
         // assert
         // Current P
-        Assert.AreEqual(0x84, emulator.X);
+        Assert.AreEqual(0x84, emulator.Cpu.X.Value);
         Assert.IsFalse(emulator.Cpu.P.ZeroFlag);
         Assert.IsTrue(emulator.Cpu.P.NegativeFlag);
     }

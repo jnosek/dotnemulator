@@ -1,5 +1,4 @@
 using Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
-using Dotnemulator.Platforms.Commodore64.Test.Mocks;
 
 namespace Dotnemulator.Platforms.Commodore64.Test.Instructions;
 
@@ -10,20 +9,21 @@ public class TAX_Test
     public void Implied()
     {
         // arrange
-        var emulator = new TestEmulator([
-            TAX.OP_CODE,
-            0xEA
-        ])
-        {
-            Accumulator = 0x03
-        };
+        var emulator = new EmulatorBuilder()
+            .WithTestKernel([
+                TAX.OP_CODE,
+                0xEA
+            ])
+            .Build();
+
+        emulator.Cpu.A.Value = 0x03;
 
         // act
-        emulator.Start();
+        emulator.Cpu.Test();
 
         // assert
         // Current P
-        Assert.AreEqual(0x03, emulator.X);
+        Assert.AreEqual(0x03, emulator.Cpu.X.Value);
         Assert.IsFalse(emulator.Cpu.P.ZeroFlag);
         Assert.IsFalse(emulator.Cpu.P.NegativeFlag);
     }
@@ -32,21 +32,22 @@ public class TAX_Test
     public void Implied_Zero()
     {
         // arrange
-        var emulator = new TestEmulator([
-            TAX.OP_CODE,
-            0xEA
-        ])
-        {
-            Accumulator = 0x00,
-            X = 0x05
-        };
+        var emulator = new EmulatorBuilder()
+            .WithTestKernel([
+                TAX.OP_CODE,
+                0xEA
+            ])
+            .Build();
+
+        emulator.Cpu.A.Value = 0x00;
+        emulator.Cpu.X.Value = 0x05;
 
         // act
-        emulator.Start();
+        emulator.Cpu.Test();
 
         // assert
         // Current P
-        Assert.AreEqual(0x00, emulator.X);
+        Assert.AreEqual(0x00, emulator.Cpu.X.Value);
         Assert.IsTrue(emulator.Cpu.P.ZeroFlag);
         Assert.IsFalse(emulator.Cpu.P.NegativeFlag);
     }
@@ -55,20 +56,21 @@ public class TAX_Test
     public void Implied_Negative()
     {
         // arrange
-        var emulator = new TestEmulator([
-            TAX.OP_CODE,
-            0xEA
-        ])
-        {
-            Accumulator = 0x83
-        };
+        var emulator = new EmulatorBuilder()
+            .WithTestKernel([
+                TAX.OP_CODE,
+                0xEA
+            ])
+            .Build();
+
+        emulator.Cpu.A.Value = 0x83;
 
         // act
-        emulator.Start();
+        emulator.Cpu.Test();
 
         // assert
         // Current P
-        Assert.AreEqual(0x83, emulator.X);
+        Assert.AreEqual(0x83, emulator.Cpu.X.Value);
         Assert.IsFalse(emulator.Cpu.P.ZeroFlag);
         Assert.IsTrue(emulator.Cpu.P.NegativeFlag);
     }

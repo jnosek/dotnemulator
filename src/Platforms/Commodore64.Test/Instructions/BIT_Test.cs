@@ -1,7 +1,5 @@
-using System;
-using Dotnemulator.Platforms.Commodore64.Architecture;
+using Dotnemulator.Platforms.Commodore64;
 using Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
-using Dotnemulator.Platforms.Commodore64.Test.Mocks;
 
 namespace Dotnemulator.Platforms.Commodore64.Test.Instructions;
 
@@ -12,21 +10,22 @@ public class BIT_Test
     public void ZeroPage_WithNegative()
     {
         // arrange
-        var emulator = new TestEmulator([
-            BIT.BASE_OP_CODE | XAddressInstruction.ZeroPage,
-            0x03,
-            0xEA
-        ],
-        [ (0x3, 0b1000_0000) ])
-        {
-            Accumulator = 0b1000_0001
-        };
+        var emulator = new EmulatorBuilder()
+            .WithTestKernel([
+                BIT.BASE_OP_CODE | XAddressInstruction.ZeroPage,
+                0x03,
+                0xEA
+            ])
+            .WithRam([ (0x3, 0b1000_0000) ])
+            .Build();
+
+        emulator.Cpu.A.Value = 0b1000_0001;
 
         // act
-        emulator.Start();
+        emulator.Cpu.Test();
 
         // assert
-        Assert.AreEqual(0b1000_0001, emulator.Accumulator);
+        Assert.AreEqual(0b1000_0001, emulator.Cpu.A.Value);
         Assert.IsFalse(emulator.Cpu.P.ZeroFlag);
         Assert.IsTrue(emulator.Cpu.P.NegativeFlag);
         Assert.IsFalse(emulator.Cpu.P.OverflowFlag);
@@ -36,21 +35,22 @@ public class BIT_Test
     public void ZeroPage_WithOverflow()
     {
         // arrange
-        var emulator = new TestEmulator([
-            BIT.BASE_OP_CODE | XAddressInstruction.ZeroPage,
-            0x03,
-            0xEA
-        ],
-        [ (0x3, 0b0100_0000) ])
-        {
-            Accumulator = 0b0100_0001
-        };
+        var emulator = new EmulatorBuilder()
+            .WithTestKernel([
+                BIT.BASE_OP_CODE | XAddressInstruction.ZeroPage,
+                0x03,
+                0xEA
+            ])
+            .WithRam([ (0x3, 0b0100_0000) ])
+            .Build();
+
+        emulator.Cpu.A.Value = 0b0100_0001;
 
         // act
-        emulator.Start();
+        emulator.Cpu.Test();
 
         // assert
-        Assert.AreEqual(0b0100_0001, emulator.Accumulator);
+        Assert.AreEqual(0b0100_0001, emulator.Cpu.A.Value);
         Assert.IsFalse(emulator.Cpu.P.ZeroFlag);
         Assert.IsFalse(emulator.Cpu.P.NegativeFlag);
         Assert.IsTrue(emulator.Cpu.P.OverflowFlag);
@@ -60,22 +60,23 @@ public class BIT_Test
     public void Absolute_WithZero()
     {
         // arrange
-        var emulator = new TestEmulator([
-            BIT.BASE_OP_CODE | XAddressInstruction.Absolute,
-            0x00,
-            0xC0,
-            0xEA
-        ],
-        [ (0xC000, 0b0000_0010) ])
-        {
-            Accumulator = 0b0000_0001
-        };;
+        var emulator = new EmulatorBuilder()
+            .WithTestKernel([
+                BIT.BASE_OP_CODE | XAddressInstruction.Absolute,
+                0x00,
+                0xC0,
+                0xEA
+            ])
+            .WithRam([ (0xC000, 0b0000_0010) ])
+            .Build();
+
+        emulator.Cpu.A.Value = 0b0000_0001;
 
         // act
-        emulator.Start();
+        emulator.Cpu.Test();
 
         // assert
-        Assert.AreEqual(0b0000_0001, emulator.Accumulator);
+        Assert.AreEqual(0b0000_0001, emulator.Cpu.A.Value);
         Assert.IsTrue(emulator.Cpu.P.ZeroFlag);
         Assert.IsFalse(emulator.Cpu.P.NegativeFlag);
         Assert.IsFalse(emulator.Cpu.P.OverflowFlag);
@@ -85,22 +86,23 @@ public class BIT_Test
     public void Absolute_WithNegativeAndOverflow()
     {
         // arrange
-        var emulator = new TestEmulator([
-            BIT.BASE_OP_CODE | XAddressInstruction.Absolute,
-            0x00,
-            0xC0,
-            0xEA
-        ],
-        [ (0xC000, 0b1100_0000) ])
-        {
-            Accumulator = 0b0100_0001
-        };
+        var emulator = new EmulatorBuilder()
+            .WithTestKernel([
+                BIT.BASE_OP_CODE | XAddressInstruction.Absolute,
+                0x00,
+                0xC0,
+                0xEA
+            ])
+            .WithRam([ (0xC000, 0b1100_0000) ])
+            .Build();
+
+        emulator.Cpu.A.Value = 0b0100_0001;
 
         // act
-        emulator.Start();
+        emulator.Cpu.Test();
 
         // assert
-        Assert.AreEqual(0b0100_0001, emulator.Accumulator);
+        Assert.AreEqual(0b0100_0001, emulator.Cpu.A.Value);
         Assert.IsFalse(emulator.Cpu.P.ZeroFlag);
         Assert.IsTrue(emulator.Cpu.P.NegativeFlag);
         Assert.IsTrue(emulator.Cpu.P.OverflowFlag);

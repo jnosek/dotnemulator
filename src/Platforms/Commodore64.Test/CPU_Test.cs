@@ -1,6 +1,3 @@
-using System;
-using Dotnemulator.Platforms.Commodore64.Test.Mocks;
-
 namespace Dotnemulator.Platforms.Commodore64.Test;
 
 [TestClass]
@@ -11,7 +8,9 @@ public class CPU_Test
     public void Stack_Overflow()
     {
         // arrange
-        var emulator = new TestEmulator([]);
+        var emulator = new EmulatorBuilder()
+            .WithTestKernel([])
+            .Build();
 
         // act 
         for(int i = 1; i < 256; i++)
@@ -27,7 +26,9 @@ public class CPU_Test
     public void Stack_Underflow()
     {
         // arrange
-        var emulator = new TestEmulator([]);
+        var emulator = new EmulatorBuilder()
+            .WithTestKernel([])
+            .Build();
 
         // act 
         emulator.Cpu.StackPop();

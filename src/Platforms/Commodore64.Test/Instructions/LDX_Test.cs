@@ -1,5 +1,5 @@
+using Dotnemulator.Platforms.Commodore64;
 using Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
-using Dotnemulator.Platforms.Commodore64.Test.Mocks;
 
 namespace Dotnemulator.Platforms.Commodore64.Test.Instructions;
 
@@ -10,17 +10,19 @@ public class LDX_Test
     public void Immediate()
     {
         // arrange
-        var emulator = new TestEmulator([
-            LDX.BASE_OP_CODE | YAddressInstruction.Immediate,
-            0b0000_0010,
-            0xEA
-        ]);
+        var emulator = new EmulatorBuilder()
+            .WithTestKernel([
+                LDX.BASE_OP_CODE | YAddressInstruction.Immediate,
+                0b0000_0010,
+                0xEA
+            ])
+            .Build();
 
         // act
-        emulator.Start();
+        emulator.Cpu.Test();
 
         // assert
-        Assert.AreEqual(0b0000_0010, emulator.X);
+        Assert.AreEqual(0b0000_0010, emulator.Cpu.X.Value);
         Assert.IsFalse(emulator.Cpu.P.ZeroFlag);
         Assert.IsFalse(emulator.Cpu.P.NegativeFlag);
     }
@@ -29,18 +31,20 @@ public class LDX_Test
     public void ZeroPage_WithZero()
     {
         // arrange
-        var emulator = new TestEmulator([
-            LDX.BASE_OP_CODE | YAddressInstruction.ZeroPage,
-            0x03,
-            0xEA
-        ],
-        [ (0x3, 0b0000_0000) ]);
+        var emulator = new EmulatorBuilder()
+            .WithTestKernel([
+                LDX.BASE_OP_CODE | YAddressInstruction.ZeroPage,
+                0x03,
+                0xEA
+            ])
+            .WithRam([ (0x3, 0b0000_0000) ])
+            .Build();
 
         // act
-        emulator.Start();
+        emulator.Cpu.Test();
 
         // assert
-        Assert.AreEqual(0b0000_0000, emulator.X);
+        Assert.AreEqual(0b0000_0000, emulator.Cpu.X.Value);
         Assert.IsTrue(emulator.Cpu.P.ZeroFlag);
         Assert.IsFalse(emulator.Cpu.P.NegativeFlag);
     }
@@ -49,21 +53,22 @@ public class LDX_Test
     public void ZeroPageX_WithNegative()
     {
         // arrange
-        var emulator = new TestEmulator([
-            LDX.BASE_OP_CODE | YAddressInstruction.ZeroPageY,
-            0x03,
-            0xEA
-        ],
-        [ (0x06, 0b1000_0010) ])
-        {
-            Y = 0x03
-        };
+        var emulator = new EmulatorBuilder()
+            .WithTestKernel([
+                LDX.BASE_OP_CODE | YAddressInstruction.ZeroPageY,
+                0x03,
+                0xEA
+            ])
+            .WithRam([ (0x06, 0b1000_0010) ])
+            .Build();
+
+        emulator.Cpu.Y.Value = 0x03;
 
         // act
-        emulator.Start();
+        emulator.Cpu.Test();
 
         // assert
-        Assert.AreEqual(0b1000_0010, emulator.X);
+        Assert.AreEqual(0b1000_0010, emulator.Cpu.X.Value);
         Assert.IsFalse(emulator.Cpu.P.ZeroFlag);
         Assert.IsTrue(emulator.Cpu.P.NegativeFlag);
     }
@@ -72,19 +77,21 @@ public class LDX_Test
     public void Absolute()
     {
         // arrange
-        var emulator = new TestEmulator([
-            LDX.BASE_OP_CODE | YAddressInstruction.Absolute,
-            0x00,
-            0xC0,
-            0xEA
-        ],
-        [ (0xC000, 0b0000_0010) ]);
+        var emulator = new EmulatorBuilder()
+            .WithTestKernel([
+                LDX.BASE_OP_CODE | YAddressInstruction.Absolute,
+                0x00,
+                0xC0,
+                0xEA
+            ])
+            .WithRam([ (0xC000, 0b0000_0010) ])
+            .Build();
 
         // act
-        emulator.Start();
+        emulator.Cpu.Test();
 
         // assert
-        Assert.AreEqual(0b0000_0010, emulator.X);
+        Assert.AreEqual(0b0000_0010, emulator.Cpu.X.Value);
         Assert.IsFalse(emulator.Cpu.P.ZeroFlag);
         Assert.IsFalse(emulator.Cpu.P.NegativeFlag);
     }
@@ -94,22 +101,23 @@ public class LDX_Test
     public void AbsoluteX()
     {
         // arrange
-        var emulator = new TestEmulator([
-            LDX.BASE_OP_CODE | YAddressInstruction.AbsoluteY,
-            0x00,
-            0xC0,
-            0xEA
-        ],
-        [ (0xC003, 0b1000_0010) ])
-        {
-            Y = 0x03
-        };
+        var emulator = new EmulatorBuilder()
+            .WithTestKernel([
+                LDX.BASE_OP_CODE | YAddressInstruction.AbsoluteY,
+                0x00,
+                0xC0,
+                0xEA
+            ])
+            .WithRam([ (0xC003, 0b1000_0010) ])
+            .Build();
+
+        emulator.Cpu.Y.Value = 0x03;
 
         // act
-        emulator.Start();
+        emulator.Cpu.Test();
 
         // assert
-        Assert.AreEqual(0b1000_0010, emulator.X);
+        Assert.AreEqual(0b1000_0010, emulator.Cpu.X.Value);
         Assert.IsFalse(emulator.Cpu.P.ZeroFlag);
         Assert.IsTrue(emulator.Cpu.P.NegativeFlag);
     }

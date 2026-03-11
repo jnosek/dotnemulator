@@ -1,6 +1,6 @@
+using Dotnemulator.Platforms.Commodore64;
 using Dotnemulator.Platforms.Commodore64.Architecture;
 using Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
-using Dotnemulator.Platforms.Commodore64.Test.Mocks;
 
 namespace Dotnemulator.Platforms.Commodore64.Test.Instructions;
 
@@ -11,13 +11,15 @@ public class SEC_Test
     public void Implied()
     {
         // arrange
-        var emulator = new TestEmulator([
-            SEC.OP_CODE,
-            0xEA
-        ]);
+        var emulator = new EmulatorBuilder()
+            .WithTestKernel([
+                SEC.OP_CODE,
+                0xEA
+            ])
+            .Build();
 
         // act
-        emulator.Start();
+        emulator.Cpu.Test();
 
         // assert
         // Current P

@@ -1,5 +1,3 @@
-using Dotnemulator.Platforms.Commodore64.Test.Mocks;
-
 namespace Dotnemulator.Platforms.Commodore64.Test;
 
 [TestClass]
@@ -9,7 +7,9 @@ public class MemoryMap_Test
     public void WriteToRam()
     {
         // arrange
-        var emulator = new TestEmulator([]);
+        var emulator = new EmulatorBuilder()
+            .WithTestKernel([])
+            .Build();
         
         emulator.PortBus.Drive(0b0000_0111);
         emulator.PortBus.Trigger();
@@ -22,6 +22,6 @@ public class MemoryMap_Test
         emulator.DataBus.Trigger();
 
         // assert
-        Assert.AreEqual(0x42, emulator.PeekRam(0x03));
+        Assert.AreEqual(0x42, emulator.MemoryMap.PeekRam(0x03));
     }
 }

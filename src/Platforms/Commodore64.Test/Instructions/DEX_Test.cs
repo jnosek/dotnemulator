@@ -1,5 +1,5 @@
+using Dotnemulator.Platforms.Commodore64;
 using Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
-using Dotnemulator.Platforms.Commodore64.Test.Mocks;
 
 namespace Dotnemulator.Platforms.Commodore64.Test.Instructions;
 
@@ -10,20 +10,21 @@ public class DEX_Test
     public void Implied()
     {
         // arrange
-        var emulator = new TestEmulator([
-            DEX.OP_CODE,
-            0xEA
-        ])
-        {
-            X = 0x03
-        };
+        var emulator = new EmulatorBuilder()
+            .WithTestKernel([
+                DEX.OP_CODE,
+                0xEA
+            ])
+            .Build();
+
+        emulator.Cpu.X.Value = 0x03;
 
         // act
-        emulator.Start();
+        emulator.Cpu.Test();
 
         // assert
         // Current P
-        Assert.AreEqual(0x02, emulator.X);
+        Assert.AreEqual(0x02, emulator.Cpu.X.Value);
         Assert.IsFalse(emulator.Cpu.P.ZeroFlag);
         Assert.IsFalse(emulator.Cpu.P.NegativeFlag);
     }
@@ -32,20 +33,21 @@ public class DEX_Test
     public void Implied_Zero()
     {
         // arrange
-        var emulator = new TestEmulator([
-            DEX.OP_CODE,
-            0xEA
-        ])
-        {
-            X = 0x01
-        };
+        var emulator = new EmulatorBuilder()
+            .WithTestKernel([
+                DEX.OP_CODE,
+                0xEA
+            ])
+            .Build();
+
+        emulator.Cpu.X.Value = 0x01;
 
         // act
-        emulator.Start();
+        emulator.Cpu.Test();
 
         // assert
         // Current P
-        Assert.AreEqual(0x00, emulator.X);
+        Assert.AreEqual(0x00, emulator.Cpu.X.Value);
         Assert.IsTrue(emulator.Cpu.P.ZeroFlag);
         Assert.IsFalse(emulator.Cpu.P.NegativeFlag);
     }
@@ -54,20 +56,21 @@ public class DEX_Test
     public void Implied_Negative()
     {
         // arrange
-        var emulator = new TestEmulator([
-            DEX.OP_CODE,
-            0xEA
-        ])
-        {
-            X = 0x83
-        };
+        var emulator = new EmulatorBuilder()
+            .WithTestKernel([
+                DEX.OP_CODE,
+                0xEA
+            ])
+            .Build();
+
+        emulator.Cpu.X.Value = 0x83;
 
         // act
-        emulator.Start();
+        emulator.Cpu.Test();
 
         // assert
         // Current P
-        Assert.AreEqual(0x82, emulator.X);
+        Assert.AreEqual(0x82, emulator.Cpu.X.Value);
         Assert.IsFalse(emulator.Cpu.P.ZeroFlag);
         Assert.IsTrue(emulator.Cpu.P.NegativeFlag);
     }
@@ -76,20 +79,21 @@ public class DEX_Test
     public void Implied_ZeroToNegativeWrapAround()
     {
         // arrange
-        var emulator = new TestEmulator([
-            DEX.OP_CODE,
-            0xEA
-        ])
-        {
-            X = 0x00
-        };
+        var emulator = new EmulatorBuilder()
+            .WithTestKernel([
+                DEX.OP_CODE,
+                0xEA
+            ])
+            .Build();
+
+        emulator.Cpu.X.Value = 0x00;
 
         // act
-        emulator.Start();
+        emulator.Cpu.Test();
 
         // assert
         // Current P
-        Assert.AreEqual(0xFF, emulator.X);
+        Assert.AreEqual(0xFF, emulator.Cpu.X.Value);
         Assert.IsFalse(emulator.Cpu.P.ZeroFlag);
         Assert.IsTrue(emulator.Cpu.P.NegativeFlag);
     }

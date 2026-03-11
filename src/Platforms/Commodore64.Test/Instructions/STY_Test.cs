@@ -1,7 +1,6 @@
-using System;
+using Dotnemulator.Platforms.Commodore64;
 using Dotnemulator.Platforms.Commodore64.Architecture;
 using Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
-using Dotnemulator.Platforms.Commodore64.Test.Mocks;
 
 namespace Dotnemulator.Platforms.Commodore64.Test.Instructions;
 
@@ -13,61 +12,64 @@ public sealed class STY_Test
     public void ZeroPage()
     {
         // arrange
-        var emulator = new TestEmulator([
-            STY.BASE_OP_CODE | XAddressInstruction.ZeroPage,
-            0x03,
-            0xEA
-        ])
-        {
-            Y = 0b1010_1010
-        };
+        var emulator = new EmulatorBuilder()
+            .WithTestKernel([
+                STY.BASE_OP_CODE | XAddressInstruction.ZeroPage,
+                0x03,
+                0xEA
+            ])
+            .Build();
+
+        emulator.Cpu.Y.Value = 0b1010_1010;
 
         // act
-        emulator.Start();
+        emulator.Cpu.Test();
 
         // assert
-        Assert.AreEqual(0b1010_1010, emulator.PeekRam(0x03));
+        Assert.AreEqual(0b1010_1010, emulator.MemoryMap.PeekRam(0x03));
     }
 
     [TestMethod]
     public void ZeroPageX()
     {
         // arrange
-        var emulator = new TestEmulator([
-            STY.BASE_OP_CODE | XAddressInstruction.ZeroPageX,
-            0x03,
-            0xEA
-        ])
-        {
-            Y = 0b1010_1010,
-            X = 0x03
-        };
+        var emulator = new EmulatorBuilder()
+            .WithTestKernel([
+                STY.BASE_OP_CODE | XAddressInstruction.ZeroPageX,
+                0x03,
+                0xEA
+            ])
+            .Build();
+
+        emulator.Cpu.Y.Value = 0b1010_1010;
+        emulator.Cpu.X.Value = 0x03;
 
         // act
-        emulator.Start();
+        emulator.Cpu.Test();
 
         // assert
-        Assert.AreEqual(0b1010_1010, emulator.PeekRam(0x06));
+        Assert.AreEqual(0b1010_1010, emulator.MemoryMap.PeekRam(0x06));
     }
 
     [TestMethod]
     public void Absolute()
     {
         // arrange
-        var emulator = new TestEmulator([
-            STY.BASE_OP_CODE | XAddressInstruction.Absolute,
-            0x00,
-            0xC0,
-            0xEA
-        ])
-        {
-            Y = 0b1010_1010
-        };
+        var emulator = new EmulatorBuilder()
+            .WithTestKernel([
+                STY.BASE_OP_CODE | XAddressInstruction.Absolute,
+                0x00,
+                0xC0,
+                0xEA
+            ])
+            .Build();
+
+        emulator.Cpu.Y.Value = 0b1010_1010;
 
         // act
-        emulator.Start();
+        emulator.Cpu.Test();
 
         // assert
-        Assert.AreEqual(0b1010_1010, emulator.PeekRam(0xC000));
+        Assert.AreEqual(0b1010_1010, emulator.MemoryMap.PeekRam(0xC000));
     }
 }

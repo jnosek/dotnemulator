@@ -1,6 +1,6 @@
+using Dotnemulator.Platforms.Commodore64;
 using Dotnemulator.Platforms.Commodore64.Architecture;
 using Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
-using Dotnemulator.Platforms.Commodore64.Test.Mocks;
 
 namespace Dotnemulator.Platforms.Commodore64.Test.Instructions;
 
@@ -11,19 +11,19 @@ public class PLP_Test
     public void Implied()
     {
         // arrange
-        var emulator = new TestEmulator([
-            PLP.OP_CODE,
-            // this is skipped by the break instruction            
-            0xEA
-        ])
-        {
-            P = StatusFlag.InterruptDisable
-        };
+        var emulator = new EmulatorBuilder()
+            .WithTestKernel([
+                PLP.OP_CODE,
+                // this is skipped by the break instruction            
+                0xEA
+            ])
+            .Build();
 
+        emulator.Cpu.P.Value = StatusFlag.InterruptDisable;
         emulator.Cpu.StackPush(StatusFlag.Negative);
 
         // act
-        emulator.Start();
+        emulator.Cpu.Test();
 
         // assert
         // Current P

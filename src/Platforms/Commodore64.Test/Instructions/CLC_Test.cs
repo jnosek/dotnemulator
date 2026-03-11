@@ -1,6 +1,6 @@
+using Dotnemulator.Platforms.Commodore64;
 using Dotnemulator.Platforms.Commodore64.Architecture;
 using Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
-using Dotnemulator.Platforms.Commodore64.Test.Mocks;
 
 namespace Dotnemulator.Platforms.Commodore64.Test.Instructions;
 
@@ -11,16 +11,17 @@ public class CLC_Test
     public void Implied()
     {
         // arrange
-        var emulator = new TestEmulator([
-            CLC.OP_CODE,
-            0xEA
-        ])
-        {
-            P = StatusFlag.Carry
-        };
+        var emulator = new EmulatorBuilder()
+            .WithTestKernel([
+                CLC.OP_CODE,
+                0xEA
+            ])
+            .Build();
+
+        emulator.Cpu.P.Value = StatusFlag.Carry;
 
         // act
-        emulator.Start();
+        emulator.Cpu.Test();
 
         // assert
         // Current P

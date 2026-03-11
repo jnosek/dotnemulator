@@ -1,5 +1,5 @@
+using Dotnemulator.Platforms.Commodore64;
 using Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
-using Dotnemulator.Platforms.Commodore64.Test.Mocks;
 
 namespace Dotnemulator.Platforms.Commodore64.Test.Instructions;
 
@@ -10,11 +10,14 @@ public class RTS_Test
     public void Absolute()
     {
         // arrange
-        var emulator = new TestEmulator([
-            RTS.OP_CODE, 
-            0x00,
-            0x00,
-            0xEA,]); 
+        var emulator = new EmulatorBuilder()
+            .WithTestKernel([
+                RTS.OP_CODE, 
+                0x00,
+                0x00,
+                0xEA,
+            ])
+            .Build();
 
         // routine return address
         var kernelReturn = 0xE002;
@@ -22,7 +25,7 @@ public class RTS_Test
         emulator.Cpu.StackPush(kernelReturn & 0xFF);
 
         // act
-        emulator.Start();
+        emulator.Cpu.Test();
 
         // assert
         Assert.AreEqual(0xE004, emulator.Cpu.PC.Value);

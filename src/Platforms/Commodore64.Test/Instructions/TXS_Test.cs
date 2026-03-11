@@ -1,6 +1,5 @@
 using System;
 using Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
-using Dotnemulator.Platforms.Commodore64.Test.Mocks;
 
 namespace Dotnemulator.Platforms.Commodore64.Test.Instructions;
 
@@ -11,18 +10,19 @@ public class TXS_Test
     public void Implied()
     {
         // arrange
-        var emulator = new TestEmulator([
-            TXS.OP_CODE,
-            0xEA
-        ])
-        {
-            X = 0xFA
-        };
+        var emulator = new EmulatorBuilder()
+            .WithTestKernel([
+                TXS.OP_CODE,
+                0xEA
+            ])
+            .Build();
+
+        emulator.Cpu.X.Value = 0xFA;
 
         Assert.AreEqual(0xFF, emulator.Cpu.SP);
 
         // act
-        emulator.Start();
+        emulator.Cpu.Test();
 
         // assert
         Assert.AreEqual(0xFA, emulator.Cpu.SP);

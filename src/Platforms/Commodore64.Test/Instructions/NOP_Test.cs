@@ -1,5 +1,5 @@
+using Dotnemulator.Platforms.Commodore64;
 using Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
-using Dotnemulator.Platforms.Commodore64.Test.Mocks;
 
 namespace Dotnemulator.Platforms.Commodore64.Test.Instructions;
 
@@ -10,12 +10,14 @@ public class NOP_Test
     public void Implied()
     {
         // arrange
-        var emulator = new TestEmulator([
-            NOP.OP_CODE
-        ]);
+        var emulator = new EmulatorBuilder()
+            .WithTestKernel([
+                NOP.OP_CODE
+            ])
+            .Build();
 
         // act
-        emulator.Start();
+        emulator.Cpu.Test();
 
         // assert
     }

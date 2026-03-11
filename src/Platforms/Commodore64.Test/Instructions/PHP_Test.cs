@@ -1,6 +1,6 @@
+using Dotnemulator.Platforms.Commodore64;
 using Dotnemulator.Platforms.Commodore64.Architecture;
 using Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
-using Dotnemulator.Platforms.Commodore64.Test.Mocks;
 
 namespace Dotnemulator.Platforms.Commodore64.Test.Instructions;
 
@@ -11,17 +11,18 @@ public class PHP_Test
     public void Implied()
     {
         // arrange
-        var emulator = new TestEmulator([
-            PHP.OP_CODE,
-            // this is skipped by the break instruction            
-            0xEA
-        ])
-        {
-            P = StatusFlag.Zero
-        };
+        var emulator = new EmulatorBuilder()
+            .WithTestKernel([
+                PHP.OP_CODE,
+                // this is skipped by the break instruction            
+                0xEA
+            ])
+            .Build();
+
+        emulator.Cpu.P.Value = StatusFlag.Zero;
 
         // act
-        emulator.Start();
+        emulator.Cpu.Test();
 
         // assert
         // Current P
@@ -30,6 +31,6 @@ public class PHP_Test
         // stack - status register
         Assert.AreEqual(
             StatusFlag.Zero, 
-            emulator.PeekRam(MOS6510Cpu.STACK_START_ADDRESS));
+            emulator.MemoryMap.PeekRam(MOS6510Cpu.STACK_START_ADDRESS));
     }
 }

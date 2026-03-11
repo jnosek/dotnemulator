@@ -1,7 +1,6 @@
-using System;
+using Dotnemulator.Platforms.Commodore64;
 using Dotnemulator.Platforms.Commodore64.Architecture;
 using Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
-using Dotnemulator.Platforms.Commodore64.Test.Mocks;
 
 namespace Dotnemulator.Platforms.Commodore64.Test.Instructions;
 
@@ -12,17 +11,18 @@ public class PHA_Test
     public void Implied()
     {
         // arrange
-        var emulator = new TestEmulator([
-            PHA.OP_CODE,
-            // this is skipped by the break instruction            
-            0xEA
-        ])
-        {
-            Accumulator = 0b0101_0101
-        };
+        var emulator = new EmulatorBuilder()
+            .WithTestKernel([
+                PHA.OP_CODE,
+                // this is skipped by the break instruction            
+                0xEA
+            ])
+            .Build();
+
+        emulator.Cpu.A.Value = 0b0101_0101;
 
         // act
-        emulator.Start();
+        emulator.Cpu.Test();
 
         // assert
         // stack register
@@ -31,9 +31,9 @@ public class PHA_Test
         // stack contents
         Assert.AreEqual(
             0b0101_0101, 
-            emulator.PeekRam(MOS6510Cpu.STACK_START_ADDRESS));
+            emulator.MemoryMap.PeekRam(MOS6510Cpu.STACK_START_ADDRESS));
 
         // accumulator
-        Assert.AreEqual(0b0101_0101, emulator.Accumulator);
+        Assert.AreEqual(0b0101_0101, emulator.Cpu.A.Value);
     }
 }

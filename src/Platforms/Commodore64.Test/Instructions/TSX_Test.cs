@@ -1,5 +1,4 @@
 using Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
-using Dotnemulator.Platforms.Commodore64.Test.Mocks;
 
 namespace Dotnemulator.Platforms.Commodore64.Test.Instructions;
 
@@ -10,15 +9,17 @@ public class TSX_Test
     public void Implied()
     {
         // arrange
-        var emulator = new TestEmulator([
-            TSX.OP_CODE,
-            0xEA
-        ]);
+        var emulator = new EmulatorBuilder()
+            .WithTestKernel([
+                TSX.OP_CODE,
+                0xEA
+            ])
+            .Build();
 
         // act
-        emulator.Start();
+        emulator.Cpu.Test();
 
         // assert
-        Assert.AreEqual(0xFF, emulator.X);
+        Assert.AreEqual(0xFF, emulator.Cpu.X.Value);
     }
 }

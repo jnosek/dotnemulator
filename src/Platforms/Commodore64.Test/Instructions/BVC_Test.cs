@@ -1,6 +1,6 @@
+using Dotnemulator.Platforms.Commodore64;
 using Dotnemulator.Platforms.Commodore64.Architecture;
 using Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
-using Dotnemulator.Platforms.Commodore64.Test.Mocks;
 
 namespace Dotnemulator.Platforms.Commodore64.Test.Instructions;
 
@@ -11,20 +11,21 @@ public class BVC_Test
     public void Relative_Branch()
     {
         // arrange
-        var emulator = new TestEmulator([
-            BVC.OP_CODE,
-            0x03,
-            0x00,
-            0x00,
-            0x00,
-            0xEA
-        ])
-        {
-            P = ~StatusFlag.Overflow
-        };
+        var emulator = new EmulatorBuilder()
+            .WithTestKernel([
+                BVC.OP_CODE,
+                0x03,
+                0x00,
+                0x00,
+                0x00,
+                0xEA
+            ])
+            .Build();
+
+        emulator.Cpu.P.Value = ~StatusFlag.Overflow;
 
         // act
-        emulator.Start();
+        emulator.Cpu.Test();
 
         // assert
         // kernel start + anticipated offset + ending NOP instruction
@@ -35,20 +36,21 @@ public class BVC_Test
     public void Relative_NoBranch()
     {
         // arrange
-        var emulator = new TestEmulator([
-            BVC.OP_CODE,
-            0x03,
-            0xEA,
-            0x00,
-            0x00,
-            0x00
-        ])
-        {
-            P = StatusFlag.Overflow
-        };
+        var emulator = new EmulatorBuilder()
+            .WithTestKernel([
+                BVC.OP_CODE,
+                0x03,
+                0xEA,
+                0x00,
+                0x00,
+                0x00
+            ])
+            .Build();
+
+        emulator.Cpu.P.Value = StatusFlag.Overflow;
 
         // act
-        emulator.Start();
+        emulator.Cpu.Test();
 
         // assert
         // kernel start + anticipated offset + ending NOP instruction

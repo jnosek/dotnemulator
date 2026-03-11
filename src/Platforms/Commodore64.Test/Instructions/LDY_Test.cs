@@ -1,7 +1,6 @@
-using System;
+using Dotnemulator.Platforms.Commodore64;
 using Dotnemulator.Platforms.Commodore64.Architecture;
 using Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
-using Dotnemulator.Platforms.Commodore64.Test.Mocks;
 
 namespace Dotnemulator.Platforms.Commodore64.Test.Instructions;
 
@@ -12,17 +11,19 @@ public class LDY_Test
     public void Immediate()
     {
         // arrange
-        var emulator = new TestEmulator([
-            LDY.BASE_OP_CODE | XAddressInstruction.Immediate,
-            0b0000_0010,
-            0xEA
-        ]);
+        var emulator = new EmulatorBuilder()
+            .WithTestKernel([
+                LDY.BASE_OP_CODE | XAddressInstruction.Immediate,
+                0b0000_0010,
+                0xEA
+            ])
+            .Build();
 
         // act
-        emulator.Start();
+        emulator.Cpu.Test();
 
         // assert
-        Assert.AreEqual(0b0000_0010, emulator.Y);
+        Assert.AreEqual(0b0000_0010, emulator.Cpu.Y.Value);
         Assert.IsFalse(emulator.Cpu.P.ZeroFlag);
         Assert.IsFalse(emulator.Cpu.P.NegativeFlag);
     }
@@ -31,18 +32,20 @@ public class LDY_Test
     public void ZeroPage_WithZero()
     {
         // arrange
-        var emulator = new TestEmulator([
-            LDY.BASE_OP_CODE | XAddressInstruction.ZeroPage,
-            0x03,
-            0xEA
-        ],
-        [ (0x3, 0b0000_0000) ]);
+        var emulator = new EmulatorBuilder()
+            .WithTestKernel([
+                LDY.BASE_OP_CODE | XAddressInstruction.ZeroPage,
+                0x03,
+                0xEA
+            ])
+            .WithRam([ (0x3, 0b0000_0000) ])
+            .Build();
 
         // act
-        emulator.Start();
+        emulator.Cpu.Test();
 
         // assert
-        Assert.AreEqual(0b0000_0000, emulator.Y);
+        Assert.AreEqual(0b0000_0000, emulator.Cpu.Y.Value);
         Assert.IsTrue(emulator.Cpu.P.ZeroFlag);
         Assert.IsFalse(emulator.Cpu.P.NegativeFlag);
     }
@@ -51,21 +54,22 @@ public class LDY_Test
     public void ZeroPageX_WithNegative()
     {
         // arrange
-        var emulator = new TestEmulator([
-            LDY.BASE_OP_CODE | XAddressInstruction.ZeroPageX,
-            0x03,
-            0xEA
-        ],
-        [ (0x06, 0b1000_0010) ])
-        {
-            X = 0x03
-        };
+        var emulator = new EmulatorBuilder()
+            .WithTestKernel([
+                LDY.BASE_OP_CODE | XAddressInstruction.ZeroPageX,
+                0x03,
+                0xEA
+            ])
+            .WithRam([ (0x06, 0b1000_0010) ])
+            .Build();
+
+        emulator.Cpu.X.Value = 0x03;
 
         // act
-        emulator.Start();
+        emulator.Cpu.Test();
 
         // assert
-        Assert.AreEqual(0b1000_0010, emulator.Y);
+        Assert.AreEqual(0b1000_0010, emulator.Cpu.Y.Value);
         Assert.IsFalse(emulator.Cpu.P.ZeroFlag);
         Assert.IsTrue(emulator.Cpu.P.NegativeFlag);
     }
@@ -74,19 +78,21 @@ public class LDY_Test
     public void Absolute()
     {
         // arrange
-        var emulator = new TestEmulator([
-            LDY.BASE_OP_CODE | XAddressInstruction.Absolute,
-            0x00,
-            0xC0,
-            0xEA
-        ],
-        [ (0xC000, 0b0000_0010) ]);
+        var emulator = new EmulatorBuilder()
+            .WithTestKernel([
+                LDY.BASE_OP_CODE | XAddressInstruction.Absolute,
+                0x00,
+                0xC0,
+                0xEA
+            ])
+            .WithRam([ (0xC000, 0b0000_0010) ])
+            .Build();
 
         // act
-        emulator.Start();
+        emulator.Cpu.Test();
 
         // assert
-        Assert.AreEqual(0b0000_0010, emulator.Y);
+        Assert.AreEqual(0b0000_0010, emulator.Cpu.Y.Value);
         Assert.IsFalse(emulator.Cpu.P.ZeroFlag);
         Assert.IsFalse(emulator.Cpu.P.NegativeFlag);
     }
@@ -96,22 +102,23 @@ public class LDY_Test
     public void AbsoluteX()
     {
         // arrange
-        var emulator = new TestEmulator([
-            LDY.BASE_OP_CODE | XAddressInstruction.AbsoluteX,
-            0x00,
-            0xC0,
-            0xEA
-        ],
-        [ (0xC003, 0b1000_0010) ])
-        {
-            X = 0x03
-        };
+        var emulator = new EmulatorBuilder()
+            .WithTestKernel([
+                LDY.BASE_OP_CODE | XAddressInstruction.AbsoluteX,
+                0x00,
+                0xC0,
+                0xEA
+            ])
+            .WithRam([ (0xC003, 0b1000_0010) ])
+            .Build();
+
+        emulator.Cpu.X.Value = 0x03;
 
         // act
-        emulator.Start();
+        emulator.Cpu.Test();
 
         // assert
-        Assert.AreEqual(0b1000_0010, emulator.Y);
+        Assert.AreEqual(0b1000_0010, emulator.Cpu.Y.Value);
         Assert.IsFalse(emulator.Cpu.P.ZeroFlag);
         Assert.IsTrue(emulator.Cpu.P.NegativeFlag);
     }
