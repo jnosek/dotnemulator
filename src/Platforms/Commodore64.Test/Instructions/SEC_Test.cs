@@ -11,6 +11,7 @@ public class SEC_Test
     {
         // arrange
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 SEC.OP_CODE,
                 0xEA
@@ -18,7 +19,7 @@ public class SEC_Test
             .Build();
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         // Current P

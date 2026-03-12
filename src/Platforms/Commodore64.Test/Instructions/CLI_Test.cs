@@ -11,6 +11,7 @@ public class CLI_Test
     {
         // arrange
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 CLI.OP_CODE,
                 0xEA
@@ -20,7 +21,7 @@ public class CLI_Test
         emulator.Cpu.P.Value = StatusFlag.InterruptDisable;
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         // Current P

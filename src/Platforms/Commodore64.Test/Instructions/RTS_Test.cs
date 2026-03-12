@@ -10,6 +10,7 @@ public class RTS_Test
     {
         // arrange
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 RTS.OP_CODE,
                 0x00,
@@ -24,7 +25,7 @@ public class RTS_Test
         emulator.Cpu.StackPush(kernelReturn & 0xFF);
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         Assert.AreEqual(0xE004, emulator.Cpu.PC.Value);

@@ -10,6 +10,7 @@ public class DEY_Test
     {
         // arrange
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 DEY.OP_CODE,
                 0xEA
@@ -19,7 +20,7 @@ public class DEY_Test
         emulator.Cpu.Y.Value = 0x03;
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         // Current P
@@ -33,6 +34,7 @@ public class DEY_Test
     {
         // arrange
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 DEY.OP_CODE,
                 0xEA
@@ -42,7 +44,7 @@ public class DEY_Test
         emulator.Cpu.Y.Value = 0x01;
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         // Current P
@@ -56,6 +58,7 @@ public class DEY_Test
     {
         // arrange
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 DEY.OP_CODE,
                 0xEA
@@ -65,7 +68,7 @@ public class DEY_Test
         emulator.Cpu.Y.Value = 0x83;
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         // Current P

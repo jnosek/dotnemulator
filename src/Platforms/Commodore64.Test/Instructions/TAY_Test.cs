@@ -10,6 +10,7 @@ public class TAY_Test
     {
         // arrange
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 TAY.OP_CODE,
                 0xEA
@@ -19,7 +20,7 @@ public class TAY_Test
         emulator.Cpu.A.Value = 0x03;
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         // Current P
@@ -33,6 +34,7 @@ public class TAY_Test
     {
         // arrange
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 TAY.OP_CODE,
                 0xEA
@@ -43,7 +45,7 @@ public class TAY_Test
         emulator.Cpu.Y.Value = 0x05;
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         // Current P
@@ -57,6 +59,7 @@ public class TAY_Test
     {
         // arrange
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 TAY.OP_CODE,
                 0xEA
@@ -66,7 +69,7 @@ public class TAY_Test
         emulator.Cpu.A.Value = 0x83;
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         // Current P

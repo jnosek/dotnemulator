@@ -10,6 +10,7 @@ public class LSR_Test
     {
         // arrange
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 LSRA.OP_CODE,
                 0xEA
@@ -19,7 +20,7 @@ public class LSR_Test
         emulator.Cpu.A.Value = 0x02;
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         Assert.AreEqual(0x01, emulator.Cpu.A.Value);
@@ -34,6 +35,7 @@ public class LSR_Test
     {
         // arrange
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 LSR.BASE_OP_CODE | XAddressInstruction.Absolute,
                 0x00,
@@ -44,7 +46,7 @@ public class LSR_Test
             .Build();
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         Assert.AreEqual(0b0100_0000, emulator.MemoryMap.PeekRam(0xC000));
@@ -59,6 +61,7 @@ public class LSR_Test
     {
         // arrange
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 LSR.BASE_OP_CODE | XAddressInstruction.AbsoluteX,
                 0x00,
@@ -71,7 +74,7 @@ public class LSR_Test
         emulator.Cpu.X.Value = 0x03;
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         Assert.AreEqual(0x00, emulator.MemoryMap.PeekRam(0xC003));
@@ -86,6 +89,7 @@ public class LSR_Test
     {
         // arrange
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 LSR.BASE_OP_CODE | XAddressInstruction.ZeroPage,
                 0x03,
@@ -95,7 +99,7 @@ public class LSR_Test
             .Build();
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         Assert.AreEqual(0x00, emulator.MemoryMap.PeekRam(0x0003));
@@ -110,6 +114,7 @@ public class LSR_Test
     {
         // arrange
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 LSR.BASE_OP_CODE | XAddressInstruction.ZeroPageX,
                 0x03,
@@ -122,7 +127,7 @@ public class LSR_Test
         emulator.Cpu.P.NegativeFlag = true;
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         Assert.AreEqual(0b0010_0000, emulator.MemoryMap.PeekRam(0x0006));

@@ -11,6 +11,7 @@ public class PLA_Test
     {
         // arrange
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 PLA.OP_CODE,
                 // this is skipped by the break instruction            
@@ -21,7 +22,7 @@ public class PLA_Test
         emulator.Cpu.StackPush(0x11);
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         Assert.AreEqual(0x11, emulator.Cpu.A.Value);
@@ -36,6 +37,7 @@ public class PLA_Test
     {
         // arrange
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 PLA.OP_CODE,
                 // this is skipped by the break instruction            
@@ -46,7 +48,7 @@ public class PLA_Test
         emulator.Cpu.StackPush(0x81);
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         Assert.AreEqual(0x81, emulator.Cpu.A.Value);
@@ -61,6 +63,7 @@ public class PLA_Test
     {
         // arrange
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 PLA.OP_CODE,
                 // this is skipped by the break instruction            
@@ -71,7 +74,7 @@ public class PLA_Test
         emulator.Cpu.StackPush(0x0);
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         Assert.AreEqual(0x0, emulator.Cpu.A.Value);

@@ -11,6 +11,7 @@ public class SED_Test
     {
         // arrange
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 SED.OP_CODE,
                 0xEA
@@ -20,7 +21,7 @@ public class SED_Test
         emulator.Cpu.P.Value = 0;
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         // Current P

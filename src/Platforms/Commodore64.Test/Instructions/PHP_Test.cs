@@ -11,6 +11,7 @@ public class PHP_Test
     {
         // arrange
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 PHP.OP_CODE,
                 // this is skipped by the break instruction            
@@ -21,7 +22,7 @@ public class PHP_Test
         emulator.Cpu.P.Value = StatusFlag.Zero;
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         // Current P

@@ -11,6 +11,7 @@ public class RTI_Test
     {
         // arrange
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 RTI.OP_CODE,
             ])
@@ -24,7 +25,7 @@ public class RTI_Test
         emulator.Cpu.StackPush(StatusFlag.Overflow);
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         Assert.AreEqual(StatusFlag.Overflow, emulator.Cpu.P.Value);

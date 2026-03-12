@@ -14,6 +14,8 @@ public class Emulator
     internal MemoryPla Pla { get; }
     internal MemoryMap MemoryMap { get; }
 
+    internal IExecutionStrategy ExecutionStrategy { get; set; }
+
     /// <summary>
     /// Initializes a new instance of the Emulator class.
     /// <param name="memoryMapFactory">Optional factory function to create a custom MemoryMap. If not provided, a default MemoryMap will be used.</param>
@@ -24,18 +26,25 @@ public class Emulator
         Pla = new MemoryPla(AddressBus, PortBus);
         MemoryMap = memoryMapFactory?.Invoke(this) ?? 
             new MemoryMap(AddressBus, DataBus, Pla.MemoryBankBus);
+
+        ExecutionStrategy = new RuntimeExecutionStrategy();
     }
 
     public void Start()
     {
-        PrintRomHashes();
+        //PrintRomHashes();
 
-        Cpu.Reset();
+        ExecutionStrategy.Execute(Cpu);
     }
 
     public void Stop()
     {
         
+    }
+
+    public void Reset()
+    {
+
     }
 
     [Conditional("DEBUG")]

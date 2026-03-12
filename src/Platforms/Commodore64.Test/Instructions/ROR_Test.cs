@@ -10,6 +10,7 @@ public class ROR_Test
     {
         // arrange
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 RORA.OP_CODE,
                 0xEA
@@ -20,7 +21,7 @@ public class ROR_Test
         emulator.Cpu.P.CarryFlag = false;
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         Assert.AreEqual(0x01, emulator.Cpu.A.Value);
@@ -35,6 +36,7 @@ public class ROR_Test
     {
         // arrange
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 ROR.BASE_OP_CODE | XAddressInstruction.Absolute,
                 0x00,
@@ -47,7 +49,7 @@ public class ROR_Test
         emulator.Cpu.P.CarryFlag = true;
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         Assert.AreEqual(0b1100_0000, emulator.MemoryMap.PeekRam(0xC000));
@@ -62,6 +64,7 @@ public class ROR_Test
     {
         // arrange
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 ROR.BASE_OP_CODE | XAddressInstruction.AbsoluteX,
                 0x00,
@@ -74,7 +77,7 @@ public class ROR_Test
         emulator.Cpu.X.Value = 0x03;
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         Assert.AreEqual(0x00, emulator.MemoryMap.PeekRam(0xC003));
@@ -89,6 +92,7 @@ public class ROR_Test
     {
         // arrange
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 ROR.BASE_OP_CODE | XAddressInstruction.ZeroPage,
                 0x03,
@@ -98,7 +102,7 @@ public class ROR_Test
             .Build();
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         Assert.AreEqual(0x00, emulator.MemoryMap.PeekRam(0x0003));
@@ -113,6 +117,7 @@ public class ROR_Test
     {
         // arrange
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 ROR.BASE_OP_CODE | XAddressInstruction.ZeroPageX,
                 0x03,
@@ -125,7 +130,7 @@ public class ROR_Test
         emulator.Cpu.P.CarryFlag = true;
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         Assert.AreEqual(0b1010_0000, emulator.MemoryMap.PeekRam(0x0006));

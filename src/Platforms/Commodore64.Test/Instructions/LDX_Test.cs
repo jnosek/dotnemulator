@@ -10,6 +10,7 @@ public class LDX_Test
     {
         // arrange
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 LDX.BASE_OP_CODE | YAddressInstruction.Immediate,
                 0b0000_0010,
@@ -18,7 +19,7 @@ public class LDX_Test
             .Build();
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         Assert.AreEqual(0b0000_0010, emulator.Cpu.X.Value);
@@ -31,6 +32,7 @@ public class LDX_Test
     {
         // arrange
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 LDX.BASE_OP_CODE | YAddressInstruction.ZeroPage,
                 0x03,
@@ -40,7 +42,7 @@ public class LDX_Test
             .Build();
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         Assert.AreEqual(0b0000_0000, emulator.Cpu.X.Value);
@@ -53,6 +55,7 @@ public class LDX_Test
     {
         // arrange
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 LDX.BASE_OP_CODE | YAddressInstruction.ZeroPageY,
                 0x03,
@@ -64,7 +67,7 @@ public class LDX_Test
         emulator.Cpu.Y.Value = 0x03;
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         Assert.AreEqual(0b1000_0010, emulator.Cpu.X.Value);
@@ -77,6 +80,7 @@ public class LDX_Test
     {
         // arrange
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 LDX.BASE_OP_CODE | YAddressInstruction.Absolute,
                 0x00,
@@ -87,7 +91,7 @@ public class LDX_Test
             .Build();
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         Assert.AreEqual(0b0000_0010, emulator.Cpu.X.Value);
@@ -101,6 +105,7 @@ public class LDX_Test
     {
         // arrange
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 LDX.BASE_OP_CODE | YAddressInstruction.AbsoluteY,
                 0x00,
@@ -113,7 +118,7 @@ public class LDX_Test
         emulator.Cpu.Y.Value = 0x03;
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         Assert.AreEqual(0b1000_0010, emulator.Cpu.X.Value);

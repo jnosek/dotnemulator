@@ -10,6 +10,7 @@ public class TSX_Test
     {
         // arrange
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 TSX.OP_CODE,
                 0xEA
@@ -17,7 +18,7 @@ public class TSX_Test
             .Build();
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         Assert.AreEqual(0xFF, emulator.Cpu.X.Value);

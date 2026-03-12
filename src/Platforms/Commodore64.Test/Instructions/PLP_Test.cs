@@ -11,6 +11,7 @@ public class PLP_Test
     {
         // arrange
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 PLP.OP_CODE,
                 // this is skipped by the break instruction            
@@ -22,7 +23,7 @@ public class PLP_Test
         emulator.Cpu.StackPush(StatusFlag.Negative);
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         // Current P

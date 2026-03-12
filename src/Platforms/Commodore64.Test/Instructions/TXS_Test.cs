@@ -10,6 +10,7 @@ public class TXS_Test
     {
         // arrange
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 TXS.OP_CODE,
                 0xEA
@@ -21,7 +22,7 @@ public class TXS_Test
         Assert.AreEqual(0xFF, emulator.Cpu.SP);
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         Assert.AreEqual(0xFA, emulator.Cpu.SP);

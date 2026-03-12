@@ -10,6 +10,7 @@ public class JMP_Test
     {
         // arrange
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 JMP.ABSOLUTE_OP_CODE,
                 0x00,
@@ -18,7 +19,7 @@ public class JMP_Test
             .Build();
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         Assert.AreEqual(0xC001, emulator.Cpu.PC.Value);
@@ -29,6 +30,7 @@ public class JMP_Test
     {
         // arrange
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 JMP.INDIRECT_OP_CODE,
                 0x00,
@@ -41,7 +43,7 @@ public class JMP_Test
             .Build();
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         Assert.AreEqual(0xC101, emulator.Cpu.PC.Value);

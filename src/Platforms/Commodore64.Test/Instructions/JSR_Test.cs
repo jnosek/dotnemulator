@@ -11,6 +11,7 @@ public class JSR_Test
     {
         // arrange
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 JSR.OP_CODE,
                 0x00,
@@ -19,7 +20,7 @@ public class JSR_Test
             .Build();
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         Assert.AreEqual(0xC001, emulator.Cpu.PC.Value);

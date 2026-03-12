@@ -10,6 +10,7 @@ public class INY_Test
     {
         // arrange
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 INY.OP_CODE,
                 0xEA
@@ -19,7 +20,7 @@ public class INY_Test
         emulator.Cpu.Y.Value = 0x03;
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         // Current P
@@ -33,6 +34,7 @@ public class INY_Test
     {
         // arrange
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 INY.OP_CODE,
                 0xEA
@@ -42,7 +44,7 @@ public class INY_Test
         emulator.Cpu.Y.Value = 0xFF;
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         // Current P
@@ -56,6 +58,7 @@ public class INY_Test
     {
         // arrange
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 INY.OP_CODE,
                 0xEA
@@ -65,7 +68,7 @@ public class INY_Test
         emulator.Cpu.Y.Value = 0x83;
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         // Current P

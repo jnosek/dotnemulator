@@ -10,6 +10,7 @@ public class STX_Test
     {
         // arrange
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 STX.BASE_OP_CODE | YAddressInstruction.ZeroPage,
                 0x03,
@@ -20,7 +21,7 @@ public class STX_Test
         emulator.Cpu.X.Value = 0b1010_1010;
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         Assert.AreEqual(0b1010_1010, emulator.MemoryMap.PeekRam(0x03));
@@ -31,6 +32,7 @@ public class STX_Test
     {
         // arrange
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 STX.BASE_OP_CODE | YAddressInstruction.ZeroPageY,
                 0x03,
@@ -42,7 +44,7 @@ public class STX_Test
         emulator.Cpu.Y.Value = 0x03;
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         Assert.AreEqual(0b1010_1010, emulator.MemoryMap.PeekRam(0x06));
@@ -53,6 +55,7 @@ public class STX_Test
     {
         // arrange
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 STX.BASE_OP_CODE | YAddressInstruction.Absolute,
                 0x00,
@@ -64,7 +67,7 @@ public class STX_Test
         emulator.Cpu.X.Value = 0b1010_1010;
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         Assert.AreEqual(0b1010_1010, emulator.MemoryMap.PeekRam(0xC000));

@@ -10,6 +10,7 @@ public class BIT_Test
     {
         // arrange
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 BIT.BASE_OP_CODE | XAddressInstruction.ZeroPage,
                 0x03,
@@ -21,7 +22,7 @@ public class BIT_Test
         emulator.Cpu.A.Value = 0b1000_0001;
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         Assert.AreEqual(0b1000_0001, emulator.Cpu.A.Value);
@@ -35,6 +36,7 @@ public class BIT_Test
     {
         // arrange
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 BIT.BASE_OP_CODE | XAddressInstruction.ZeroPage,
                 0x03,
@@ -46,7 +48,7 @@ public class BIT_Test
         emulator.Cpu.A.Value = 0b0100_0001;
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         Assert.AreEqual(0b0100_0001, emulator.Cpu.A.Value);
@@ -60,6 +62,7 @@ public class BIT_Test
     {
         // arrange
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 BIT.BASE_OP_CODE | XAddressInstruction.Absolute,
                 0x00,
@@ -72,7 +75,7 @@ public class BIT_Test
         emulator.Cpu.A.Value = 0b0000_0001;
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         Assert.AreEqual(0b0000_0001, emulator.Cpu.A.Value);
@@ -86,6 +89,7 @@ public class BIT_Test
     {
         // arrange
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 BIT.BASE_OP_CODE | XAddressInstruction.Absolute,
                 0x00,
@@ -98,7 +102,7 @@ public class BIT_Test
         emulator.Cpu.A.Value = 0b0100_0001;
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         Assert.AreEqual(0b0100_0001, emulator.Cpu.A.Value);

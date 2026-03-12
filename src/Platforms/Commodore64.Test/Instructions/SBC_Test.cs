@@ -10,6 +10,7 @@ public class SBC_Test
     {
         // arrange: 7 - 3 - 0(borrow) = 4
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 SBC.BASE_OP_CODE | AccumulatorInstruction.Immediate,
                 0x03,
@@ -21,7 +22,7 @@ public class SBC_Test
         emulator.Cpu.P.CarryFlag = true;
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         Assert.AreEqual(0x04, emulator.Cpu.A.Value);
@@ -36,6 +37,7 @@ public class SBC_Test
     {
         // arrange: 5 - 10 - 0(borrow) = -5 = 0xFB, borrow occurs
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 SBC.BASE_OP_CODE | AccumulatorInstruction.ZeroPage,
                 0x10,
@@ -48,7 +50,7 @@ public class SBC_Test
         emulator.Cpu.P.CarryFlag = true;
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         Assert.AreEqual(0xFB, emulator.Cpu.A.Value);
@@ -63,6 +65,7 @@ public class SBC_Test
     {
         // arrange: 8 - 8 - 0(borrow) = 0, zero result
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 SBC.BASE_OP_CODE | AccumulatorInstruction.ZeroPageX,
                 0x04,
@@ -76,7 +79,7 @@ public class SBC_Test
         emulator.Cpu.P.CarryFlag = true;
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         Assert.AreEqual(0x00, emulator.Cpu.A.Value);
@@ -91,6 +94,7 @@ public class SBC_Test
     {
         // arrange: 16 - 1 - 1(borrow) = 14 = 0x0E, carry-in is clear
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 SBC.BASE_OP_CODE | AccumulatorInstruction.Absolute,
                 0x00,
@@ -104,7 +108,7 @@ public class SBC_Test
         emulator.Cpu.P.CarryFlag = false;
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         Assert.AreEqual(0x0E, emulator.Cpu.A.Value);
@@ -119,6 +123,7 @@ public class SBC_Test
     {
         // arrange: 0x50(+80) - 0xB0(-80 signed) - 0(borrow) = -96 = 0xA0, signed overflow
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 SBC.BASE_OP_CODE | AccumulatorInstruction.AbsoluteX,
                 0x00,
@@ -133,7 +138,7 @@ public class SBC_Test
         emulator.Cpu.P.CarryFlag = true;
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         Assert.AreEqual(0xA0, emulator.Cpu.A.Value);
@@ -148,6 +153,7 @@ public class SBC_Test
     {
         // arrange: 0xD0(-48 signed) - 0x70(+112) - 0(borrow) = 0x60(+96), signed overflow
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 SBC.BASE_OP_CODE | AccumulatorInstruction.AbsoluteY,
                 0x00,
@@ -162,7 +168,7 @@ public class SBC_Test
         emulator.Cpu.P.CarryFlag = true;
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         Assert.AreEqual(0x60, emulator.Cpu.A.Value);
@@ -177,6 +183,7 @@ public class SBC_Test
     {
         // arrange: 0x20 - 0x05 - 1(borrow) = 0x1A = 26, carry-in clear
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 SBC.BASE_OP_CODE | AccumulatorInstruction.Indexed_Indirect,
                 0x02,
@@ -194,7 +201,7 @@ public class SBC_Test
         emulator.Cpu.P.CarryFlag = false;
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         Assert.AreEqual(0x1A, emulator.Cpu.A.Value);
@@ -209,6 +216,7 @@ public class SBC_Test
     {
         // arrange: 0x02 - 0x03 - 0(borrow) = -1 = 0xFF, borrow occurs
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 SBC.BASE_OP_CODE | AccumulatorInstruction.Indirect_Indexed,
                 0x02,
@@ -226,7 +234,7 @@ public class SBC_Test
         emulator.Cpu.P.CarryFlag = true;
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         Assert.AreEqual(0xFF, emulator.Cpu.A.Value);

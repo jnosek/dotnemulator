@@ -10,6 +10,7 @@ public class LDY_Test
     {
         // arrange
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 LDY.BASE_OP_CODE | XAddressInstruction.Immediate,
                 0b0000_0010,
@@ -18,7 +19,7 @@ public class LDY_Test
             .Build();
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         Assert.AreEqual(0b0000_0010, emulator.Cpu.Y.Value);
@@ -31,6 +32,7 @@ public class LDY_Test
     {
         // arrange
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 LDY.BASE_OP_CODE | XAddressInstruction.ZeroPage,
                 0x03,
@@ -40,7 +42,7 @@ public class LDY_Test
             .Build();
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         Assert.AreEqual(0b0000_0000, emulator.Cpu.Y.Value);
@@ -53,6 +55,7 @@ public class LDY_Test
     {
         // arrange
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 LDY.BASE_OP_CODE | XAddressInstruction.ZeroPageX,
                 0x03,
@@ -64,7 +67,7 @@ public class LDY_Test
         emulator.Cpu.X.Value = 0x03;
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         Assert.AreEqual(0b1000_0010, emulator.Cpu.Y.Value);
@@ -77,6 +80,7 @@ public class LDY_Test
     {
         // arrange
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 LDY.BASE_OP_CODE | XAddressInstruction.Absolute,
                 0x00,
@@ -87,7 +91,7 @@ public class LDY_Test
             .Build();
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         Assert.AreEqual(0b0000_0010, emulator.Cpu.Y.Value);
@@ -101,6 +105,7 @@ public class LDY_Test
     {
         // arrange
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 LDY.BASE_OP_CODE | XAddressInstruction.AbsoluteX,
                 0x00,
@@ -113,7 +118,7 @@ public class LDY_Test
         emulator.Cpu.X.Value = 0x03;
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         Assert.AreEqual(0b1000_0010, emulator.Cpu.Y.Value);

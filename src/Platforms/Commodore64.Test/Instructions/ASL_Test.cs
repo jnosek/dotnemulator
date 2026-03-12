@@ -10,6 +10,7 @@ public class ASL_Test
     {
         // arrange
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 ASLA.OP_CODE,
                 0xEA
@@ -19,7 +20,7 @@ public class ASL_Test
         emulator.Cpu.A.Value = 0x02;
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         Assert.AreEqual(0x04, emulator.Cpu.A.Value);
@@ -34,6 +35,7 @@ public class ASL_Test
     {
         // arrange
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 ASL.BASE_OP_CODE | XAddressInstruction.Absolute,
                 0x00,
@@ -44,7 +46,7 @@ public class ASL_Test
             .Build();
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         Assert.AreEqual(0b0000_0010, emulator.MemoryMap.PeekRam(0xC000));
@@ -59,6 +61,7 @@ public class ASL_Test
     {
         // arrange
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 ASL.BASE_OP_CODE | XAddressInstruction.AbsoluteX,
                 0x00,
@@ -71,7 +74,7 @@ public class ASL_Test
         emulator.Cpu.X.Value = 0x03;
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         Assert.AreEqual(0x00, emulator.MemoryMap.PeekRam(0xC003));
@@ -86,6 +89,7 @@ public class ASL_Test
     {
         // arrange
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 ASL.BASE_OP_CODE | XAddressInstruction.ZeroPage,
                 0x03,
@@ -95,7 +99,7 @@ public class ASL_Test
             .Build();
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         Assert.AreEqual(0x00, emulator.MemoryMap.PeekRam(0x0003));
@@ -110,6 +114,7 @@ public class ASL_Test
     {
         // arrange
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 ASL.BASE_OP_CODE | XAddressInstruction.ZeroPageX,
                 0x03,
@@ -121,7 +126,7 @@ public class ASL_Test
         emulator.Cpu.X.Value = 0x03;
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         Assert.AreEqual(0x80, emulator.MemoryMap.PeekRam(0x0006));

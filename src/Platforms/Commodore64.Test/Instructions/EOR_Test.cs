@@ -10,6 +10,7 @@ public class EOR_Test
     {
         // arrange
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 EOR.BASE_OP_CODE | AccumulatorInstruction.Immediate,
                 0b0000_0110,
@@ -20,7 +21,7 @@ public class EOR_Test
         emulator.Cpu.A.Value = 0b0000_0101;
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         Assert.AreEqual(0b0000_0011, emulator.Cpu.A.Value);
@@ -33,6 +34,7 @@ public class EOR_Test
     {
         // arrange
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 EOR.BASE_OP_CODE | AccumulatorInstruction.Immediate,
                 0b000_0111,
@@ -43,7 +45,7 @@ public class EOR_Test
         emulator.Cpu.A.Value = 0b0000_0111;
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         Assert.AreEqual(0b0000_0000, emulator.Cpu.A.Value);
@@ -56,6 +58,7 @@ public class EOR_Test
     {
         // arrange
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 EOR.BASE_OP_CODE | AccumulatorInstruction.ZeroPage,
                 0x03,
@@ -67,7 +70,7 @@ public class EOR_Test
         emulator.Cpu.A.Value = 0b0000_0101;
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         Assert.AreEqual(0b0000_0011, emulator.Cpu.A.Value);
@@ -80,6 +83,7 @@ public class EOR_Test
     {
         // arrange
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 EOR.BASE_OP_CODE | AccumulatorInstruction.ZeroPageX,
                 0x03,
@@ -92,7 +96,7 @@ public class EOR_Test
         emulator.Cpu.X.Value = 0x03;
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         Assert.AreEqual(0b0000_0011, emulator.Cpu.A.Value);
@@ -105,6 +109,7 @@ public class EOR_Test
     {
         // arrange
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 EOR.BASE_OP_CODE | AccumulatorInstruction.Absolute,
                 0x00,
@@ -117,7 +122,7 @@ public class EOR_Test
         emulator.Cpu.A.Value = 0b0000_0101;
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         Assert.AreEqual(0b0000_0011, emulator.Cpu.A.Value);
@@ -131,6 +136,7 @@ public class EOR_Test
     {
         // arrange
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 EOR.BASE_OP_CODE | AccumulatorInstruction.AbsoluteX,
                 0x00,
@@ -144,7 +150,7 @@ public class EOR_Test
         emulator.Cpu.X.Value = 0x03;
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         Assert.AreEqual(0b1000_0011, emulator.Cpu.A.Value);
@@ -157,6 +163,7 @@ public class EOR_Test
     {
         // arrange
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 EOR.BASE_OP_CODE | AccumulatorInstruction.AbsoluteY,
                 0x00,
@@ -170,7 +177,7 @@ public class EOR_Test
         emulator.Cpu.Y.Value = 0x06;
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         Assert.AreEqual(0b0000_0011, emulator.Cpu.A.Value);
@@ -183,6 +190,7 @@ public class EOR_Test
     {
         // arrange
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 EOR.BASE_OP_CODE | AccumulatorInstruction.Indexed_Indirect,
                 0x02,
@@ -198,7 +206,7 @@ public class EOR_Test
         emulator.Cpu.X.Value = 0x04;
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         Assert.AreEqual(0b0000_0011, emulator.Cpu.A.Value);
@@ -211,6 +219,7 @@ public class EOR_Test
     {
         // arrange
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 EOR.BASE_OP_CODE | AccumulatorInstruction.Indirect_Indexed,
                 0x02,
@@ -226,7 +235,7 @@ public class EOR_Test
         emulator.Cpu.Y.Value = 0x04;
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         Assert.AreEqual(0b0000_0011, emulator.Cpu.A.Value);

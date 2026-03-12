@@ -10,6 +10,7 @@ public class CPX_Test
     {
         // arrange
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 CPX.BASE_OP_CODE | XAddressInstruction.Immediate,
                 0b0100_0010,
@@ -20,7 +21,7 @@ public class CPX_Test
         emulator.Cpu.X.Value = 0b0000_0010;
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         Assert.AreEqual(0b0000_0010, emulator.Cpu.X.Value);
@@ -34,6 +35,7 @@ public class CPX_Test
     {
         // arrange
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 CPX.BASE_OP_CODE | XAddressInstruction.ZeroPage,
                 0x03,
@@ -45,7 +47,7 @@ public class CPX_Test
         emulator.Cpu.X.Value = 0b0000_0001;
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         Assert.AreEqual(0b0000_0001, emulator.Cpu.X.Value);
@@ -59,6 +61,7 @@ public class CPX_Test
     {
         // arrange
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 CPX.BASE_OP_CODE | XAddressInstruction.Absolute,
                 0x00,
@@ -71,7 +74,7 @@ public class CPX_Test
         emulator.Cpu.X.Value = 0b0000_1000;
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         Assert.AreEqual(0b0000_1000, emulator.Cpu.X.Value);

@@ -10,6 +10,7 @@ public class DEX_Test
     {
         // arrange
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 DEX.OP_CODE,
                 0xEA
@@ -19,7 +20,7 @@ public class DEX_Test
         emulator.Cpu.X.Value = 0x03;
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         // Current P
@@ -33,6 +34,7 @@ public class DEX_Test
     {
         // arrange
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 DEX.OP_CODE,
                 0xEA
@@ -42,7 +44,7 @@ public class DEX_Test
         emulator.Cpu.X.Value = 0x01;
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         // Current P
@@ -56,6 +58,7 @@ public class DEX_Test
     {
         // arrange
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 DEX.OP_CODE,
                 0xEA
@@ -65,7 +68,7 @@ public class DEX_Test
         emulator.Cpu.X.Value = 0x83;
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         // Current P
@@ -79,6 +82,7 @@ public class DEX_Test
     {
         // arrange
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 DEX.OP_CODE,
                 0xEA
@@ -88,7 +92,7 @@ public class DEX_Test
         emulator.Cpu.X.Value = 0x00;
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         // Current P

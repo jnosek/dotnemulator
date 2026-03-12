@@ -11,6 +11,7 @@ public class CLV_Test
     {
         // arrange
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 CLV.OP_CODE,
                 0xEA
@@ -20,7 +21,7 @@ public class CLV_Test
         emulator.Cpu.P.Value = StatusFlag.Overflow;
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         // Current P

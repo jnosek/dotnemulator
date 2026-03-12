@@ -10,24 +10,22 @@ public class ADC_Test
     {
         // arrange
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 ADC.BASE_OP_CODE | AccumulatorInstruction.Immediate,
-                0x00,
-                0xC0,
+                0x01,
                 0xEA
             ])
-            .WithRam([(0xC003, 0b1001_0000)])
             .Build();
 
-        emulator.Cpu.X.Value = 0x03;
         emulator.Cpu.A.Value = 0b0001_0001;
         emulator.Cpu.P.DecimalModeFlag = true;
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
-        Assert.AreEqual(0b0000_1001, emulator.Cpu.A.Value);
+        Assert.AreEqual(0b0001_0010, emulator.Cpu.A.Value);
         Assert.IsFalse(emulator.Cpu.P.ZeroFlag);
         Assert.IsFalse(emulator.Cpu.P.NegativeFlag);
         Assert.IsFalse(emulator.Cpu.P.CarryFlag);
@@ -39,6 +37,7 @@ public class ADC_Test
     {
         // arrange
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 ADC.BASE_OP_CODE | AccumulatorInstruction.ZeroPage,
                 0x03,
@@ -50,7 +49,7 @@ public class ADC_Test
         emulator.Cpu.A.Value = 0b0000_0010;
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         Assert.AreEqual(0b0000_0001, emulator.Cpu.A.Value);
@@ -65,6 +64,7 @@ public class ADC_Test
     {
         // arrange
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 ADC.BASE_OP_CODE | AccumulatorInstruction.Immediate,
                 0b1111_1111,
@@ -75,7 +75,7 @@ public class ADC_Test
         emulator.Cpu.A.Value = 0b1000_0000;
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         Assert.AreEqual(0b0111_1111, emulator.Cpu.A.Value);
@@ -90,6 +90,7 @@ public class ADC_Test
     {
         // arrange
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 ADC.BASE_OP_CODE | AccumulatorInstruction.Absolute,
                 0x00,
@@ -103,7 +104,7 @@ public class ADC_Test
         emulator.Cpu.P.DecimalModeFlag = true;
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         Assert.AreEqual(0b0100_0011, emulator.Cpu.A.Value);
@@ -118,6 +119,7 @@ public class ADC_Test
     {
         // arrange
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 ADC.BASE_OP_CODE | AccumulatorInstruction.AbsoluteX,
                 0x00,
@@ -132,7 +134,7 @@ public class ADC_Test
         emulator.Cpu.P.DecimalModeFlag = true;
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         Assert.AreEqual(0b0000_0001, emulator.Cpu.A.Value);
@@ -147,6 +149,7 @@ public class ADC_Test
     {
         // arrange
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 ADC.BASE_OP_CODE | AccumulatorInstruction.AbsoluteY,
                 0x00,
@@ -161,7 +164,7 @@ public class ADC_Test
         emulator.Cpu.P.CarryFlag = true;
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         Assert.AreEqual(0b1001_0011, emulator.Cpu.A.Value);
@@ -176,6 +179,7 @@ public class ADC_Test
     {
         // arrange
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 ADC.BASE_OP_CODE | AccumulatorInstruction.Indexed_Indirect,
                 0x02,
@@ -191,7 +195,7 @@ public class ADC_Test
         emulator.Cpu.X.Value = 0x04;
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         Assert.AreEqual(0b0000_0000, emulator.Cpu.A.Value);
@@ -206,6 +210,7 @@ public class ADC_Test
     {
         // arrange
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 ADC.BASE_OP_CODE | AccumulatorInstruction.Indirect_Indexed,
                 0x02,
@@ -221,7 +226,7 @@ public class ADC_Test
         emulator.Cpu.Y.Value = 0x04;
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         Assert.AreEqual(0b0000_1000, emulator.Cpu.A.Value);

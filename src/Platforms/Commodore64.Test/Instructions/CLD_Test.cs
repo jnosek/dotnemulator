@@ -11,6 +11,7 @@ public class CLD_Test
     {
         // arrange
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 CLD.OP_CODE,
                 0xEA
@@ -20,7 +21,7 @@ public class CLD_Test
         emulator.Cpu.P.Value = StatusFlag.DecimalMode;
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         // Current P

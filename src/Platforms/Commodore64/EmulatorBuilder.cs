@@ -8,6 +8,8 @@ public sealed class EmulatorBuilder
 
     private Func<Emulator, MemoryMap>? _memoryMapFactory = null;
 
+    private IExecutionStrategy? _executionStrategy = null;
+
     public EmulatorBuilder WithRoms()
     {
         _memoryMapConfigurations.Add((map) => {
@@ -50,9 +52,28 @@ public sealed class EmulatorBuilder
         return this;
     }
 
+    internal EmulatorBuilder WithExecutionStrategy(IExecutionStrategy executionStrategy)
+    {
+        _executionStrategy = executionStrategy;
+        return this;
+    }
+
+    internal EmulatorBuilder WithUnitTestMode()
+    {
+        _executionStrategy = new DebugExecutionStrategy
+        {
+            IsStopOnNopEnabled = true
+        };
+
+        return this;
+    }
+
     public Emulator Build()
     {
         var emulator = new Emulator(_memoryMapFactory);
+
+        if(_executionStrategy != null)
+            emulator.ExecutionStrategy = _executionStrategy;
 
         foreach (var configure in _memoryMapConfigurations)
         {

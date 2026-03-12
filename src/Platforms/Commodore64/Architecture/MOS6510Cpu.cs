@@ -83,7 +83,7 @@ public class MOS6510Cpu
     public readonly Wire InterruptRequest = new Wire();
     public readonly Wire NonMaskableInterrupt = new Wire();
 
-    private readonly InstructionSet instructionSet;
+    internal readonly InstructionSet instructionSet;
     
     public MOS6510Cpu(Bus addressBus, Bus dataBus, Bus portBus)
     {
@@ -100,50 +100,24 @@ public class MOS6510Cpu
         _sp.Value = STACK_START_ADDRESS & 0xFF;
     }
 
-    private void InitializePC()
+    internal void Initialize(int? pcValue = null)
     {
         // set default memory mode
         Write(0x0001, 0b0000_0111);
 
-        // load PC from reset vector
-        PC.Value = RESET_VECTOR;
-        var address = ReadNextWord();
+        // use provided PC value for testing
+        if(pcValue.HasValue)
+        {
+            PC.Value = pcValue.Value;
+        }
+        // otherwise load from reset vector
+        else
+        {
+            PC.Value = RESET_VECTOR;
+            var address = ReadNextWord();
 
-        PC.Value = address;
-    }
-
-    /// <summary>
-    /// Load PC from RESET_VECTOR memory location (0xFFFC/0xFFFD)
-    /// in little-endian order
-    /// </summary>
-    public void Reset()
-    {
-        InitializePC();
-
-        RunLoop();
-    }
-
-    internal void Start(int pcValue)
-    {
-        InitializePC();
-
-        // explicitly set PC to provided value, which is useful for testing
-        PC.Value = pcValue;
-
-        RunLoop();
-    }
-
-    /// <summary>
-    /// Stars the CPU processing loop, but will stop when a NOP instruction is encountered. 
-    /// </summary>
-    /// <remarks>
-    /// This is useful for unit testing, where we want to execute a specific set of instructions and then stop to assert the state of the CPU.
-    /// </remarks>
-    internal void Test()
-    {
-        InitializePC();
-
-        TestLoop();
+            PC.Value = address;
+        }
     }
 
     internal void InterruptRequestHandler(bool value)
@@ -182,45 +156,20 @@ public class MOS6510Cpu
         PC.Value = address;
     }
 
-    /// <summary> 
-    /// Executes the instruction fetch-decode-execute loop. This method will run indefinitely until the emulator is stopped. 
-    /// </summary>
-    private void RunLoop()
+    internal InstructionResult Step()
     {
-        while(true)
-        {
-            // fetch
-            int instruction = ReadNextByte();
-
-            // decode
-            var operation = instructionSet[instruction];
-
-            // execute
-            operation.Execute(instruction);
-        }
-    }
+        int address = PC.Value;
     
-    /// <summary> 
-    /// Executes the instruction fetch-decode-execute loop. 
-    /// This method will run until a NOP instruction is encountered. 
-    /// </summary>
-    private void TestLoop()
-    {
-        while(true)
-        {
-            // fetch
-            int instruction = ReadNextByte();
+        // fetch
+        int instruction = ReadNextByte();
 
-            // NOP instruction
-            if(instruction == 0xEA) 
-                break;
+        // decode
+        var operation = instructionSet[instruction];
 
-            // decode
-            var operation = instructionSet[instruction];
+        // execute
+        operation.Execute(instruction);
 
-            // execute
-            operation.Execute(instruction);
-        }
+        return new InstructionResult(address, instruction, 0);
     }
 
     /// <summary>

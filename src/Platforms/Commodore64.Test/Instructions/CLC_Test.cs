@@ -11,6 +11,7 @@ public class CLC_Test
     {
         // arrange
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 CLC.OP_CODE,
                 0xEA
@@ -20,7 +21,7 @@ public class CLC_Test
         emulator.Cpu.P.Value = StatusFlag.Carry;
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         // Current P

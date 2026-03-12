@@ -11,6 +11,7 @@ public class BPL_Test
     {
         // arrange
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 BPL.OP_CODE,
                 0x03,
@@ -24,7 +25,7 @@ public class BPL_Test
         emulator.Cpu.P.Value = ~StatusFlag.Negative;
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         // kernel start + anticipated offset + ending NOP instruction
@@ -36,6 +37,7 @@ public class BPL_Test
     {
         // arrange
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 BPL.OP_CODE,
                 0x03,
@@ -49,7 +51,7 @@ public class BPL_Test
         emulator.Cpu.P.Value = StatusFlag.Negative;
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         // kernel start + anticipated offset + ending NOP instruction

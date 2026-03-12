@@ -10,6 +10,7 @@ public class DEC_Test
     {
         // arrange
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 DEC.BASE_OP_CODE | XAddressInstruction.Absolute,
                 0x00,
@@ -20,7 +21,7 @@ public class DEC_Test
             .Build();
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         Assert.AreEqual(0b0000_0001, emulator.MemoryMap.PeekRam(0xC000));
@@ -34,6 +35,7 @@ public class DEC_Test
     {
         // arrange
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 DEC.BASE_OP_CODE | XAddressInstruction.AbsoluteX,
                 0x00,
@@ -46,7 +48,7 @@ public class DEC_Test
         emulator.Cpu.X.Value = 0x03;
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         Assert.AreEqual(0x00, emulator.MemoryMap.PeekRam(0xC003));
@@ -60,6 +62,7 @@ public class DEC_Test
     {
         // arrange
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 DEC.BASE_OP_CODE | XAddressInstruction.ZeroPage,
                 0x03,
@@ -69,7 +72,7 @@ public class DEC_Test
             .Build();
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         Assert.AreEqual(0xFF, emulator.MemoryMap.PeekRam(0x0003));
@@ -83,6 +86,7 @@ public class DEC_Test
     {
         // arrange
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 DEC.BASE_OP_CODE | XAddressInstruction.ZeroPageX,
                 0x03,
@@ -94,7 +98,7 @@ public class DEC_Test
         emulator.Cpu.X.Value = 0x03;
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         Assert.AreEqual(0b1011_1111, emulator.MemoryMap.PeekRam(0x0006));

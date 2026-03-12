@@ -11,6 +11,7 @@ public class SEI_Test
     {
         // arrange
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 SEI.OP_CODE,
                 0xEA
@@ -18,7 +19,7 @@ public class SEI_Test
             .Build();
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         // Current P

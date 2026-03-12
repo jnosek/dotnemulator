@@ -11,6 +11,7 @@ public class PHA_Test
     {
         // arrange
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 PHA.OP_CODE,
                 // this is skipped by the break instruction            
@@ -21,7 +22,7 @@ public class PHA_Test
         emulator.Cpu.A.Value = 0b0101_0101;
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         // stack register

@@ -12,6 +12,7 @@ public class BRK_Test
     {
         // arrange
         var emulator = new EmulatorBuilder()
+            .WithUnitTestMode()
             .WithTestKernel([
                 BRK.OP_CODE,
                 // this is skipped by the break instruction            
@@ -21,7 +22,7 @@ public class BRK_Test
             .Build();
 
         // act
-        emulator.Cpu.Test();
+        emulator.Start();
 
         // assert
         // Current PC
