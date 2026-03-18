@@ -30,6 +30,9 @@ abstract class RelativeInstruction : IInstruction
     {
         var operand = CPU.ReadNextByte();
 
-        return (CPU.PC.Value + operand) & 0xFFFF;
+        // cast operand to signed byte and add to program counter
+        // to get proper positive and negative offsets,
+        // then mask to 16 bits to get the target address
+        return (CPU.PC.Value + (sbyte)operand) & 0xFFFF;
     }
 }

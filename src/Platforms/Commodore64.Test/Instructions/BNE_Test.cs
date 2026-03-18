@@ -7,7 +7,7 @@ namespace Dotnemulator.Platforms.Commodore64.Test.Instructions;
 public class BNE_Test
 {
     [TestMethod]
-    public void Relative_Branch()
+    public void Relative_BranchForward()
     {
         // arrange
         var emulator = new EmulatorBuilder()
@@ -29,8 +29,40 @@ public class BNE_Test
 
         // assert
         // kernel start + anticipated offset + ending NOP instruction
-        Assert.AreEqual(0xE000 + 5 + 1, emulator.Cpu.PC.Value);
+        Assert.AreEqual(0xE000 + 2 + 3 + 1, emulator.Cpu.PC.Value);
     }
+
+    [TestMethod]
+    public void Relative_BranchBackward()
+    {
+        // arrange
+        var emulator = new EmulatorBuilder()
+            .WithUnitTestMode(0xE008)
+            .WithTestKernel([
+                0xEA,
+                0x00,
+                0x00,
+                0x00,
+                0x00,
+                0x00,
+                0x00,
+                0x00,
+                BNE.OP_CODE,
+                0xF6,
+                0x00
+            ])
+            .Build();
+
+        emulator.Cpu.P.Value = ~StatusFlag.Zero;
+
+        // act
+        emulator.Start();
+
+        // assert
+        // kernel start + anticipated offset + ending NOP instruction
+        Assert.AreEqual(0xE008 + 2 - 10 + 1, emulator.Cpu.PC.Value);
+    }
+
 
     [TestMethod]
     public void Relative_NoBranch()
