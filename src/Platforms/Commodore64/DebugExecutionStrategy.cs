@@ -13,6 +13,8 @@ public class DebugExecutionStrategy : IExecutionStrategy
 
     public int? StartAddress { get; set; }
 
+    public Dictionary<int, Action<MOS6510Cpu>> BreakpointCallbacks { get; init; } = new();
+
     private readonly Queue<InstructionResult> _instructionLog = new(INSTRUCTION_LOG_WINDOW_SIZE);
 
     public void Execute(MOS6510Cpu cpu)
@@ -21,6 +23,11 @@ public class DebugExecutionStrategy : IExecutionStrategy
 
         while(true)
         {
+            if(BreakpointCallbacks.TryGetValue(cpu.PC.Value, out var callback))
+            {
+                callback(cpu);
+            }
+
             var result = cpu.Step();
 
             // if this was a NOP instruction, break out of the loop and stop execution
@@ -28,13 +35,16 @@ public class DebugExecutionStrategy : IExecutionStrategy
                 break;
 
             // if jump loop detection is enabled, check if the current instruction matches the last instruction in the log
-            if(IsJumpLoopDetectionEnabled)
+            if(IsJumpLoopDetectionEnabled && _instructionLog.Count > 0)
             {
                 var lastInstruction = _instructionLog.Last();
                 if(result.Instruction == lastInstruction.Instruction &&
                    result.Address == lastInstruction.Address)
                 {
-                    throw new Exception($"Detected potential jump loop at address {result.Address:X4} with instruction {result.Instruction:X2}");
+                    throw new JumpLoopException($"Detected potential jump loop at address {result.Address:X4} with instruction {result.Instruction:X2}")
+                    {
+                        InstructionLog = _instructionLog.ToList()
+                    };
                 }
             }
 

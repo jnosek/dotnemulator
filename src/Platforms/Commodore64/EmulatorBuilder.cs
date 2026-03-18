@@ -58,11 +58,12 @@ public sealed class EmulatorBuilder
         return this;
     }
 
-    internal EmulatorBuilder WithUnitTestMode()
+    internal EmulatorBuilder WithUnitTestMode(int? startAddress = null)
     {
         _executionStrategy = new DebugExecutionStrategy
         {
-            IsStopOnNopEnabled = true
+            IsStopOnNopEnabled = true,
+            StartAddress = startAddress
         };
 
         return this;
