@@ -15,11 +15,24 @@ public class DebugExecutionStrategy : IExecutionStrategy
 
     public Dictionary<int, Action<MOS6510Cpu>> BreakpointCallbacks { get; init; } = new();
 
+    public Dictionary<int, Action<int>> MemoryWatchCallbacks { get; init; } = new();
+
     private readonly Queue<InstructionResult> _instructionLog = new(INSTRUCTION_LOG_WINDOW_SIZE);
 
     public void Execute(MOS6510Cpu cpu)
     {
         cpu.Initialize(StartAddress);
+
+        if(MemoryWatchCallbacks.Count > 0)
+        {
+            cpu.AddressBus.Subscribe(() => {
+                var address = cpu.AddressBus.Read();
+                if(MemoryWatchCallbacks.TryGetValue(address, out var callback))
+                {
+                    callback(cpu.DataBus.Read());
+                }
+            });
+        }
 
         while(true)
         {
@@ -43,7 +56,7 @@ public class DebugExecutionStrategy : IExecutionStrategy
                 {
                     throw new JumpLoopException($"Detected potential jump loop at address {result.Address:X4} with instruction {result.Instruction:X2}")
                     {
-                        InstructionLog = _instructionLog.ToList()
+                        InstructionLog = _instructionLog.Reverse().ToList()
                     };
                 }
             }
