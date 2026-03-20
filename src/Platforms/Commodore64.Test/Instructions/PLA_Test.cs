@@ -26,7 +26,7 @@ public class PLA_Test
 
         // assert
         Assert.AreEqual(0x11, emulator.Cpu.A.Value);
-        Assert.AreEqual(0, emulator.Cpu.P.Value);
+        Assert.AreEqual(StatusFlag.Unused, emulator.Cpu.P.Value);
 
         // stack reset
         Assert.AreEqual(MOS6510Cpu.STACK_START_ADDRESS & 0xFF, emulator.Cpu.SP);
@@ -52,7 +52,7 @@ public class PLA_Test
 
         // assert
         Assert.AreEqual(0x81, emulator.Cpu.A.Value);
-        Assert.AreEqual(StatusFlag.Negative, emulator.Cpu.P.Value);
+        Assert.AreEqual(StatusFlag.Negative | StatusFlag.Unused, emulator.Cpu.P.Value);
 
         // stack reset
         Assert.AreEqual(MOS6510Cpu.STACK_START_ADDRESS & 0xFF, emulator.Cpu.SP);
@@ -78,7 +78,7 @@ public class PLA_Test
 
         // assert
         Assert.AreEqual(0x0, emulator.Cpu.A.Value);
-        Assert.AreEqual(StatusFlag.Zero, emulator.Cpu.P.Value);
+        Assert.AreEqual(StatusFlag.Zero | StatusFlag.Unused, emulator.Cpu.P.Value);
 
         // stack reset
         Assert.AreEqual(MOS6510Cpu.STACK_START_ADDRESS & 0xFF, emulator.Cpu.SP);

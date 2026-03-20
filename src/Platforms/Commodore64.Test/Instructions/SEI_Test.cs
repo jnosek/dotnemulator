@@ -23,6 +23,6 @@ public class SEI_Test
 
         // assert
         // Current P
-        Assert.AreEqual(StatusFlag.InterruptDisable, emulator.Cpu.P.Value);
+        Assert.AreEqual(StatusFlag.InterruptDisable | StatusFlag.Unused, emulator.Cpu.P.Value);
     }
 }

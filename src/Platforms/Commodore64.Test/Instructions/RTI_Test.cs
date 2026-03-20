@@ -22,13 +22,13 @@ public class RTI_Test
 
         emulator.Cpu.StackPush(0xC0);
         emulator.Cpu.StackPush(0x00);
-        emulator.Cpu.StackPush(StatusFlag.Overflow);
+        emulator.Cpu.StackPush(StatusFlag.Overflow | StatusFlag.Unused);
 
         // act
         emulator.Start();
 
         // assert
-        Assert.AreEqual(StatusFlag.Overflow, emulator.Cpu.P.Value);
+        Assert.AreEqual(StatusFlag.Overflow | StatusFlag.Unused, emulator.Cpu.P.Value);
         Assert.AreEqual(MOS6510Cpu.STACK_START_ADDRESS & 0xFF, emulator.Cpu.SP);
         Assert.AreEqual(0xC001, emulator.Cpu.PC.Value);
     }

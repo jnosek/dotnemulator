@@ -23,6 +23,6 @@ public class SEC_Test
 
         // assert
         // Current P
-        Assert.AreEqual(StatusFlag.Carry, emulator.Cpu.P.Value);
+        Assert.AreEqual(StatusFlag.Carry | StatusFlag.Unused, emulator.Cpu.P.Value);
     }
 }

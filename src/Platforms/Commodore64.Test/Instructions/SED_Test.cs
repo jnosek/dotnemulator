@@ -25,6 +25,6 @@ public class SED_Test
 
         // assert
         // Current P
-        Assert.AreEqual(StatusFlag.DecimalMode, emulator.Cpu.P.Value);
+        Assert.AreEqual(StatusFlag.DecimalMode | StatusFlag.Unused, emulator.Cpu.P.Value);
     }
 }

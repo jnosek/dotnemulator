@@ -14,6 +14,8 @@ class PHP(MOS6510Cpu cpu) : ImpliedInstruction(cpu)
 
     public override void Execute(int instruction)
     {
-        CPU.StackPush(CPU.P.Value);
+        // set the break command flag, since flags are pushed to the stack
+        // with a software instruction
+        CPU.StackPush(CPU.P.Value | StatusFlag.BreakCommand);
     }
 }

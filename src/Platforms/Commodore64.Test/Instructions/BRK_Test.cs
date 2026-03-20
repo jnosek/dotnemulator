@@ -30,7 +30,7 @@ public class BRK_Test
 
         // stack - status register
         Assert.AreEqual(
-            StatusFlag.BreakCommand,
+            StatusFlag.BreakCommand | StatusFlag.Unused,
             emulator.MemoryMap.PeekRam(MOS6510Cpu.STACK_START_ADDRESS - 2));
 
         // stack - return PC
@@ -38,7 +38,9 @@ public class BRK_Test
         Assert.AreEqual(0xE0, emulator.MemoryMap.PeekRam(MOS6510Cpu.STACK_START_ADDRESS - 0));
 
         // status register
-        Assert.IsTrue(emulator.Cpu.P.BreakCommandFlag);
+
+        // the break flag is not actually set in the status register
+        Assert.IsFalse(emulator.Cpu.P.BreakCommandFlag);
         Assert.IsTrue(emulator.Cpu.P.InterruptDisableFlag);
     }
 }

@@ -19,18 +19,20 @@ public class PHP_Test
             ])
             .Build();
 
-        emulator.Cpu.P.Value = StatusFlag.Zero;
+        emulator.Cpu.P.ZeroFlag = true;
 
         // act
         emulator.Start();
 
         // assert
         // Current P
-        Assert.AreEqual(StatusFlag.Zero, emulator.Cpu.P.Value);
+        Assert.AreEqual(
+            StatusFlag.Zero | StatusFlag.Unused,
+            emulator.Cpu.P.Value);
 
         // stack - status register
         Assert.AreEqual(
-            StatusFlag.Zero,
+            StatusFlag.Zero | StatusFlag.BreakCommand | StatusFlag.Unused,
             emulator.MemoryMap.PeekRam(MOS6510Cpu.STACK_START_ADDRESS));
     }
 }

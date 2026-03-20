@@ -16,8 +16,6 @@ class BRK(MOS6510Cpu cpu) : ImpliedInstruction(cpu)
 
     public override void Execute(int instruction)
     {
-        _cpu.P.BreakCommandFlag = true;
-
         // increment by an additional 1
         // and read next Instruction Address
         // for returning to after IRQ routine
@@ -30,8 +28,8 @@ class BRK(MOS6510Cpu cpu) : ImpliedInstruction(cpu)
         _cpu.StackPush(pc >> 8);
         _cpu.StackPush(pc & 0xFF);
 
-        // store status flag register
-        _cpu.StackPush(_cpu.P.Value);
+        // store status flag register, with break command flag set, since this is a software instruction
+        _cpu.StackPush(_cpu.P.Value | StatusFlag.BreakCommand);
 
         // read IRQ/BRK vector
 

@@ -25,6 +25,6 @@ public class CLI_Test
 
         // assert
         // Current P
-        Assert.AreEqual(0, emulator.Cpu.P.Value);
+        Assert.AreEqual(StatusFlag.Unused, emulator.Cpu.P.Value);
     }
 }

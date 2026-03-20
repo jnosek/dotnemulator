@@ -19,15 +19,15 @@ public class PLP_Test
             ])
             .Build();
 
-        emulator.Cpu.P.Value = StatusFlag.InterruptDisable;
-        emulator.Cpu.StackPush(StatusFlag.Negative);
+        emulator.Cpu.P.Value = StatusFlag.InterruptDisable | StatusFlag.Unused;
+        emulator.Cpu.StackPush(StatusFlag.Negative | StatusFlag.Unused);
 
         // act
         emulator.Start();
 
         // assert
         // Current P
-        Assert.AreEqual(StatusFlag.Negative, emulator.Cpu.P.Value);
+        Assert.AreEqual(StatusFlag.Negative | StatusFlag.Unused, emulator.Cpu.P.Value);
 
         // stack reset
         Assert.AreEqual(MOS6510Cpu.STACK_START_ADDRESS & 0xFF, emulator.Cpu.SP);
