@@ -30,6 +30,6 @@ public class JSR_Test
         // high byte of return address should be on stack
         Assert.AreEqual(0xE0, emulator.MemoryMap.PeekRam(MOS6510Cpu.STACK_START_ADDRESS));
         // low byte of return address should be on stack
-        Assert.AreEqual(0x03, emulator.MemoryMap.PeekRam(MOS6510Cpu.STACK_START_ADDRESS - 1));
+        Assert.AreEqual(0x02, emulator.MemoryMap.PeekRam(MOS6510Cpu.STACK_START_ADDRESS - 1));
     }
 }

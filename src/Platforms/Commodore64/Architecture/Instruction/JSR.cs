@@ -22,7 +22,10 @@ class JSR : AddressInstruction
     public override void Execute(int instruction, int address)
     {
         // push return address to stack
-        var returnAddress = CPU.PC.Value;
+        // the return address is the address of the last byte of the JSR instruction,
+        // (PC is currently ponting to the next instruction) so we need to decrement it by 1
+        // the RTS instruction will pull this address and increment it by 1 to get the correct return address
+        var returnAddress = CPU.PC.Value - 1;
         CPU.StackPush(returnAddress >> 8); // high byte
         CPU.StackPush(returnAddress & 0xFF); // low byte
 
