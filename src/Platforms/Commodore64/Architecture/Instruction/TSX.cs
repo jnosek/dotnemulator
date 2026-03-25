@@ -14,6 +14,9 @@ class TSX(MOS6510Cpu cpu) : ImpliedInstruction(cpu)
     public override void Execute(int instruction)
     {
         CPU.X.Value = CPU.SP;
+
+        CPU.P.NegativeFlag = (CPU.X.Value & 0x80) != 0;
+        CPU.P.ZeroFlag = CPU.X.Value == 0;
     }
 }
 

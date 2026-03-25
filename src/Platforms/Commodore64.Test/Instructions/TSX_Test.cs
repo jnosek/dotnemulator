@@ -22,5 +22,7 @@ public class TSX_Test
 
         // assert
         Assert.AreEqual(0xFF, emulator.Cpu.X.Value);
+        Assert.IsFalse(emulator.Cpu.P.ZeroFlag);
+        Assert.IsTrue(emulator.Cpu.P.NegativeFlag);
     }
 }
