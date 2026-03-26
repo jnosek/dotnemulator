@@ -13,6 +13,14 @@ public class DebugExecutionStrategy : IExecutionStrategy
 
     public int? StartAddress { get; set; }
 
+    /// <summary>
+    /// If execution reaches this address, it will stop. 
+    /// </summary>
+    /// <remarks>
+    /// This can be useful for debugging or testing specific sections of code.
+    /// </remarks>
+    public int? EndAddress { get; set; }
+
     public Dictionary<int, Action<MOS6510Cpu>> BreakpointCallbacks { get; init; } = new();
 
     public Dictionary<int, Action<int>> MemoryWatchCallbacks { get; init; } = new();
@@ -67,6 +75,9 @@ public class DebugExecutionStrategy : IExecutionStrategy
             // maintain a rolling log of the last instructions
             if(_instructionLog.Count > INSTRUCTION_LOG_WINDOW_SIZE)
                 _instructionLog.Dequeue();
+
+            if(result.Address == EndAddress)
+                break;
         }
     }
 }
