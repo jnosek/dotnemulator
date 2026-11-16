@@ -54,4 +54,15 @@ public class Bus_Test
 
         Assert.AreEqual(0x34, data.Read());
     }
+
+    [TestMethod]
+    public void ReadBit_ReadsEachLine()
+    {
+        var bus = new Bus(8);
+        bus.Drive(0b1000_0001);
+
+        Assert.IsTrue(bus.ReadBit(0));
+        Assert.IsFalse(bus.ReadBit(1));
+        Assert.IsTrue(bus.ReadBit(7));
+    }
 }

@@ -1,16 +1,41 @@
+using System.Diagnostics;
+
 namespace Dotnemulator.Abstraction.Hardware;
 
 /// <summary>
-/// Maximum of 32bit bus
+/// A multi-bit (1 to 32 bits) set of signal lines shared between components, such as an address or data bus.
 /// </summary>
+/// <remarks>
+/// <para>
+/// The component that starts a bus cycle uses <see cref="Strobe"/>; components responding to it use
+/// <see cref="Drive"/>. A single-bit control signal should normally be a <see cref="Wire"/> instead.
+/// </para>
+/// <para>
+/// <b>Subscriber order matters.</b> Subscribers are notified synchronously, in the order they subscribed. When
+/// one subscriber produces a value that another subscriber of the same bus samples during the same cycle, the
+/// producer must subscribe first. For example, on the C64 the memory PLA drives the bank selection when the
+/// address bus is strobed, and the memory map then reads that selection while handling the same strobe, so the
+/// PLA has to subscribe to the address bus before the memory map does. The composition root that wires the
+/// components together is responsible for creating them in an order that guarantees this.
+/// </para>
+/// </remarks>
 public class Bus : SlimEventSource
 {
+    /// <summary>
+    /// Width of the bus in bits.
+    /// </summary>
     public int Size { get; }
+
+    /// <summary>
+    /// Mask with the low <see cref="Size"/> bits set; every value placed on the bus is ANDed with it.
+    /// </summary>
     public int Mask { get; }
 
     private int _data;
 
-    public Bus(int size = 1)
+    /// <param name="size">Width of the bus in bits, from 1 to 32.</param>
+    /// <exception cref="ArgumentOutOfRangeException"><paramref name="size"/> is outside 1 to 32.</exception>
+    public Bus(int size)
     {
         Mask = BitWidth.GetMask(size);
         Size = size;
@@ -79,11 +104,17 @@ public class Bus : SlimEventSource
     }
 
     /// <summary>
-    /// Read a specific bit from the bus.
-    /// </summary> 
-    /// <param name="bit"></param>
+    /// Reads a single line of the bus.
+    /// </summary>
+    /// <remarks>
+    /// The bit index is only checked in DEBUG builds, to keep this allocation- and branch-free on the hot path.
+    /// </remarks>
+    /// <param name="bit">Zero-based bit index, from 0 to <see cref="Size"/> - 1.</param>
+    /// <returns><c>true</c> if the bit is set.</returns>
     public bool ReadBit(int bit)
     {
+        Debug.Assert(bit >= 0 && bit < Size, $"Bit {bit} is outside the {Size}-bit bus.");
+
         return (_data & (1 << bit)) != 0;
     }
 }
