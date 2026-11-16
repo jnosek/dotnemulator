@@ -13,13 +13,13 @@ internal class MemoryMap
     private readonly Bus _addressBus;
     private readonly Bus _dataBus;
     private readonly Bus _memoryBankBus;
-    private readonly Wire _readWrite;
+    private readonly ReadWriteWire _readWrite;
 
     /// <remarks>
     /// Subscribes to <paramref name="addressBus"/> only. The <see cref="MemoryPla"/> must subscribe first so
     /// <paramref name="memoryBankBus"/> already holds the bank for the current address when this map handles the cycle.
     /// </remarks>
-    public MemoryMap(Bus addressBus, Bus dataBus, Bus memoryBankBus, Wire readWrite)
+    public MemoryMap(Bus addressBus, Bus dataBus, Bus memoryBankBus, ReadWriteWire readWrite)
     {
         _addressBus = addressBus;
         _memoryBankBus = memoryBankBus;
@@ -92,7 +92,7 @@ internal class MemoryMap
     /// </remarks>
     private void BusCycleHandler()
     {
-        if(_readWrite.Value)
+        if(_readWrite.IsRead)
             ReadHandler();
         else
             WriteHandler();

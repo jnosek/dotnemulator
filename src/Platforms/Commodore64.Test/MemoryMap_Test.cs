@@ -1,3 +1,4 @@
+using Dotnemulator.Abstraction.Hardware;
 using Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
 
 namespace Dotnemulator.Platforms.Commodore64.Test;
@@ -24,7 +25,7 @@ public class MemoryMap_Test
         var emulator = BuildEmulator();
 
         // act
-        emulator.ReadWrite.Drive(false);
+        emulator.ReadWrite.Drive(ReadWriteMode.Write);
         emulator.DataBus.Drive(0x42);
         emulator.AddressBus.Strobe(0x03);
 
@@ -40,7 +41,7 @@ public class MemoryMap_Test
         emulator.MemoryMap.PokeRam(0x03, 0x42);
 
         // act
-        emulator.ReadWrite.Drive(true);
+        emulator.ReadWrite.Drive(ReadWriteMode.Read);
         emulator.AddressBus.Strobe(0x03);
 
         // assert
@@ -55,7 +56,7 @@ public class MemoryMap_Test
         emulator.MemoryMap.PokeRam(0x03, 0x11);
 
         // act
-        emulator.ReadWrite.Drive(false);
+        emulator.ReadWrite.Drive(ReadWriteMode.Write);
         emulator.DataBus.Drive(0x42);
         emulator.AddressBus.Strobe(0x03);
 
@@ -70,7 +71,7 @@ public class MemoryMap_Test
         var emulator = BuildEmulator();
 
         // act
-        emulator.ReadWrite.Drive(false);
+        emulator.ReadWrite.Drive(ReadWriteMode.Write);
         emulator.DataBus.Drive(0x42);
         emulator.AddressBus.Strobe(0xE000);
 
@@ -79,17 +80,17 @@ public class MemoryMap_Test
     }
 
     [TestMethod]
-    public void CpuWrite_LeavesReadWriteLow_CpuRead_SetsItHigh()
+    public void CpuWrite_SetsWriteMode_CpuRead_SetsReadMode()
     {
         // arrange
         var emulator = BuildEmulator();
 
         // act / assert
         emulator.Cpu.Write(0x0300, 0x42);
-        Assert.IsFalse(emulator.ReadWrite.Value);
+        Assert.AreEqual(ReadWriteMode.Write, emulator.ReadWrite.Mode);
 
         Assert.AreEqual(0x42, emulator.Cpu.Read(0x0300));
-        Assert.IsTrue(emulator.ReadWrite.Value);
+        Assert.AreEqual(ReadWriteMode.Read, emulator.ReadWrite.Mode);
     }
 
     [TestMethod]

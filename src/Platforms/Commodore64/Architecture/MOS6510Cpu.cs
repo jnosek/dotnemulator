@@ -81,13 +81,13 @@ public class MOS6510Cpu
     public readonly Bus DataBus;
 
     /// <summary>
-    /// R/W line: <c>true</c> for a read cycle, <c>false</c> for a write cycle.
+    /// R/W line, signalling whether the current bus cycle is a read or a write.
     /// </summary>
     /// <remarks>
     /// Driven (without notification) by the CPU before each <see cref="AddressBus"/> strobe, and sampled by
     /// the components handling the cycle. Matches the 6510 pin, which is high for read and low for write.
     /// </remarks>
-    public readonly Wire ReadWrite;
+    public readonly ReadWriteWire ReadWrite;
 
     /// <summary>
     /// Port Bus
@@ -99,7 +99,7 @@ public class MOS6510Cpu
 
     internal readonly InstructionSet instructionSet;
     
-    public MOS6510Cpu(Bus addressBus, Bus dataBus, Bus portBus, Wire readWrite)
+    public MOS6510Cpu(Bus addressBus, Bus dataBus, Bus portBus, ReadWriteWire readWrite)
     {
         AddressBus = addressBus;
         DataBus = dataBus;
@@ -202,7 +202,7 @@ public class MOS6510Cpu
         if(address > 1)
         {
             // set up a write cycle: data must be on the bus before the cycle starts
-            ReadWrite.Drive(false);
+            ReadWrite.Drive(ReadWriteMode.Write);
             DataBus.Drive(value);
             AddressBus.Strobe(address);
         }
@@ -225,7 +225,7 @@ public class MOS6510Cpu
         if(address > 1)
         {
             // start a read cycle; the responding component drives DataBus before Strobe returns
-            ReadWrite.Drive(true);
+            ReadWrite.Drive(ReadWriteMode.Read);
             AddressBus.Strobe(address);
 
             return DataBus.Read();

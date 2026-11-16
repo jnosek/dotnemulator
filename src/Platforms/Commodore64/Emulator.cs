@@ -11,12 +11,12 @@ public class Emulator
     internal Bus PortBus { get; } = new Bus(8);
 
     /// <summary>
-    /// The 6510 R/W line: <c>true</c> for a read cycle, <c>false</c> for a write cycle.
+    /// The 6510 R/W line, signalling whether the current bus cycle is a read or a write.
     /// </summary>
     /// <remarks>
-    /// Starts high (read), matching the CPU after reset.
+    /// Starts as <see cref="ReadWriteMode.Read"/>, matching the CPU after reset.
     /// </remarks>
-    internal Wire ReadWrite { get; } = new Wire(true);
+    internal ReadWriteWire ReadWrite { get; } = new ReadWriteWire(ReadWriteMode.Read);
 
     internal MOS6510Cpu Cpu { get; }
     internal MemoryPla Pla { get; }
