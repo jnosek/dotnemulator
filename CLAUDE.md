@@ -48,7 +48,7 @@ Platform-agnostic primitives that model digital hardware:
 | `OpenCollectorWire` | Shared, wired-OR single-bit line (`SlimEventSource<bool>`), e.g. IRQ/NMI. Each device calls `RegisterSource()` once and uses its `Source.Assert()`/`Release()`; `Value` is `true` while any source asserts it, and subscribers are notified only when that combined level changes. Up to 32 sources. |
 | `ReadWriteWire` / `ReadWriteMode` | Read/write select line (`SlimEventSource<ReadWriteMode>`). `Drive(ReadWriteMode.Read/Write)`, `Mode`, `IsRead`/`IsWrite`. `Strobe` notifies only on a change, like `Wire`. |
 | `BitWidth` | Shared size check (1–32 bits) and mask calculation used by `Bus` and `Register`. |
-| `Register` | N-bit (1–32, size required) masked storage with `Value`, `SetFlag`/`GetFlag` (flag must fit the width; DEBUG assert), `Increment`/`Decrement` (return the new value) and `Advance` (returns the old value, then increments). Overflow wraps like real hardware. `Value`, `SetFlag` and `GetFlag` are virtual and can be overridden (see `StatusRegister`). |
+| `Register` | N-bit (1–32, size required) masked storage with `Value`, `SetFlag`/`GetFlag` (flag must fit the width; DEBUG assert), `Increment`/`Decrement` (return the new value) and `Advance` (returns the old value, then increments). Overflow wraps like real hardware. No member is virtual, so access is a direct call; registers with fixed bits or a narrower set of operations are separate classes (see `StatusRegister`). |
 | `MemorySegment` | Byte array mapped at a starting address. `Read`/`Write` take **absolute** addresses (range-checked in DEBUG only), `Load(Stream)` fills it from a ROM file, and `GetHash()` gives a SHA-256 for ROM checks. |
 | `IInstruction` / `InstructionSet` | An instruction exposes its `OpCode` and `Execute(int instruction)`. `InstructionSet` is a fixed-size opcode → instruction table that throws on duplicate opcodes. |
 
@@ -76,12 +76,12 @@ Subscribers run synchronously in the order they subscribed. Avoid components tha
 
 ### CPU (`Architecture/MOS6510Cpu.cs`)
 
-- Registers are `Register`/`StatusRegister` objects: `PC`(16), `A`, `X`, `Y`, `_sp`(8, exposed as `SP`), `P`.
+- Registers are `Register` objects: `PC`(16), `A`, `X`, `Y`, `_sp`(8, exposed as `SP`). `P` is a `StatusRegister`, which does **not** derive from `Register`: it only exposes `Value` and the named flag properties, as on the real chip.
 - `Step()` first checks for a pending NMI or IRQ and, if one is taken, runs the interrupt sequence as the whole step. Otherwise it does fetch → decode (`instructionSet[opcode]`) → execute. It returns an `InstructionResult(Address, Instruction, Operand, Interrupt)`. For an executed instruction `Interrupt` is `InterruptKind.None`; for an interrupt sequence it is `Irq`/`Nmi`, `Instruction` is `$00` (the real 6502 forces `BRK` during the sequence) and `Address` is the return address, whose instruction has not run yet.
 - Helpers: `Read`, `Write`, `ReadNextByte`, `ReadNextWord` (little-endian), `StackPush`/`StackPop` (page `$01`, wrapping SP).
 - `Initialize(pc?)` clears the port registers (all pins inputs, reading high) and loads PC from the reset vector `$FFFC` (or uses the value passed in, for tests).
 - The CPU keeps **references** to the board's buses and wires (`internal` fields, passed into its constructor); it does not own them.
-- `StatusRegister` always forces the Unused bit on and the Break bit off when `Value` is set. B is only set in the copy pushed by `BRK`/`PHP`.
+- `StatusRegister` always forces the Unused bit on and the Break bit off when `Value` is set, and has no other way to write those bits. B is only set in the copy pushed by `BRK`/`PHP`.
 
 ### Instructions (`Architecture/Instruction/`)
 

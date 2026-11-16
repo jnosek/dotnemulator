@@ -11,9 +11,9 @@ namespace Dotnemulator.Abstraction.Hardware;
 /// (for example an 8-bit register incremented from <c>$FF</c> becomes <c>$00</c>).
 /// </para>
 /// <para>
-/// <b>Subclassing:</b> <see cref="Value"/>, <see cref="SetFlag"/> and <see cref="GetFlag"/> are virtual.
-/// <see cref="Increment"/>, <see cref="Decrement"/> and <see cref="Advance"/> are not, and write the stored value
-/// directly, so they do not go through an overridden <see cref="Value"/> setter.
+/// No member is virtual, so every access is a direct call the JIT can inline. A register with bits that are fixed
+/// in hardware, or that does not support every operation here (such as a CPU status register, which is never
+/// incremented), should be its own class that holds its value directly rather than deriving from this one.
 /// </para>
 /// </remarks>
 public class Register
@@ -44,7 +44,7 @@ public class Register
     /// <remarks>
     /// Setting it masks the value to <see cref="Size"/> bits.
     /// </remarks>
-    public virtual int Value
+    public int Value
     {
         get => _data;
         set => _data = value & Mask;
@@ -58,7 +58,7 @@ public class Register
     /// </remarks>
     /// <param name="flag">The bit or bits to change, e.g. <c>0b0000_0001</c>.</param>
     /// <param name="value"><c>true</c> to set the bits, <c>false</c> to clear them.</param>
-    public virtual void SetFlag(int flag, bool value)
+    public void SetFlag(int flag, bool value)
     {
         Debug.Assert((flag & ~Mask) == 0, $"Flag {flag:X} does not fit in a {Size}-bit register.");
 
@@ -76,7 +76,7 @@ public class Register
     /// </remarks>
     /// <param name="flag">The bit or bits to test.</param>
     /// <returns><c>true</c> if any of the bits are set.</returns>
-    public virtual bool GetFlag(int flag)
+    public bool GetFlag(int flag)
     {
         Debug.Assert((flag & ~Mask) == 0, $"Flag {flag:X} does not fit in a {Size}-bit register.");
 
