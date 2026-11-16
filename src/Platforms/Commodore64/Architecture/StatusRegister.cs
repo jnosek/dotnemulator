@@ -2,29 +2,36 @@ using Dotnemulator.Abstraction.Hardware;
 
 namespace Dotnemulator.Platforms.Commodore64.Architecture;
 
+/// <summary>
+/// The 6502/6510 processor status register, P.
+/// </summary>
+/// <remarks>
+/// Two bits are fixed: the Unused bit always reads as 1, and the Break (B) bit is always 0 in the register
+/// itself. B only exists in the copy of P pushed to the stack by <c>BRK</c> and <c>PHP</c>, so a handler can tell a
+/// software interrupt from a hardware one. Both rules are applied in <see cref="Coerce"/>, so they hold for every
+/// write: <see cref="Register.Value"/>, <see cref="Register.SetFlag"/> and the increment/decrement methods.
+/// </remarks>
 internal class StatusRegister : Register
 {
-
     public StatusRegister() : base(8)
     {
-        // the unused flag is always set to 1
-        SetFlag(StatusFlag.Unused, true);
+        // stores 0 through Coerce, which sets the Unused bit
+        Value = 0;
     }
 
-    override public int Value
+    /// <summary>
+    /// Forces the Unused bit on and the Break bit off, then masks to 8 bits.
+    /// </summary>
+    protected override int Coerce(int value)
     {
-        get => base.Value;
-        set
-        {
-            // ensure that the unused flag is always set to 1
-            value |= StatusFlag.Unused;
+        // the unused flag is always set to 1
+        value |= StatusFlag.Unused;
 
-            // ensure that the break command flag cleared
-            // (it is only marked as set when the flags are pushed to the stack by a software instruction)
-            value &= ~StatusFlag.BreakCommand;
+        // the break command flag is always clear in the register
+        // (it is only set in the copy pushed to the stack by a software instruction)
+        value &= ~StatusFlag.BreakCommand;
 
-            base.Value = value;
-        }
+        return base.Coerce(value);
     }
 
     public bool CarryFlag

@@ -48,7 +48,7 @@ Platform-agnostic primitives that model digital hardware:
 | `OpenCollectorWire` | Shared, wired-OR single-bit line (`SlimEventSource<bool>`), e.g. IRQ/NMI. Each device calls `RegisterSource()` once and uses its `Source.Assert()`/`Release()`; `Value` is `true` while any source asserts it, and subscribers are notified only when that combined level changes. Up to 32 sources. |
 | `ReadWriteWire` / `ReadWriteMode` | Read/write select line (`SlimEventSource<ReadWriteMode>`). `Drive(ReadWriteMode.Read/Write)`, `Mode`, `IsRead`/`IsWrite`. `Strobe` notifies only on a change, like `Wire`. |
 | `BitWidth` | Shared size check (1–32 bits) and mask calculation used by `Bus` and `Register`. |
-| `Register` | N-bit masked storage with `Value`, `SetFlag`/`GetFlag`, `Increment`/`Decrement`/`Advance` (post-increment). Overflow wraps like real hardware. Can be subclassed (see `StatusRegister`). |
+| `Register` | N-bit (1–32, size required) masked storage with `Value`, `SetFlag`/`GetFlag` (flag must fit the width; DEBUG assert), `Increment`/`Decrement` (return the new value) and `Advance` (returns the old value, then increments). Overflow wraps like real hardware. Every write passes through `protected virtual Coerce(int)`; subclasses with fixed bits override only that (see `StatusRegister`). Reads are not virtual. |
 | `MemorySegment` | Byte array mapped at a starting address. `Read`/`Write` take **absolute** addresses (range-checked in DEBUG only), `Load(Stream)` fills it from a ROM file, and `GetHash()` gives a SHA-256 for ROM checks. |
 | `IInstruction` / `InstructionSet` | An instruction exposes its `OpCode` and `Execute(int instruction)`. `InstructionSet` is a fixed-size opcode → instruction table that throws on duplicate opcodes. |
 
@@ -81,7 +81,7 @@ Subscribers run synchronously in the order they subscribed. Avoid components tha
 - Helpers: `Read`, `Write`, `ReadNextByte`, `ReadNextWord` (little-endian), `StackPush`/`StackPop` (page `$01`, wrapping SP).
 - `Initialize(pc?)` clears the port registers (all pins inputs, reading high) and loads PC from the reset vector `$FFFC` (or uses the value passed in, for tests).
 - The CPU keeps **references** to the board's buses and wires (`internal` fields, passed into its constructor); it does not own them.
-- `StatusRegister` always forces the Unused bit on and the Break bit off when `Value` is set. B is only set in the copy pushed by `BRK`/`PHP`.
+- `StatusRegister` overrides `Coerce` to force the Unused bit on and the Break bit off on every write (`Value`, `SetFlag`, increment/decrement). B is only set in the copy pushed by `BRK`/`PHP`.
 
 ### Instructions (`Architecture/Instruction/`)
 
