@@ -65,6 +65,6 @@ public class Wire : SlimEventSource<bool>
             return;
 
         Value = value;
-        Update(value);
+        Notify(value);
     }
 }

@@ -68,6 +68,6 @@ public class ReadWriteWire : SlimEventSource<ReadWriteMode>
             return;
 
         Mode = mode;
-        Update(mode);
+        Notify(mode);
     }
 }

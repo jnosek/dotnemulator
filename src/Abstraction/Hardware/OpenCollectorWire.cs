@@ -74,7 +74,7 @@ public class OpenCollectorWire : SlimEventSource<bool>
         var isAsserted = _assertedSources != 0;
 
         if(isAsserted != wasAsserted)
-            Update(isAsserted);
+            Notify(isAsserted);
     }
 
     /// <summary>

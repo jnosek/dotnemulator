@@ -18,7 +18,7 @@ The first (and so far only) platform is the **Commodore 64** (MOS 6510 CPU).
 Dotnemulator.sln
 src/
   Abstraction/                      # Dotnemulator.Abstraction: shared, platform-agnostic building blocks
-    SlimEventSource*.cs, IEventSink.cs   # lightweight signal/event plumbing
+    SlimEventSource*.cs, IEventSource.cs # lightweight signal/event plumbing (namespace Dotnemulator.Abstraction)
     Hardware/                       # Register, Bus, Wire, OpenCollectorWire, ReadWriteWire, BitWidth, MemorySegment
     Operations/                     # IInstruction, InstructionSet, IRead/IWrite/IReadWrite
   Platforms/
@@ -42,7 +42,7 @@ Platform-agnostic primitives that model digital hardware:
 
 | Type | Role |
 |---|---|
-| `SlimEventSource` / `SlimEventSource<T>` | Minimal pub/sub. `Subscribe` registers a handler. With one subscriber, `Trigger`/`Update` points straight at it (no fan-out cost), so signal propagation stays cheap in the hot loop. |
+| `SlimEventSource` / `SlimEventSource<T>` | Minimal pub/sub. `Subscribe` registers a handler and returns an `IDisposable`; disposing it removes the handler (setup-time only). The protected `Notify()` / `Notify(T)` calls one delegate: a shared no-op with no subscribers, the subscriber itself with one, or a loop over a subscriber array with several, so signal propagation stays cheap in the hot loop. Only subclasses (`Bus`, the wires) can notify. |
 | `Bus` | N-bit (1–32, size required) value holder that is a `SlimEventSource`. `Strobe(value)` puts a masked value on the bus and notifies subscribers (used by the component **starting** a bus cycle). `Drive(value)` puts it on **without** notifying (used by components **responding** to a cycle). `Read()` / `ReadBit()` sample it. |
 | `Wire` | Single-bit signal (`SlimEventSource<bool>`) with one driver. `true` = **asserted**, whatever the pin voltage (so an active-low pin pulled low is `true`). `Strobe(bool)` sets it and notifies **only if the level changed** (every notification is an edge). `Drive(bool)` sets it without notifying. |
 | `OpenCollectorWire` | Shared, wired-OR single-bit line (`SlimEventSource<bool>`), e.g. IRQ/NMI. Each device calls `RegisterSource()` once and uses its `Source.Assert()`/`Release()`; `Value` is `true` while any source asserts it, and subscribers are notified only when that combined level changes. Up to 32 sources. |

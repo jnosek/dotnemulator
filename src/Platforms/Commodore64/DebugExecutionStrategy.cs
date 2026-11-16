@@ -31,10 +31,13 @@ public class DebugExecutionStrategy : IExecutionStrategy
     {
         cpu.Initialize(StartAddress);
 
+        // removed when Execute ends, so running again does not stack up memory-watch handlers
+        IDisposable? memoryWatch = null;
+
         if(MemoryWatchCallbacks.Count > 0)
         {
             // subscribed last, so DataBus holds the value written (write cycle) or the value just read (read cycle)
-            cpu.AddressBus.Subscribe(() => {
+            memoryWatch = cpu.AddressBus.Subscribe(() => {
                 var address = cpu.AddressBus.Read();
                 if(MemoryWatchCallbacks.TryGetValue(address, out var callback))
                 {
@@ -43,43 +46,50 @@ public class DebugExecutionStrategy : IExecutionStrategy
             });
         }
 
-        while(true)
+        try
         {
-            if(BreakpointCallbacks.TryGetValue(cpu.PC.Value, out var callback))
+            while(true)
             {
-                callback(cpu);
-            }
-
-            var result = cpu.Step();
-
-            // if this was a NOP instruction, break out of the loop and stop execution
-            if(IsStopOnNopEnabled && result.Instruction == NOP.OP_CODE)
-                break;
-
-            // if jump loop detection is enabled, check if the current instruction matches the last instruction in the log
-            if(IsJumpLoopDetectionEnabled && _instructionLog.Count > 0)
-            {
-                var lastInstruction = _instructionLog.Last();
-                if(result.Instruction == lastInstruction.Instruction &&
-                   result.Address == lastInstruction.Address)
+                if(BreakpointCallbacks.TryGetValue(cpu.PC.Value, out var callback))
                 {
-                    throw new JumpLoopException($"Detected potential jump loop at address {result.Address:X4} with instruction {result.Instruction:X2}")
-                    {
-                        InstructionLog = _instructionLog.Reverse().ToList()
-                    };
+                    callback(cpu);
                 }
+
+                var result = cpu.Step();
+
+                // if this was a NOP instruction, break out of the loop and stop execution
+                if(IsStopOnNopEnabled && result.Instruction == NOP.OP_CODE)
+                    break;
+
+                // if jump loop detection is enabled, check if the current instruction matches the last instruction in the log
+                if(IsJumpLoopDetectionEnabled && _instructionLog.Count > 0)
+                {
+                    var lastInstruction = _instructionLog.Last();
+                    if(result.Instruction == lastInstruction.Instruction &&
+                       result.Address == lastInstruction.Address)
+                    {
+                        throw new JumpLoopException($"Detected potential jump loop at address {result.Address:X4} with instruction {result.Instruction:X2}")
+                        {
+                            InstructionLog = _instructionLog.Reverse().ToList()
+                        };
+                    }
+                }
+
+                // add the instruction result to the log
+                _instructionLog.Enqueue(result);
+
+                // maintain a rolling log of the last instructions
+                if(_instructionLog.Count > INSTRUCTION_LOG_WINDOW_SIZE)
+                    _instructionLog.Dequeue();
+
+                // an interrupt sequence reports the interrupted address, but the instruction there has not run yet
+                if(result.Interrupt == InterruptKind.None && result.Address == EndAddress)
+                    break;
             }
-
-            // add the instruction result to the log
-            _instructionLog.Enqueue(result);
-
-            // maintain a rolling log of the last instructions
-            if(_instructionLog.Count > INSTRUCTION_LOG_WINDOW_SIZE)
-                _instructionLog.Dequeue();
-
-            // an interrupt sequence reports the interrupted address, but the instruction there has not run yet
-            if(result.Interrupt == InterruptKind.None && result.Address == EndAddress)
-                break;
+        }
+        finally
+        {
+            memoryWatch?.Dispose();
         }
     }
 }

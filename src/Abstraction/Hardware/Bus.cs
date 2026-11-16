@@ -54,7 +54,7 @@ public class Bus : SlimEventSource
     /// Use this when a component is <b>responding</b> to a bus cycle that another component started, for example
     /// memory putting the byte it read onto the data bus, or the PLA putting the selected bank onto the bank bus.
     /// The component that started the cycle (or one that runs after it) samples the value with <see cref="Read"/>.
-    /// Triggering here would start a new cycle in the middle of the current one, e.g. a memory read on the data bus
+    /// Notifying here would start a new cycle in the middle of the current one, e.g. a memory read on the data bus
     /// would be seen as a write and stored straight back.
     /// </para>
     /// <para>
@@ -78,7 +78,7 @@ public class Bus : SlimEventSource
     /// <para>
     /// Use this when a component is <b>initiating</b> a bus cycle, for example the CPU putting an address on the
     /// address bus so memory and the PLA respond. It is equivalent to <see cref="Drive"/> followed by
-    /// <see cref="SlimEventSource.Trigger"/>.
+    /// <see cref="SlimEventSource.Notify"/>.
     /// </para>
     /// <para>
     /// Subscribers run synchronously, in the order they subscribed, before this method returns. Any value a
@@ -94,7 +94,7 @@ public class Bus : SlimEventSource
     public void Strobe(int value)
     {
         _data = value & Mask;
-        Trigger();
+        Notify();
     }
 
     /// <summary>
