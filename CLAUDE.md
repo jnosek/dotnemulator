@@ -60,7 +60,8 @@ Components are connected through shared `Bus`/`Wire` instances, which are create
             AddressBus(16) ──────────────────────────────► MemoryMap ──SelectBank()──► MemoryPla
  MOS6510Cpu ─ DataBus(8) ────────────────────────────────► MemoryMap                       ▲
             ReadWrite (ReadWriteWire) ───────────────────► MemoryMap                       │
-            PortBus(8) ────────────────────────────────────────────────────────────────────┘
+            PortBus(6) ────────────────────────────────────────────────────────────────────┘
+            Game / ExRom Wires (expansion port) ───────────────────────────────────────────► MemoryPla
             IRQ / NMI (OpenCollectorWire) ◄── sources registered by peripherals (future: CIA, VIC-II, RESTORE, ...)
 ```
 
@@ -68,7 +69,7 @@ Every memory access is one **bus cycle**, started by a single `AddressBus.Strobe
 
 - **CPU read**: `ReadWrite.Drive(Read)`, then `AddressBus.Strobe(address)`. `MemoryMap` asks the PLA for the bank (`SelectBank(address)`) and drives the byte onto `DataBus`. The CPU then calls `DataBus.Read()`.
 - **CPU write**: `ReadWrite.Drive(Write)`, `DataBus.Drive(value)`, then `AddressBus.Strobe(address)`. `MemoryMap` stores the byte already on `DataBus` in the selected bank. Writes to ROM areas go to the RAM underneath. No read happens during a write.
-- **6510 on-chip I/O port**: addresses `$0000`/`$0001` are handled inside the CPU (`Address0`/`Address1` registers). Writing `$0001` strobes `PortBus`, and the PLA selects the matching row of its block table (LORAM/HIRAM/CHAREN → BASIC/KERNAL/CHAR/IO/RAM via the `MEMORY_CONFIGS` table). This does not start a memory cycle.
+- **6510 on-chip I/O port**: addresses `$0000` (data direction, `Address0`) and `$0001` (data, `Address1`) are registers inside the CPU. `PortBus` is the six pins P0–P5. Writing either register strobes `PortBus` with the pin levels: output pins (DDR bit 1) carry the data bit, input pins read high (pulled up on the C64). Reading `$0001` gives the data register for output bits and the pins for input bits. Both registers are cleared at reset, so all pins start as inputs and the default configuration is selected. The PLA selects the matching row of its block table (LORAM/HIRAM/CHAREN → BASIC/KERNAL/CHAR/IO/RAM via the `MEMORY_CONFIGS` table). This does not start a memory cycle.
 - **Interrupts**: `Emulator` creates `InterruptRequest` and `NonMaskableInterrupt` as `OpenCollectorWire`s and passes them to the CPU; each device that can interrupt registers its own source. Interrupts are only taken between instructions, at the start of `Step()`. IRQ is level-triggered: it is serviced while any source asserts it and the I flag is clear. NMI is edge-triggered: the CPU latches each released-to-asserted change and services it at the next boundary; while one source holds NMI, another asserting it gives no new edge (as on the C64). NMI wins if both are pending. Servicing pushes PC and P (B clear), sets the I flag and jumps through the vector, as its own `Step()` whose `InstructionResult.IsInterrupt` is true.
 
 Subscribers run synchronously in the order they subscribed. Avoid components that depend on that order: if a component needs another's output during the same cycle, and that output is stateless decode logic (like `MemoryPla` implementing `IMemoryBankSelector`), pass the decoder in through the constructor and call it.
@@ -78,7 +79,8 @@ Subscribers run synchronously in the order they subscribed. Avoid components tha
 - Registers are `Register`/`StatusRegister` objects: `PC`(16), `A`, `X`, `Y`, `_sp`(8, exposed as `SP`), `P`.
 - `Step()` first checks for a pending NMI or IRQ and, if one is taken, runs the interrupt sequence as the whole step. Otherwise it does fetch → decode (`instructionSet[opcode]`) → execute. It returns an `InstructionResult(Address, Instruction, Operand)`; for an interrupt, `Instruction` is `IRQ_SEQUENCE`/`NMI_SEQUENCE` and `Address` is the return address.
 - Helpers: `Read`, `Write`, `ReadNextByte`, `ReadNextWord` (little-endian), `StackPush`/`StackPop` (page `$01`, wrapping SP).
-- `Initialize(pc?)` sets the default port value (`$07`) and loads PC from the reset vector `$FFFC` (or uses the value passed in, for tests).
+- `Initialize(pc?)` clears the port registers (all pins inputs, reading high) and loads PC from the reset vector `$FFFC` (or uses the value passed in, for tests).
+- The CPU keeps **references** to the board's buses and wires (`internal` fields, passed into its constructor); it does not own them.
 - `StatusRegister` always forces the Unused bit on and the Break bit off when `Value` is set. B is only set in the copy pushed by `BRK`/`PHP`.
 
 ### Instructions (`Architecture/Instruction/`)
@@ -98,7 +100,7 @@ To add an instruction: create the class following the pattern above, register it
 
 ### Emulator composition and execution
 
-- `Emulator` is the composition root. It owns the buses, the `ReadWrite` wire and the IRQ/NMI lines, and constructs `MOS6510Cpu`, `MemoryPla` and `MemoryMap` (which takes the PLA as its `IMemoryBankSelector`), plus an `IExecutionStrategy`.
+- `Emulator` is the composition root. It owns every board-level bus and wire (address, data, port, `ReadWrite`, IRQ/NMI, cartridge `Game`/`ExRom`), and constructs `MOS6510Cpu`, `MemoryPla` and `MemoryMap` (which takes the PLA as its `IMemoryBankSelector`), plus an `IExecutionStrategy`.
 - `EmulatorBuilder` is the fluent setup API: `WithRoms()`, `WithImage(byte[])` (full 64 KB image), and internal test helpers `WithTestKernel(byte[])`, `WithRam(...)`, `WithMemoryMap(...)`, `WithExecutionStrategy(...)`, `WithUnitTestMode(startAddress?)`.
 - `IExecutionStrategy` separates *how* the CPU is run from the machine itself:
   - `RuntimeExecutionStrategy`: reset, then `Step()` forever.
@@ -143,7 +145,8 @@ Assert.AreEqual(0x02, emulator.Cpu.A.Value);
 
 ## Conventions & guidelines
 
-- **Model hardware, not shortcuts.** Prefer adding a component that talks over a `Bus`/`Wire` to reaching into another component's state. Generic primitives belong in `Abstraction`; platform-specific chips belong in `Platforms/<System>/Architecture`.
+- **Model hardware, not shortcuts.** Prefer adding a component that talks over a `Bus`/`Wire` to reaching into another component's state.
+- **Ownership follows the hardware.** Anything inside one chip (registers, latches, decoders) is created by that chip. Anything that is a trace on the board between chips (buses, R/W, IRQ/NMI, port pins, expansion-port lines, and later RESET, clock, BA/AEC) is created by `Emulator` and passed to each chip's constructor. Generic primitives belong in `Abstraction`; platform-specific chips belong in `Platforms/<System>/Architecture`.
 - **Stateless decoders may be called directly.** Combinational logic with no clock or stored state (address decoders such as the memory PLA) can be exposed as an interface and called by the component handling a bus cycle. Anything with state or timing (CPU, CIA, VIC-II, SID, ...) still communicates over buses and wires.
 - **Mask values to their width.** `Register` and `Bus` mask automatically, so wraparound (SP, PC, zero-page indexing `& 0xFF`, 16-bit address `& 0xFFFF`) must match real silicon.
 - **Keep the hot path allocation-free.** `SlimEventSource` exists to avoid delegate fan-out overhead. Avoid LINQ, boxing or allocations inside `Step()`, bus handlers and instruction `Execute` methods. Use `[Conditional("DEBUG")]` / `Debug.Assert` for checks.
@@ -154,5 +157,5 @@ Assert.AreEqual(0x02, emulator.Cpu.A.Value);
 ## Current status / roadmap hints
 
 - 6510 legal opcode set is implemented and passes the 6502 functional test (decimal mode and cycle accuracy are areas to verify).
-- `MemoryMap._io` is a plain RAM-backed placeholder. VIC-II, SID, CIA 1/2 and cartridge lines (`MemoryPla.Game`/`ExRom`, currently unused, default `false` = not asserted) are not modelled yet.
+- `MemoryMap._io` is a plain RAM-backed placeholder. VIC-II, SID, CIA 1/2 and cartridge lines (`Emulator.Game`/`ExRom`, read by the PLA but currently unused, default `false` = not asserted) are not modelled yet.
 - `Emulator.Stop()` / `Reset()` are stubs. There is no video/audio/input front end yet.

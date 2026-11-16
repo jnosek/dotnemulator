@@ -76,22 +76,24 @@ public class MemoryPla : IMemoryBankSelector
     // When modelled, they should also call UpdateConfiguration and extend the table index.
 
     /// <summary>
-    /// Cartridge GAME line. <c>true</c> means a cartridge is asserting it.
+    /// Cartridge GAME line (an input). <c>true</c> means a cartridge is asserting it.
     /// </summary>
     /// <remarks>
-    /// Active-low on the real pin and pulled up when no cartridge is fitted, so the default <c>false</c>
-    /// (not asserted) is the no-cartridge state. Not used yet.
+    /// An expansion-port trace owned by the board (<see cref="Emulator"/>): a cartridge drives it and the PLA reads it.
+    /// Active-low on the real pin and pulled up when no cartridge is fitted, so <c>false</c> (not asserted) is the
+    /// no-cartridge state. Not used yet.
     /// </remarks>
-    public Wire Game = new Wire(false);
+    internal Wire Game { get; }
 
     /// <summary>
-    /// Cartridge EXROM line. <c>true</c> means a cartridge is asserting it.
+    /// Cartridge EXROM line (an input). <c>true</c> means a cartridge is asserting it.
     /// </summary>
     /// <remarks>
-    /// Active-low on the real pin and pulled up when no cartridge is fitted, so the default <c>false</c>
-    /// (not asserted) is the no-cartridge state. Not used yet.
+    /// An expansion-port trace owned by the board (<see cref="Emulator"/>): a cartridge drives it and the PLA reads it.
+    /// Active-low on the real pin and pulled up when no cartridge is fitted, so <c>false</c> (not asserted) is the
+    /// no-cartridge state. Not used yet.
     /// </remarks>
-    public Wire ExRom = new Wire(false);
+    internal Wire ExRom { get; }
 
     private readonly Bus _port;
 
@@ -100,9 +102,14 @@ public class MemoryPla : IMemoryBankSelector
     /// </summary>
     private byte[] _blockBanks;
 
-    public MemoryPla(Bus port)
+    /// <param name="port">The 6510 port pins; the low 3 bits are LORAM, HIRAM and CHAREN.</param>
+    /// <param name="game">The cartridge GAME line.</param>
+    /// <param name="exRom">The cartridge EXROM line.</param>
+    public MemoryPla(Bus port, Wire game, Wire exRom)
     {
         _port = port;
+        Game = game;
+        ExRom = exRom;
         _port.Subscribe(UpdateConfiguration);
 
         _blockBanks = BLOCK_BANKS[_port.Read() & 0b111];

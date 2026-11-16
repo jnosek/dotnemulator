@@ -56,10 +56,31 @@ public class MOS6510Cpu
     /// </summary>
     internal readonly Register Y = new Register(8);   
 
-    // used to control direction of Port Bus
+    /// <summary>
+    /// Number of I/O port pins on the 6510 (P0-P5).
+    /// </summary>
+    public const int PORT_PIN_COUNT = 6;
+
+    /// <summary>
+    /// Mask of the I/O port pins (P0-P5).
+    /// </summary>
+    public const int PORT_PIN_MASK = (1 << PORT_PIN_COUNT) - 1;
+
+    /// <summary>
+    /// On-chip I/O port data direction register, at address <c>$0000</c>.
+    /// </summary>
+    /// <remarks>
+    /// A 1 bit makes the matching port pin an output, driven from <see cref="Address1"/>; a 0 bit makes it an
+    /// input. Cleared at reset, so every pin starts as an input.
+    /// </remarks>
     internal readonly Register Address0 = new Register(8);
 
-    // used to read/write values on port bus
+    /// <summary>
+    /// On-chip I/O port data register, at address <c>$0001</c>.
+    /// </summary>
+    /// <remarks>
+    /// Only the bits that <see cref="Address0"/> makes outputs reach the pins. Cleared at reset.
+    /// </remarks>
     internal readonly Register Address1 = new Register(8);
     
     /// <summary>
@@ -69,7 +90,7 @@ public class MOS6510Cpu
     /// The CPU strobes this bus to start every memory cycle. Components that answer cycles subscribe to it and
     /// check <see cref="ReadWrite"/> to decide whether to drive <see cref="DataBus"/> (read) or sample it (write).
     /// </remarks>
-    public readonly Bus AddressBus;
+    internal readonly Bus AddressBus;
 
     /// <summary>
     /// Data Bus
@@ -78,7 +99,7 @@ public class MOS6510Cpu
     /// Only ever driven, never triggered. On a write the CPU drives it before strobing <see cref="AddressBus"/>;
     /// on a read the responding component drives it while handling the strobe.
     /// </remarks>
-    public readonly Bus DataBus;
+    internal readonly Bus DataBus;
 
     /// <summary>
     /// R/W line, signalling whether the current bus cycle is a read or a write.
@@ -87,12 +108,16 @@ public class MOS6510Cpu
     /// Driven (without notification) by the CPU before each <see cref="AddressBus"/> strobe, and sampled by
     /// the components handling the cycle. Matches the 6510 pin, which is high for read and low for write.
     /// </remarks>
-    public readonly ReadWriteWire ReadWrite;
+    internal readonly ReadWriteWire ReadWrite;
 
     /// <summary>
-    /// Port Bus
+    /// The I/O port pins P0-P5.
     /// </summary>
-    public readonly Bus PortBus;
+    /// <remarks>
+    /// A board net owned by the <see cref="Emulator"/>. The CPU strobes it with the pin levels whenever
+    /// <c>$0000</c> or <c>$0001</c> is written (see <see cref="UpdatePortPins"/>).
+    /// </remarks>
+    internal readonly Bus PortBus;
 
     /// <summary>
     /// IRQ line. <c>true</c> means at least one device is requesting an interrupt.
@@ -108,7 +133,7 @@ public class MOS6510Cpu
     /// interrupt at the device), or it is taken again as soon as the handler's <c>RTI</c> clears the I flag.
     /// </para>
     /// </remarks>
-    public readonly OpenCollectorWire InterruptRequest;
+    internal readonly OpenCollectorWire InterruptRequest;
 
     /// <summary>
     /// NMI line. <c>true</c> means at least one device is requesting a non-maskable interrupt.
@@ -124,7 +149,7 @@ public class MOS6510Cpu
     /// another device asserting it produces no edge, so no NMI (on the C64, RESTORE does nothing while CIA 2 holds NMI).
     /// </para>
     /// </remarks>
-    public readonly OpenCollectorWire NonMaskableInterrupt;
+    internal readonly OpenCollectorWire NonMaskableInterrupt;
 
     /// <summary>
     /// Set by a rising edge on <see cref="NonMaskableInterrupt"/>, cleared when the NMI is serviced.
@@ -156,10 +181,20 @@ public class MOS6510Cpu
         _sp.Value = STACK_START_ADDRESS & 0xFF;
     }
 
+    /// <summary>
+    /// Resets the CPU: clears the I/O port registers and loads PC from the reset vector.
+    /// </summary>
+    /// <remarks>
+    /// At reset every port pin is an input, so the pulled-up lines read high and the PLA selects the default
+    /// memory configuration (BASIC, KERNAL and I/O visible) until the KERNAL sets <c>$0000</c> to <c>$2F</c>
+    /// and <c>$0001</c> to <c>$37</c>.
+    /// </remarks>
+    /// <param name="pcValue">Start address to use instead of the reset vector (for tests).</param>
     internal void Initialize(int? pcValue = null)
     {
-        // set default memory mode
-        Write(0x0001, 0b0000_0111);
+        Address0.Value = 0;
+        Address1.Value = 0;
+        UpdatePortPins();
 
         // use provided PC value for testing
         if(pcValue.HasValue)
@@ -262,14 +297,29 @@ public class MOS6510Cpu
     }
 
     /// <summary>
-    /// Writes a value to the data bus. If the address bus is set to 0 or 1, it writes to the port bus instead.
+    /// Puts the I/O port's pin levels on <see cref="PortBus"/>.
     /// </summary>
     /// <remarks>
-    /// The MOS6510 has a unique feature where internally the first two addresses (0 and 1) are mapped to special registers that control the port bus. 
-    /// This method takes that into account when writing values.
-    /// Value is properly masked before stored
+    /// Output pins (a 1 in <see cref="Address0"/>) carry the matching bit of <see cref="Address1"/>. Input pins are
+    /// not driven by the CPU; on the C64 every port line is pulled high, so an input pin reads as 1.
     /// </remarks>
-    /// <param name="value"></param>
+    private void UpdatePortPins()
+    {
+        var direction = Address0.Value;
+        var pins = (Address1.Value & direction) | (~direction & PORT_PIN_MASK);
+
+        PortBus.Strobe(pins);
+    }
+
+    /// <summary>
+    /// Writes a value to memory, or to the on-chip I/O port registers for addresses 0 and 1.
+    /// </summary>
+    /// <remarks>
+    /// The 6510 maps its data direction register to <c>$0000</c> and its port data register to <c>$0001</c>.
+    /// Writing either one updates the port pins. Value is properly masked before stored.
+    /// </remarks>
+    /// <param name="address">16-bit address to write.</param>
+    /// <param name="value">Byte to write.</param>
     internal void Write(int address, int value)
     {
         // if address bus is greater than 1, write to data bus
@@ -280,19 +330,29 @@ public class MOS6510Cpu
             DataBus.Drive(value);
             AddressBus.Strobe(address);
         }
-        // if address bus is 0, write to port bus control register
+        // if address bus is 0, write to the port data direction register
         else if(address == 0)
         {
             Address0.Value = value;
+            UpdatePortPins();
         }
-        // else, address bus is 1, write to port bus data register, and the bus itself
+        // else, address bus is 1, write to the port data register
         else
         {
             Address1.Value = value;
-            PortBus.Strobe(value);
+            UpdatePortPins();
         }
     }
 
+    /// <summary>
+    /// Reads a value from memory, or from the on-chip I/O port registers for addresses 0 and 1.
+    /// </summary>
+    /// <remarks>
+    /// Reading <c>$0001</c> returns the data register for output bits and the pin levels for input bits.
+    /// Bits 6-7 are not port pins, so for them only the data register's output bits can read as 1.
+    /// </remarks>
+    /// <param name="address">16-bit address to read.</param>
+    /// <returns>The byte read.</returns>
     internal int Read(int address)
     {
         // if address bus is greater than 1, read from data bus
@@ -304,15 +364,16 @@ public class MOS6510Cpu
 
             return DataBus.Read();
         }
-        // if address bus is 0, read from port bus control register
+        // if address bus is 0, read the port data direction register
         else if(address == 0)
         {
             return Address0.Value;
         }
-        // else, address bus is 1, read from port bus data register
+        // else, address bus is 1: output bits read the data register, input bits read the pins
         else
         {
-            return Address1.Value;
+            var direction = Address0.Value;
+            return (Address1.Value & direction) | (PortBus.Read() & ~direction);
         }
     }
 

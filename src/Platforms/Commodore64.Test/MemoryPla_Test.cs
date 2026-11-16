@@ -27,6 +27,8 @@ public class MemoryPla_Test
         /* 111 */ [ RAM, RAM, RAM, BASIC, RAM, IO,   KERNAL ],
     ];
 
+    private static MemoryPla NewPla(Bus port) => new MemoryPla(port, new Wire(), new Wire());
+
     private static int Region(int address) =>
         address < 0x1000 ? 0 :
         address < 0x8000 ? 1 :
@@ -40,7 +42,7 @@ public class MemoryPla_Test
     public void SelectBank_MatchesMemoryMap_ForEveryPortSettingAndAddress()
     {
         var port = new Bus(8);
-        var pla = new MemoryPla(port);
+        var pla = NewPla(port);
 
         for(int setting = 0; setting < 8; setting++)
         {
@@ -71,7 +73,7 @@ public class MemoryPla_Test
     {
         var port = new Bus(8);
         port.Drive(setting);
-        var pla = new MemoryPla(port);
+        var pla = NewPla(port);
 
         Assert.AreEqual(expected, pla.SelectBank(address));
     }
@@ -82,7 +84,7 @@ public class MemoryPla_Test
         var port = new Bus(8);
         port.Drive(0b111);
 
-        var pla = new MemoryPla(port);
+        var pla = NewPla(port);
 
         Assert.AreEqual(BASIC, pla.SelectBank(0xA000));
     }
@@ -91,7 +93,7 @@ public class MemoryPla_Test
     public void PortStrobe_ChangesSelection()
     {
         var port = new Bus(8);
-        var pla = new MemoryPla(port);
+        var pla = NewPla(port);
 
         port.Strobe(0b111);
         Assert.AreEqual(IO, pla.SelectBank(0xD000));
@@ -104,7 +106,7 @@ public class MemoryPla_Test
     public void OnlyLowThreePortBitsSelectConfiguration()
     {
         var port = new Bus(8);
-        var pla = new MemoryPla(port);
+        var pla = NewPla(port);
 
         port.Strobe(0b1111_1000 | 0b011);
 

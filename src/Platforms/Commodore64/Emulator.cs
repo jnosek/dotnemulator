@@ -8,7 +8,15 @@ public class Emulator
 {
     internal Bus AddressBus { get; } = new Bus(16);
     internal Bus DataBus { get; } = new Bus(8);
-    internal Bus PortBus { get; } = new Bus(8);
+
+    /// <summary>
+    /// The 6510's six I/O port pins, P0-P5.
+    /// </summary>
+    /// <remarks>
+    /// P0-P2 (LORAM, HIRAM, CHAREN) go to the <see cref="MemoryPla"/>; P3-P5 go to the cassette port
+    /// (write, sense, motor), which is not modelled yet.
+    /// </remarks>
+    internal Bus PortBus { get; } = new Bus(MOS6510Cpu.PORT_PIN_COUNT);
 
     /// <summary>
     /// The 6510 R/W line, signalling whether the current bus cycle is a read or a write.
@@ -28,6 +36,18 @@ public class Emulator
     /// </summary>
     internal OpenCollectorWire NonMaskableInterrupt { get; } = new OpenCollectorWire();
 
+    /// <summary>
+    /// Expansion-port GAME line, driven by a cartridge and read by the <see cref="MemoryPla"/>.
+    /// </summary>
+    /// <remarks><c>false</c> (not asserted) is the no-cartridge state.</remarks>
+    internal Wire Game { get; } = new Wire(false);
+
+    /// <summary>
+    /// Expansion-port EXROM line, driven by a cartridge and read by the <see cref="MemoryPla"/>.
+    /// </summary>
+    /// <remarks><c>false</c> (not asserted) is the no-cartridge state.</remarks>
+    internal Wire ExRom { get; } = new Wire(false);
+
     internal MOS6510Cpu Cpu { get; }
     internal MemoryPla Pla { get; }
     internal MemoryMap MemoryMap { get; }
@@ -41,7 +61,7 @@ public class Emulator
     internal Emulator(Func<Emulator, MemoryMap>? memoryMapFactory = null)
     {
         Cpu = new MOS6510Cpu(AddressBus, DataBus, PortBus, ReadWrite, InterruptRequest, NonMaskableInterrupt);
-        Pla = new MemoryPla(PortBus);
+        Pla = new MemoryPla(PortBus, Game, ExRom);
         MemoryMap = memoryMapFactory?.Invoke(this) ?? 
             new MemoryMap(AddressBus, DataBus, ReadWrite, Pla);
 
