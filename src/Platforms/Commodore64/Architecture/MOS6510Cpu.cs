@@ -332,7 +332,7 @@ public class MOS6510Cpu
     /// </summary>
     /// <remarks>
     /// For a stack overflow, the value of 0x00 will wrap around to 0xFF without an error
-    /// <remarks>
+    /// </remarks>
     /// <param name="value"></param>
     internal void StackPush(int value)
     {
@@ -345,7 +345,7 @@ public class MOS6510Cpu
     /// </summary>
     /// <remarks>
     /// For a stack underflow, the value of 0xFF will wrap around to 0x00 without an error
-    /// <remarks>
+    /// </remarks>
     /// <returns></returns>
     internal int StackPop()
     {
