@@ -256,8 +256,8 @@ public class MOS6510Cpu
     /// Interrupts are checked at the instruction boundary, before the next opcode is fetched, as on the real 6502.
     /// A pending NMI is taken first; otherwise an IRQ is taken if the line is held and the I flag is clear.
     /// Servicing an interrupt is its own step (the real CPU spends 7 cycles on it, like an instruction), and the
-    /// result has <see cref="InstructionResult.IsInterrupt"/> set. The handler's first instruction runs on the
-    /// following step, so breakpoints on it are hit.
+    /// result's <see cref="InstructionResult.Interrupt"/> says which interrupt was taken. The handler's first
+    /// instruction runs on the following step, so breakpoints on it are hit.
     /// </para>
     /// <para>
     /// Not modelled yet: the one-instruction delay before a change to the I flag by <c>CLI</c>, <c>SEI</c> or
@@ -274,14 +274,14 @@ public class MOS6510Cpu
             _nmiPending = false;
             ServiceInterrupt(NMI_VECTOR);
 
-            return new InstructionResult(address, InstructionResult.NMI_SEQUENCE, 0);
+            return new InstructionResult(address, Instruction.BRK.OP_CODE, 0, InterruptKind.Nmi);
         }
 
         if(InterruptRequest.Value && !P.InterruptDisableFlag)
         {
             ServiceInterrupt(IRQ_VECTOR);
 
-            return new InstructionResult(address, InstructionResult.IRQ_SEQUENCE, 0);
+            return new InstructionResult(address, Instruction.BRK.OP_CODE, 0, InterruptKind.Irq);
         }
     
         // fetch

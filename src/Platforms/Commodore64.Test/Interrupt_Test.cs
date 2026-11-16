@@ -69,8 +69,8 @@ public class Interrupt_Test
         _irq.Assert();
         var result = emulator.Cpu.Step();
 
-        Assert.IsTrue(result.IsInterrupt);
-        Assert.AreEqual(InstructionResult.IRQ_SEQUENCE, result.Instruction);
+        Assert.AreEqual(InterruptKind.Irq, result.Interrupt);
+        Assert.AreEqual(BRK.OP_CODE, result.Instruction, "interrupt sequence reports a forced BRK");
         Assert.AreEqual(0xE002, result.Address);
         Assert.AreEqual(IRQ_HANDLER, emulator.Cpu.PC.Value);
         Assert.AreEqual(0x01, emulator.Cpu.A.Value);           // second LDA has not run
@@ -89,7 +89,7 @@ public class Interrupt_Test
 
         var result = emulator.Cpu.Step();
 
-        Assert.IsFalse(result.IsInterrupt);
+        Assert.AreEqual(InterruptKind.None, result.Interrupt);
         Assert.AreEqual(IRQ_HANDLER, result.Address);
         Assert.AreEqual(NOP.OP_CODE, result.Instruction);
     }
@@ -122,8 +122,8 @@ public class Interrupt_Test
         var first = emulator.Cpu.Step();
         var second = emulator.Cpu.Step();
 
-        Assert.IsFalse(first.IsInterrupt);
-        Assert.IsFalse(second.IsInterrupt);
+        Assert.AreEqual(InterruptKind.None, first.Interrupt);
+        Assert.AreEqual(InterruptKind.None, second.Interrupt);
         Assert.AreEqual(sp, emulator.Cpu.SP);
         Assert.AreEqual(0x02, emulator.Cpu.A.Value);
     }
@@ -137,7 +137,7 @@ public class Interrupt_Test
         _irq.Assert();
         var result = emulator.Cpu.Step();
 
-        Assert.IsFalse(result.IsInterrupt);
+        Assert.AreEqual(InterruptKind.None, result.Interrupt);
         Assert.AreEqual(0x01, emulator.Cpu.A.Value);
     }
 
@@ -150,7 +150,7 @@ public class Interrupt_Test
         _irq.Release();
         var result = emulator.Cpu.Step();
 
-        Assert.IsFalse(result.IsInterrupt);
+        Assert.AreEqual(InterruptKind.None, result.Interrupt);
     }
 
     [TestMethod]
@@ -167,13 +167,13 @@ public class Interrupt_Test
         emulator.Cpu.P.InterruptDisableFlag = false;
         var result = emulator.Cpu.Step();
 
-        Assert.AreEqual(InstructionResult.IRQ_SEQUENCE, result.Instruction);
+        Assert.AreEqual(InterruptKind.Irq, result.Interrupt);
 
         otherDevice.Release();
         emulator.Cpu.Step();                                   // RTI
         result = emulator.Cpu.Step();
 
-        Assert.IsFalse(result.IsInterrupt, "line released by every source");
+        Assert.AreEqual(InterruptKind.None, result.Interrupt, "line released by every source");
     }
 
     [TestMethod]
@@ -187,7 +187,7 @@ public class Interrupt_Test
         emulator.Cpu.Step();                                   // RTI restores I = 0
         var result = emulator.Cpu.Step();
 
-        Assert.AreEqual(InstructionResult.IRQ_SEQUENCE, result.Instruction);
+        Assert.AreEqual(InterruptKind.Irq, result.Interrupt);
     }
 
     // --- NMI ---
@@ -203,7 +203,7 @@ public class Interrupt_Test
 
         var result = emulator.Cpu.Step();
 
-        Assert.AreEqual(InstructionResult.NMI_SEQUENCE, result.Instruction);
+        Assert.AreEqual(InterruptKind.Nmi, result.Interrupt);
         Assert.AreEqual(0xE001, result.Address);
         Assert.AreEqual(NMI_HANDLER, emulator.Cpu.PC.Value);
         Assert.IsTrue(emulator.Cpu.P.InterruptDisableFlag);
@@ -218,7 +218,7 @@ public class Interrupt_Test
         _nmi.Release();
         var result = emulator.Cpu.Step();
 
-        Assert.AreEqual(InstructionResult.NMI_SEQUENCE, result.Instruction);
+        Assert.AreEqual(InterruptKind.Nmi, result.Interrupt);
     }
 
     [TestMethod]
@@ -233,7 +233,7 @@ public class Interrupt_Test
         _nmi.Assert();        // already asserting: no edge
         var result = emulator.Cpu.Step();
 
-        Assert.IsFalse(result.IsInterrupt);
+        Assert.AreEqual(InterruptKind.None, result.Interrupt);
         Assert.AreEqual(PROGRAM_START, result.Address);
     }
 
@@ -250,7 +250,7 @@ public class Interrupt_Test
         _nmi.Assert();
         var result = emulator.Cpu.Step();
 
-        Assert.AreEqual(InstructionResult.NMI_SEQUENCE, result.Instruction);
+        Assert.AreEqual(InterruptKind.Nmi, result.Interrupt);
     }
 
     [TestMethod]
@@ -267,7 +267,7 @@ public class Interrupt_Test
         restoreKey.Assert();                                   // line already asserted: no edge
         var result = emulator.Cpu.Step();
 
-        Assert.IsFalse(result.IsInterrupt);
+        Assert.AreEqual(InterruptKind.None, result.Interrupt);
     }
 
     [TestMethod]
@@ -279,7 +279,7 @@ public class Interrupt_Test
         _nmi.Assert();
         var result = emulator.Cpu.Step();
 
-        Assert.AreEqual(InstructionResult.NMI_SEQUENCE, result.Instruction);
+        Assert.AreEqual(InterruptKind.Nmi, result.Interrupt);
         Assert.AreEqual(NMI_HANDLER, emulator.Cpu.PC.Value);
     }
 

@@ -78,7 +78,7 @@ public class DebugExecutionStrategy : IExecutionStrategy
                 _instructionLog.Dequeue();
 
             // an interrupt sequence reports the interrupted address, but the instruction there has not run yet
-            if(!result.IsInterrupt && result.Address == EndAddress)
+            if(result.Interrupt == InterruptKind.None && result.Address == EndAddress)
                 break;
         }
     }
