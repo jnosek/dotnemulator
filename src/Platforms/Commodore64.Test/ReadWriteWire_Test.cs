@@ -54,4 +54,16 @@ public class ReadWriteWire_Test
             new[] { (ReadWriteMode.Write, ReadWriteMode.Write), (ReadWriteMode.Read, ReadWriteMode.Read) },
             seen);
     }
+
+    [TestMethod]
+    public void Strobe_SameMode_DoesNotNotify()
+    {
+        var wire = new ReadWriteWire();
+        var notifications = 0;
+        wire.Subscribe(_ => notifications++);
+
+        wire.Strobe(ReadWriteMode.Read);
+
+        Assert.AreEqual(0, notifications);
+    }
 }

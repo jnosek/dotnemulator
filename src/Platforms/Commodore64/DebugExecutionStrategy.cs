@@ -77,7 +77,8 @@ public class DebugExecutionStrategy : IExecutionStrategy
             if(_instructionLog.Count > INSTRUCTION_LOG_WINDOW_SIZE)
                 _instructionLog.Dequeue();
 
-            if(result.Address == EndAddress)
+            // an interrupt sequence reports the interrupted address, but the instruction there has not run yet
+            if(!result.IsInterrupt && result.Address == EndAddress)
                 break;
         }
     }

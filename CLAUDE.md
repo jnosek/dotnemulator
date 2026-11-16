@@ -44,8 +44,8 @@ Platform-agnostic primitives that model digital hardware:
 |---|---|
 | `SlimEventSource` / `SlimEventSource<T>` | Minimal pub/sub. `Subscribe` registers a handler. With one subscriber, `Trigger`/`Update` points straight at it (no fan-out cost), so signal propagation stays cheap in the hot loop. |
 | `Bus` | N-bit (1–32, size required) value holder that is a `SlimEventSource`. `Strobe(value)` puts a masked value on the bus and notifies subscribers (used by the component **starting** a bus cycle). `Drive(value)` puts it on **without** notifying (used by components **responding** to a cycle). `Read()` / `ReadBit()` sample it. |
-| `Wire` | Single-bit signal (`SlimEventSource<bool>`). `Strobe(bool)` sets it and notifies, e.g. IRQ/NMI lines. `Drive(bool)` sets it without notifying. |
-| `ReadWriteWire` / `ReadWriteMode` | Read/write select line (`SlimEventSource<ReadWriteMode>`). `Drive(ReadWriteMode.Read/Write)`, `Mode`, `IsRead`/`IsWrite`. |
+| `Wire` | Single-bit signal (`SlimEventSource<bool>`). `Strobe(bool)` sets it and notifies **only if the level changed** (every notification is an edge), e.g. NMI. `Drive(bool)` sets it without notifying. |
+| `ReadWriteWire` / `ReadWriteMode` | Read/write select line (`SlimEventSource<ReadWriteMode>`). `Drive(ReadWriteMode.Read/Write)`, `Mode`, `IsRead`/`IsWrite`. `Strobe` notifies only on a change, like `Wire`. |
 | `BitWidth` | Shared size check (1–32 bits) and mask calculation used by `Bus` and `Register`. |
 | `Register` | N-bit masked storage with `Value`, `SetFlag`/`GetFlag`, `Increment`/`Decrement`/`Advance` (post-increment). Overflow wraps like real hardware. Can be subclassed (see `StatusRegister`). |
 | `MemorySegment` | Byte array mapped at a starting address. `Read`/`Write` take **absolute** addresses (range-checked in DEBUG only), `Load(Stream)` fills it from a ROM file, and `GetHash()` gives a SHA-256 for ROM checks. |
@@ -68,14 +68,14 @@ Every memory access is one **bus cycle**, started by a single `AddressBus.Strobe
 - **CPU read**: `ReadWrite.Drive(Read)`, then `AddressBus.Strobe(address)`. `MemoryMap` asks the PLA for the bank (`SelectBank(address)`) and drives the byte onto `DataBus`. The CPU then calls `DataBus.Read()`.
 - **CPU write**: `ReadWrite.Drive(Write)`, `DataBus.Drive(value)`, then `AddressBus.Strobe(address)`. `MemoryMap` stores the byte already on `DataBus` in the selected bank. Writes to ROM areas go to the RAM underneath. No read happens during a write.
 - **6510 on-chip I/O port**: addresses `$0000`/`$0001` are handled inside the CPU (`Address0`/`Address1` registers). Writing `$0001` strobes `PortBus`, and the PLA selects the matching row of its block table (LORAM/HIRAM/CHAREN → BASIC/KERNAL/CHAR/IO/RAM via the `MEMORY_CONFIGS` table). This does not start a memory cycle.
-- **Interrupts**: `Wire.Strobe(true)` on `InterruptRequest`/`NonMaskableInterrupt` invokes the CPU handler, which pushes PC/P and jumps through the vector.
+- **Interrupts**: interrupts are only taken between instructions, at the start of `Step()`. `InterruptRequest` (IRQ) is level-triggered: it is serviced while the line is high and the I flag is clear, and the CPU only samples it, so `Drive` or `Strobe` both work. `NonMaskableInterrupt` (NMI) is edge-triggered: the CPU latches each low-to-high `Strobe` and services it at the next boundary, so it must be strobed. NMI wins if both are pending. Servicing pushes PC and P (B clear), sets the I flag and jumps through the vector, as its own `Step()` whose `InstructionResult.IsInterrupt` is true.
 
 Subscribers run synchronously in the order they subscribed. Avoid components that depend on that order: if a component needs another's output during the same cycle, and that output is stateless decode logic (like `MemoryPla` implementing `IMemoryBankSelector`), pass the decoder in through the constructor and call it.
 
 ### CPU (`Architecture/MOS6510Cpu.cs`)
 
 - Registers are `Register`/`StatusRegister` objects: `PC`(16), `A`, `X`, `Y`, `_sp`(8, exposed as `SP`), `P`.
-- `Step()` does fetch → decode (`instructionSet[opcode]`) → execute and returns an `InstructionResult(Address, Instruction, Operand)`.
+- `Step()` first checks for a pending NMI or IRQ and, if one is taken, runs the interrupt sequence as the whole step. Otherwise it does fetch → decode (`instructionSet[opcode]`) → execute. It returns an `InstructionResult(Address, Instruction, Operand)`; for an interrupt, `Instruction` is `IRQ_SEQUENCE`/`NMI_SEQUENCE` and `Address` is the return address.
 - Helpers: `Read`, `Write`, `ReadNextByte`, `ReadNextWord` (little-endian), `StackPush`/`StackPop` (page `$01`, wrapping SP).
 - `Initialize(pc?)` sets the default port value (`$07`) and loads PC from the reset vector `$FFFC` (or uses the value passed in, for tests).
 - `StatusRegister` always forces the Unused bit on and the Break bit off when `Value` is set. B is only set in the copy pushed by `BRK`/`PHP`.

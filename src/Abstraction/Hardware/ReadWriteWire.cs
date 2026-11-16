@@ -10,7 +10,8 @@ namespace Dotnemulator.Abstraction.Hardware;
 /// <see cref="ReadWriteMode.Write"/>. On the 6510 the pin is high for a read and low for a write.
 /// </para>
 /// <para>
-/// Subscribers receive the new <see cref="ReadWriteMode"/> when the line is strobed.
+/// Subscribers receive the new <see cref="ReadWriteMode"/> when <see cref="Strobe"/> changes it, matching
+/// <see cref="Wire.Strobe"/>.
 /// </para>
 /// </remarks>
 public class ReadWriteWire : SlimEventSource<ReadWriteMode>
@@ -52,17 +53,20 @@ public class ReadWriteWire : SlimEventSource<ReadWriteMode>
     }
 
     /// <summary>
-    /// Sets the mode and then notifies subscribers with the new mode.
+    /// Sets the mode and, if the mode changed, notifies subscribers with the new mode.
     /// </summary>
     /// <remarks>
     /// Use this only when another component must react as soon as the mode changes.
     /// Subscribers run synchronously, in the order they subscribed, before this method returns.
-    /// Subscribers are notified on every call, even when the mode is unchanged.
+    /// Strobing the mode the line already has does nothing, matching <see cref="Wire.Strobe"/>.
     /// </remarks>
     /// <param name="mode">The new mode.</param>
     /// <seealso cref="Drive"/>
     public void Strobe(ReadWriteMode mode)
     {
+        if(Mode == mode)
+            return;
+
         Mode = mode;
         Update(mode);
     }

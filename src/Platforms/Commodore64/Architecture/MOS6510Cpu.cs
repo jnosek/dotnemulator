@@ -94,8 +94,32 @@ public class MOS6510Cpu
     /// </summary>
     public readonly Bus PortBus;
 
+    /// <summary>
+    /// IRQ line. <c>true</c> means a device is requesting an interrupt.
+    /// </summary>
+    /// <remarks>
+    /// Level-triggered: the CPU samples it between instructions (see <see cref="Step"/>) and services it while it is
+    /// held and the I flag is clear. The CPU does not subscribe to it, so devices may use either
+    /// <see cref="Wire.Drive"/> or <see cref="Wire.Strobe"/>. The device must release it (normally when the handler
+    /// acknowledges the interrupt), or it is taken again as soon as the handler's <c>RTI</c> clears the I flag.
+    /// </remarks>
     public readonly Wire InterruptRequest = new Wire();
+
+    /// <summary>
+    /// NMI line. <c>true</c> means a device is requesting a non-maskable interrupt.
+    /// </summary>
+    /// <remarks>
+    /// Edge-triggered: the CPU latches each low-to-high edge and services it at the next instruction boundary,
+    /// whatever the I flag, even if the line has already been released by then. Holding the line high does not
+    /// cause a second NMI; it must go low and high again. Devices must use <see cref="Wire.Strobe"/>, since
+    /// <see cref="Wire.Drive"/> does not notify and the edge would be missed.
+    /// </remarks>
     public readonly Wire NonMaskableInterrupt = new Wire();
+
+    /// <summary>
+    /// Set by a rising edge on <see cref="NonMaskableInterrupt"/>, cleared when the NMI is serviced.
+    /// </summary>
+    private bool _nmiPending;
 
     internal readonly InstructionSet instructionSet;
     
@@ -108,7 +132,6 @@ public class MOS6510Cpu
 
         instructionSet = new MOS6510InstructionSet(this);
 
-        InterruptRequest.Subscribe(InterruptRequestHandler);
         NonMaskableInterrupt.Subscribe(NonMaskableInterruptHandler);
 
         // set start of stack pointer offset (last byte)
@@ -135,45 +158,78 @@ public class MOS6510Cpu
         }
     }
 
-    internal void InterruptRequestHandler(bool value)
+    /// <summary>
+    /// Latches a rising edge on <see cref="NonMaskableInterrupt"/>.
+    /// </summary>
+    /// <remarks>
+    /// Only records the request; the NMI is serviced at the next instruction boundary by <see cref="Step"/>,
+    /// never in the middle of an instruction. <see cref="Wire.Strobe"/> only notifies on a change, so
+    /// <paramref name="value"/> being <c>true</c> is always a low-to-high edge.
+    /// </remarks>
+    private void NonMaskableInterruptHandler(bool value)
     {
-        // if the signal goes low, or if the interrupt disable flag is set, ignore the interrupt request
-        if(!value || P.InterruptDisableFlag)
-            return;
+        if(value)
+            _nmiPending = true;
+    }
 
+    /// <summary>
+    /// Runs the interrupt sequence: pushes PC and P, sets the I flag and jumps through <paramref name="vector"/>.
+    /// </summary>
+    /// <remarks>
+    /// The copy of P pushed to the stack has the B flag clear, which is how a handler tells a hardware interrupt
+    /// from <c>BRK</c>. The I flag is set after P is pushed, so <c>RTI</c> restores the caller's I flag. Setting it
+    /// stops a level-triggered IRQ that is still held from being taken again before the handler runs.
+    /// </remarks>
+    /// <param name="vector">Address of the interrupt vector (<see cref="IRQ_VECTOR"/> or <see cref="NMI_VECTOR"/>).</param>
+    private void ServiceInterrupt(int vector)
+    {
         // push PC and status register to stack
         StackPush((PC.Value >> 8) & 0xFF);
         StackPush(PC.Value & 0xFF);
         StackPush(P.Value);
 
-        // load PC from interrupt vector
-        PC.Value = IRQ_VECTOR;
-        var address = ReadNextWord();
+        P.InterruptDisableFlag = true;
 
-        PC.Value = address;
+        // load PC from the vector
+        PC.Value = vector;
+        PC.Value = ReadNextWord();
     }
 
-    internal void NonMaskableInterruptHandler(bool value)
-    {
-        // if the signal goes low, ignore the interrupt request
-        if(!value)
-            return;
-
-        // push PC and status register to stack
-        StackPush((PC.Value >> 8) & 0xFF);
-        StackPush(PC.Value & 0xFF);
-        StackPush(P.Value);
-
-        // load PC from NMI vector
-        PC.Value = NMI_VECTOR;
-        var address = ReadNextWord();
-
-        PC.Value = address;
-    }
-
+    /// <summary>
+    /// Executes one instruction, or services one pending interrupt.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Interrupts are checked at the instruction boundary, before the next opcode is fetched, as on the real 6502.
+    /// A pending NMI is taken first; otherwise an IRQ is taken if the line is held and the I flag is clear.
+    /// Servicing an interrupt is its own step (the real CPU spends 7 cycles on it, like an instruction), and the
+    /// result has <see cref="InstructionResult.IsInterrupt"/> set. The handler's first instruction runs on the
+    /// following step, so breakpoints on it are hit.
+    /// </para>
+    /// <para>
+    /// Not modelled yet: the one-instruction delay before a change to the I flag by <c>CLI</c>, <c>SEI</c> or
+    /// <c>PLP</c> affects IRQ recognition, and an NMI hijacking an IRQ or <c>BRK</c> sequence that is already in progress.
+    /// </para>
+    /// </remarks>
     internal InstructionResult Step()
     {
         int address = PC.Value;
+
+        // interrupts are only recognized between instructions
+        if(_nmiPending)
+        {
+            _nmiPending = false;
+            ServiceInterrupt(NMI_VECTOR);
+
+            return new InstructionResult(address, InstructionResult.NMI_SEQUENCE, 0);
+        }
+
+        if(InterruptRequest.Value && !P.InterruptDisableFlag)
+        {
+            ServiceInterrupt(IRQ_VECTOR);
+
+            return new InstructionResult(address, InstructionResult.IRQ_SEQUENCE, 0);
+        }
     
         // fetch
         int instruction = ReadNextByte();

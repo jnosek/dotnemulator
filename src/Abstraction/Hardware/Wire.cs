@@ -4,7 +4,8 @@ namespace Dotnemulator.Abstraction.Hardware;
 /// A single-bit signal line, such as an interrupt request or a read/write select.
 /// </summary>
 /// <remarks>
-/// Subscribers receive the new level when the wire is strobed.
+/// Subscribers receive the new level when <see cref="Strobe"/> changes it, so every notification is an edge
+/// (low to high or high to low).
 /// </remarks>
 public class Wire : SlimEventSource<bool>
 {
@@ -34,17 +35,27 @@ public class Wire : SlimEventSource<bool>
     }
 
     /// <summary>
-    /// Sets the level of the wire and then notifies subscribers with the new level.
+    /// Sets the level of the wire and, if the level changed, notifies subscribers with the new level.
     /// </summary>
     /// <remarks>
-    /// Use this for signals that other components must <b>react</b> to as soon as they change.
-    /// Subscribers run synchronously, in the order they subscribed, before this method returns.
-    /// Subscribers are notified on every call, even when the level is unchanged.
+    /// <para>
+    /// Use this for signals that other components must <b>react</b> to as soon as they change, such as an
+    /// edge-triggered interrupt line. Subscribers run synchronously, in the order they subscribed, before this
+    /// method returns.
+    /// </para>
+    /// <para>
+    /// Subscribers are only notified when the level actually changes, so each notification is an edge.
+    /// Strobing the level the wire already has does nothing. A level set with <see cref="Drive"/> counts as the
+    /// current level, so a later <see cref="Strobe"/> to the same level does not notify.
+    /// </para>
     /// </remarks>
     /// <param name="value">The new level.</param>
     /// <seealso cref="Drive"/>
     public void Strobe(bool value)
     {
+        if(Value == value)
+            return;
+
         Value = value;
         Update(value);
     }
