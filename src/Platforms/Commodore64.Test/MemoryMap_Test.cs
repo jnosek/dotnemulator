@@ -1,4 +1,5 @@
 using Dotnemulator.Abstraction.Hardware;
+using Dotnemulator.Platforms.Commodore64.Architecture;
 using Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
 
 namespace Dotnemulator.Platforms.Commodore64.Test;
@@ -117,5 +118,36 @@ public class MemoryMap_Test
 
         // assert
         CollectionAssert.AreEqual(new[] { 0x42 }, seen);
+    }
+
+    private sealed class FixedBankSelector(int bank) : IMemoryBankSelector
+    {
+        public List<int> Addresses { get; } = new();
+
+        public int SelectBank(int address)
+        {
+            Addresses.Add(address);
+            return bank;
+        }
+    }
+
+    [TestMethod]
+    public void UsesBankSelector_ForEachCycle()
+    {
+        // arrange
+        var addressBus = new Bus(16);
+        var dataBus = new Bus(8);
+        var readWrite = new ReadWriteWire();
+        var selector = new FixedBankSelector(MemoryPla.UNMAPPED);
+        var memoryMap = new MemoryMap(addressBus, dataBus, readWrite, selector);
+        memoryMap.PokeRam(0x0300, 0x42);
+
+        // act
+        readWrite.Drive(ReadWriteMode.Read);
+        addressBus.Strobe(0x0300);
+
+        // assert: the selector decided the bank, so RAM was not read
+        CollectionAssert.AreEqual(new[] { 0x0300 }, selector.Addresses);
+        Assert.AreEqual(0x00, dataBus.Read());
     }
 }

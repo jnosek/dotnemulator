@@ -19,7 +19,7 @@ Dotnemulator.sln
 src/
   Abstraction/                      # Dotnemulator.Abstraction: shared, platform-agnostic building blocks
     SlimEventSource*.cs, IEventSink.cs   # lightweight signal/event plumbing
-    Hardware/                       # Register, Bus, Wire, MemorySegment
+    Hardware/                       # Register, Bus, Wire, ReadWriteWire, BitWidth, MemorySegment
     Operations/                     # IInstruction, InstructionSet, IRead/IWrite/IReadWrite
   Platforms/
     Commodore64/                    # Dotnemulator.Platforms.Commodore64 (exe)
@@ -43,29 +43,34 @@ Platform-agnostic primitives that model digital hardware:
 | Type | Role |
 |---|---|
 | `SlimEventSource` / `SlimEventSource<T>` | Minimal pub/sub. `Subscribe` registers a handler. With one subscriber, `Trigger`/`Update` points straight at it (no fan-out cost), so signal propagation stays cheap in the hot loop. |
-| `Bus` | N-bit (1–32) value holder that is a `SlimEventSource`. `Drive(value)` puts a masked value on the bus **without** notifying. `Trigger()` notifies subscribers. `Read()` / `ReadBit()` sample it. |
-| `Wire` | Single-bit signal (`SlimEventSource<bool>`). `Place(bool)` sets it and notifies, e.g. IRQ/NMI lines. |
+| `Bus` | N-bit (1–32, size required) value holder that is a `SlimEventSource`. `Strobe(value)` puts a masked value on the bus and notifies subscribers (used by the component **starting** a bus cycle). `Drive(value)` puts it on **without** notifying (used by components **responding** to a cycle). `Read()` / `ReadBit()` sample it. |
+| `Wire` | Single-bit signal (`SlimEventSource<bool>`). `Strobe(bool)` sets it and notifies, e.g. IRQ/NMI lines. `Drive(bool)` sets it without notifying. |
+| `ReadWriteWire` / `ReadWriteMode` | Read/write select line (`SlimEventSource<ReadWriteMode>`). `Drive(ReadWriteMode.Read/Write)`, `Mode`, `IsRead`/`IsWrite`. |
+| `BitWidth` | Shared size check (1–32 bits) and mask calculation used by `Bus` and `Register`. |
 | `Register` | N-bit masked storage with `Value`, `SetFlag`/`GetFlag`, `Increment`/`Decrement`/`Advance` (post-increment). Overflow wraps like real hardware. Can be subclassed (see `StatusRegister`). |
 | `MemorySegment` | Byte array mapped at a starting address. `Read`/`Write` take **absolute** addresses (range-checked in DEBUG only), `Load(Stream)` fills it from a ROM file, and `GetHash()` gives a SHA-256 for ROM checks. |
 | `IInstruction` / `InstructionSet` | An instruction exposes its `OpCode` and `Execute(int instruction)`. `InstructionSet` is a fixed-size opcode → instruction table that throws on duplicate opcodes. |
 
 ### Signal-driven wiring (core design idea)
 
-Components are connected only through shared `Bus`/`Wire` instances, which are created by the composition root (`Emulator`). For the C64:
+Components are connected through shared `Bus`/`Wire` instances, which are created by the composition root (`Emulator`). Stateless decode logic is the one exception: it is queried directly (see below). For the C64:
 
 ```
-            AddressBus(16) ──┬──────────────► MemoryPla ──MemoryBankBus(5)──► MemoryMap
- MOS6510Cpu ─ DataBus(8) ────┼──────────────────────────────────────────────► MemoryMap
-            PortBus(8) ──────┴──────────────► MemoryPla
+            AddressBus(16) ──────────────────────────────► MemoryMap ──SelectBank()──► MemoryPla
+ MOS6510Cpu ─ DataBus(8) ────────────────────────────────► MemoryMap                       ▲
+            ReadWrite (ReadWriteWire) ───────────────────► MemoryMap                       │
+            PortBus(8) ────────────────────────────────────────────────────────────────────┘
             IRQ / NMI Wires ◄── (future peripherals: CIA, VIC-II, ...)
 ```
 
-- **CPU read**: drive the address onto `AddressBus` and `Trigger()` it. `MemoryPla.Evaluate` drives the bank selection onto `MemoryBankBus`, and `MemoryMap.ReadHandler` drives the byte onto `DataBus`. The CPU then calls `DataBus.Read()`.
-- **CPU write**: drive and trigger `AddressBus`, then drive and trigger `DataBus`. `MemoryMap.WriteHandler` stores the byte in the selected bank. Writes to ROM areas go to the RAM underneath.
-- **6510 on-chip I/O port**: addresses `$0000`/`$0001` are handled inside the CPU (`Address0`/`Address1` registers). Writing `$0001` drives `PortBus`, which makes the PLA re-evaluate banking (LORAM/HIRAM/CHAREN → BASIC/KERNAL/CHAR/IO/RAM via the `MEMORY_CONFIGS` table).
-- **Interrupts**: `Wire.Place(true)` on `InterruptRequest`/`NonMaskableInterrupt` invokes the CPU handler, which pushes PC/P and jumps through the vector.
+Every memory access is one **bus cycle**, started by a single `AddressBus.Strobe()`:
 
-Subscription order matters: subscribers run synchronously in the order they subscribed. For example, the PLA must update `MemoryBankBus` before `MemoryMap` reacts to the same `AddressBus` trigger. `Emulator` builds components in an order that guarantees this, so keep it in mind when adding components.
+- **CPU read**: `ReadWrite.Drive(Read)`, then `AddressBus.Strobe(address)`. `MemoryMap` asks the PLA for the bank (`SelectBank(address)`) and drives the byte onto `DataBus`. The CPU then calls `DataBus.Read()`.
+- **CPU write**: `ReadWrite.Drive(Write)`, `DataBus.Drive(value)`, then `AddressBus.Strobe(address)`. `MemoryMap` stores the byte already on `DataBus` in the selected bank. Writes to ROM areas go to the RAM underneath. No read happens during a write.
+- **6510 on-chip I/O port**: addresses `$0000`/`$0001` are handled inside the CPU (`Address0`/`Address1` registers). Writing `$0001` strobes `PortBus`, and the PLA selects the matching row of its block table (LORAM/HIRAM/CHAREN → BASIC/KERNAL/CHAR/IO/RAM via the `MEMORY_CONFIGS` table). This does not start a memory cycle.
+- **Interrupts**: `Wire.Strobe(true)` on `InterruptRequest`/`NonMaskableInterrupt` invokes the CPU handler, which pushes PC/P and jumps through the vector.
+
+Subscribers run synchronously in the order they subscribed. Avoid components that depend on that order: if a component needs another's output during the same cycle, and that output is stateless decode logic (like `MemoryPla` implementing `IMemoryBankSelector`), pass the decoder in through the constructor and call it.
 
 ### CPU (`Architecture/MOS6510Cpu.cs`)
 
@@ -92,7 +97,7 @@ To add an instruction: create the class following the pattern above, register it
 
 ### Emulator composition and execution
 
-- `Emulator` is the composition root. It owns the buses and constructs `MOS6510Cpu`, `MemoryPla` and `MemoryMap`, plus an `IExecutionStrategy`.
+- `Emulator` is the composition root. It owns the buses and the `ReadWrite` wire, and constructs `MOS6510Cpu`, `MemoryPla` and `MemoryMap` (which takes the PLA as its `IMemoryBankSelector`), plus an `IExecutionStrategy`.
 - `EmulatorBuilder` is the fluent setup API: `WithRoms()`, `WithImage(byte[])` (full 64 KB image), and internal test helpers `WithTestKernel(byte[])`, `WithRam(...)`, `WithMemoryMap(...)`, `WithExecutionStrategy(...)`, `WithUnitTestMode(startAddress?)`.
 - `IExecutionStrategy` separates *how* the CPU is run from the machine itself:
   - `RuntimeExecutionStrategy`: reset, then `Step()` forever.
@@ -138,6 +143,7 @@ Assert.AreEqual(0x02, emulator.Cpu.A.Value);
 ## Conventions & guidelines
 
 - **Model hardware, not shortcuts.** Prefer adding a component that talks over a `Bus`/`Wire` to reaching into another component's state. Generic primitives belong in `Abstraction`; platform-specific chips belong in `Platforms/<System>/Architecture`.
+- **Stateless decoders may be called directly.** Combinational logic with no clock or stored state (address decoders such as the memory PLA) can be exposed as an interface and called by the component handling a bus cycle. Anything with state or timing (CPU, CIA, VIC-II, SID, ...) still communicates over buses and wires.
 - **Mask values to their width.** `Register` and `Bus` mask automatically, so wraparound (SP, PC, zero-page indexing `& 0xFF`, 16-bit address `& 0xFFFF`) must match real silicon.
 - **Keep the hot path allocation-free.** `SlimEventSource` exists to avoid delegate fan-out overhead. Avoid LINQ, boxing or allocations inside `Step()`, bus handlers and instruction `Execute` methods. Use `[Conditional("DEBUG")]` / `Debug.Assert` for checks.
 - **Document hardware quirks** with XML doc comments (`<summary>`, `<remarks>`), as the existing code does (e.g. the 6510 port at `$00/$01`, B-flag behavior).

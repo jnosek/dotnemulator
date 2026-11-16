@@ -13,10 +13,13 @@ namespace Dotnemulator.Abstraction.Hardware;
 /// <para>
 /// <b>Subscriber order matters.</b> Subscribers are notified synchronously, in the order they subscribed. When
 /// one subscriber produces a value that another subscriber of the same bus samples during the same cycle, the
-/// producer must subscribe first. For example, on the C64 the memory PLA drives the bank selection when the
-/// address bus is strobed, and the memory map then reads that selection while handling the same strobe, so the
-/// PLA has to subscribe to the address bus before the memory map does. The composition root that wires the
-/// components together is responsible for creating them in an order that guarantees this.
+/// producer must subscribe first, and the composition root that wires the components together is responsible
+/// for creating them in an order that guarantees this.
+/// </para>
+/// <para>
+/// Prefer avoiding such dependencies. Stateless decode logic (for example an address decoder that selects a
+/// memory bank) should be queried directly by the component handling the cycle rather than subscribing to the
+/// same bus, so the dependency is visible in a constructor instead of hidden in subscription order.
 /// </para>
 /// </remarks>
 public class Bus : SlimEventSource

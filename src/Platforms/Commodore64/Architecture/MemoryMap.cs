@@ -12,19 +12,19 @@ internal class MemoryMap
 
     private readonly Bus _addressBus;
     private readonly Bus _dataBus;
-    private readonly Bus _memoryBankBus;
     private readonly ReadWriteWire _readWrite;
+    private readonly IMemoryBankSelector _bankSelector;
 
     /// <remarks>
-    /// Subscribes to <paramref name="addressBus"/> only. The <see cref="MemoryPla"/> must subscribe first so
-    /// <paramref name="memoryBankBus"/> already holds the bank for the current address when this map handles the cycle.
+    /// Subscribes to <paramref name="addressBus"/> only, and asks <paramref name="bankSelector"/> for the bank
+    /// while handling each cycle, so it does not depend on the order components subscribe to the address bus.
     /// </remarks>
-    public MemoryMap(Bus addressBus, Bus dataBus, Bus memoryBankBus, ReadWriteWire readWrite)
+    public MemoryMap(Bus addressBus, Bus dataBus, ReadWriteWire readWrite, IMemoryBankSelector bankSelector)
     {
         _addressBus = addressBus;
-        _memoryBankBus = memoryBankBus;
         _dataBus = dataBus;
         _readWrite = readWrite;
+        _bankSelector = bankSelector;
         
         _addressBus.Subscribe(BusCycleHandler);
     }
@@ -92,19 +92,20 @@ internal class MemoryMap
     /// </remarks>
     private void BusCycleHandler()
     {
+        var address = _addressBus.Read();
+        var memoryBank = _bankSelector.SelectBank(address);
+
         if(_readWrite.IsRead)
-            ReadHandler();
+            ReadHandler(memoryBank, address);
         else
-            WriteHandler();
+            WriteHandler(memoryBank, address);
     }
 
-    private void WriteHandler()
+    private void WriteHandler(int memoryBank, int address)
     {
-        var memoryBank = _memoryBankBus.Read();
-        var address = _addressBus.Read();
         var data = _dataBus.Read();
 
-        switch(_memoryBankBus.Read())
+        switch(memoryBank)
         {
             // ROM cannot be written to, the underlying RAM will be accessed instead
             case MemoryPla.BASIC_ROM:
@@ -124,11 +125,9 @@ internal class MemoryMap
         }
     }
 
-    private void ReadHandler()
+    private void ReadHandler(int memoryBank, int address)
     {
         int value;
-        var memoryBank = _memoryBankBus.Read();
-        var address = _addressBus.Read();
 
         switch(memoryBank)
         {

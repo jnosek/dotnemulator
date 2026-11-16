@@ -28,17 +28,12 @@ public class Emulator
     /// Initializes a new instance of the Emulator class.
     /// <param name="memoryMapFactory">Optional factory function to create a custom MemoryMap. If not provided, a default MemoryMap will be used.</param>
     /// </summary>
-    /// <remarks>
-    /// Construction order matters: components that subscribe to <see cref="AddressBus"/> are notified in the
-    /// order they subscribed. The <see cref="MemoryPla"/> must be created before <see cref="MemoryMap"/> (and any
-    /// future I/O chip) so the bank selection is on <see cref="MemoryPla.MemoryBankBus"/> before they handle the cycle.
-    /// </remarks>
     internal Emulator(Func<Emulator, MemoryMap>? memoryMapFactory = null)
     {
         Cpu = new MOS6510Cpu(AddressBus, DataBus, PortBus, ReadWrite);
-        Pla = new MemoryPla(AddressBus, PortBus);
+        Pla = new MemoryPla(PortBus);
         MemoryMap = memoryMapFactory?.Invoke(this) ?? 
-            new MemoryMap(AddressBus, DataBus, Pla.MemoryBankBus, ReadWrite);
+            new MemoryMap(AddressBus, DataBus, ReadWrite, Pla);
 
         ExecutionStrategy = new RuntimeExecutionStrategy();
     }
