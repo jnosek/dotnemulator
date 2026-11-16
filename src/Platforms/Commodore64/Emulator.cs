@@ -18,6 +18,16 @@ public class Emulator
     /// </remarks>
     internal ReadWriteWire ReadWrite { get; } = new ReadWriteWire(ReadWriteMode.Read);
 
+    /// <summary>
+    /// The shared IRQ line. Devices that can raise an IRQ (VIC-II, CIA 1, cartridges) each register a source on it.
+    /// </summary>
+    internal OpenCollectorWire InterruptRequest { get; } = new OpenCollectorWire();
+
+    /// <summary>
+    /// The shared NMI line. Devices that can raise an NMI (CIA 2, the RESTORE key, cartridges) each register a source on it.
+    /// </summary>
+    internal OpenCollectorWire NonMaskableInterrupt { get; } = new OpenCollectorWire();
+
     internal MOS6510Cpu Cpu { get; }
     internal MemoryPla Pla { get; }
     internal MemoryMap MemoryMap { get; }
@@ -30,7 +40,7 @@ public class Emulator
     /// </summary>
     internal Emulator(Func<Emulator, MemoryMap>? memoryMapFactory = null)
     {
-        Cpu = new MOS6510Cpu(AddressBus, DataBus, PortBus, ReadWrite);
+        Cpu = new MOS6510Cpu(AddressBus, DataBus, PortBus, ReadWrite, InterruptRequest, NonMaskableInterrupt);
         Pla = new MemoryPla(PortBus);
         MemoryMap = memoryMapFactory?.Invoke(this) ?? 
             new MemoryMap(AddressBus, DataBus, ReadWrite, Pla);

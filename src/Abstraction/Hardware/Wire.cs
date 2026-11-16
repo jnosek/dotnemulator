@@ -4,13 +4,21 @@ namespace Dotnemulator.Abstraction.Hardware;
 /// A single-bit signal line, such as an interrupt request or a read/write select.
 /// </summary>
 /// <remarks>
+/// <para>
+/// <b>Polarity:</b> <c>true</c> means the signal is <b>asserted</b> (active), whatever the physical voltage.
+/// For an active-low pin, such as the 6510 IRQ or the C64 cartridge GAME line, <c>true</c> means the pin is pulled
+/// low. Document what "asserted" means on each wire. A line that several devices can assert should be an
+/// <see cref="OpenCollectorWire"/> instead.
+/// </para>
+/// <para>
 /// Subscribers receive the new level when <see cref="Strobe"/> changes it, so every notification is an edge
-/// (low to high or high to low).
+/// (released to asserted, or asserted to released).
+/// </para>
 /// </remarks>
 public class Wire : SlimEventSource<bool>
 {
     /// <summary>
-    /// The current level of the wire.
+    /// The current level of the wire: <c>true</c> when asserted.
     /// </summary>
     public bool Value { get; private set; }
 

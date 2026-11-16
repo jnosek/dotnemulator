@@ -1,3 +1,4 @@
+using Dotnemulator.Abstraction.Hardware;
 using Dotnemulator.Platforms.Commodore64.Architecture;
 using Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
 
@@ -12,11 +13,16 @@ public class Interrupt_Test
 
     private const int LDA_IMMEDIATE = LDA.BASE_OP_CODE | AccumulatorInstruction.Immediate;
 
+    // MSTest creates a new instance per test, so each test gets its own sources
+    private OpenCollectorWire.Source _irq = null!;
+    private OpenCollectorWire.Source _nmi = null!;
+
     /// <summary>
     /// Builds a machine with <paramref name="program"/> at $E000, the IRQ vector at $0100 and the NMI vector at
-    /// $0200 (both handlers start with a NOP), and resets the CPU without running anything.
+    /// $0200 (both handlers start with a NOP), registers one IRQ and one NMI source for the test, and resets the
+    /// CPU without running anything.
     /// </summary>
-    private static Emulator Build(params byte[] program)
+    private Emulator Build(params byte[] program)
     {
         var kernel = new byte[0x2000];
         program.CopyTo(kernel, 0);
@@ -28,6 +34,9 @@ public class Interrupt_Test
             .WithTestKernel(kernel)
             .WithRam([(IRQ_HANDLER, NOP.OP_CODE), (NMI_HANDLER, NOP.OP_CODE)])
             .Build();
+
+        _irq = emulator.InterruptRequest.RegisterSource();
+        _nmi = emulator.NonMaskableInterrupt.RegisterSource();
 
         emulator.Cpu.Initialize();
 
@@ -45,7 +54,7 @@ public class Interrupt_Test
         var emulator = Build(LDA_IMMEDIATE, 0x01, NOP.OP_CODE);
         var sp = emulator.Cpu.SP;
 
-        emulator.Cpu.InterruptRequest.Strobe(true);
+        _irq.Assert();
 
         Assert.AreEqual(PROGRAM_START, emulator.Cpu.PC.Value);
         Assert.AreEqual(sp, emulator.Cpu.SP);
@@ -57,7 +66,7 @@ public class Interrupt_Test
         var emulator = Build(LDA_IMMEDIATE, 0x01, LDA_IMMEDIATE, 0x02, NOP.OP_CODE);
         emulator.Cpu.Step();                                   // LDA #$01
 
-        emulator.Cpu.InterruptRequest.Strobe(true);
+        _irq.Assert();
         var result = emulator.Cpu.Step();
 
         Assert.IsTrue(result.IsInterrupt);
@@ -75,7 +84,7 @@ public class Interrupt_Test
     public void Irq_HandlerFirstInstruction_RunsOnFollowingStep()
     {
         var emulator = Build(NOP.OP_CODE);
-        emulator.Cpu.InterruptRequest.Strobe(true);
+        _irq.Assert();
         emulator.Cpu.Step();                                   // interrupt sequence
 
         var result = emulator.Cpu.Step();
@@ -91,7 +100,7 @@ public class Interrupt_Test
         var emulator = Build(NOP.OP_CODE);
         Assert.IsFalse(emulator.Cpu.P.InterruptDisableFlag);
 
-        emulator.Cpu.InterruptRequest.Strobe(true);
+        _irq.Assert();
         emulator.Cpu.Step();
 
         Assert.IsTrue(emulator.Cpu.P.InterruptDisableFlag);
@@ -106,7 +115,7 @@ public class Interrupt_Test
     {
         var emulator = Build(NOP.OP_CODE);
         emulator.Memory(IRQ_HANDLER, LDA_IMMEDIATE, 0x01, LDA_IMMEDIATE, 0x02, NOP.OP_CODE);
-        emulator.Cpu.InterruptRequest.Strobe(true);
+        _irq.Assert();
 
         emulator.Cpu.Step();                                   // interrupt sequence
         var sp = emulator.Cpu.SP;
@@ -125,7 +134,7 @@ public class Interrupt_Test
         var emulator = Build(SEI.OP_CODE, LDA_IMMEDIATE, 0x01, NOP.OP_CODE);
         emulator.Cpu.Step();                                   // SEI
 
-        emulator.Cpu.InterruptRequest.Strobe(true);
+        _irq.Assert();
         var result = emulator.Cpu.Step();
 
         Assert.IsFalse(result.IsInterrupt);
@@ -137,22 +146,34 @@ public class Interrupt_Test
     {
         var emulator = Build(LDA_IMMEDIATE, 0x01, NOP.OP_CODE);
 
-        emulator.Cpu.InterruptRequest.Strobe(true);
-        emulator.Cpu.InterruptRequest.Strobe(false);
+        _irq.Assert();
+        _irq.Release();
         var result = emulator.Cpu.Step();
 
         Assert.IsFalse(result.IsInterrupt);
     }
 
     [TestMethod]
-    public void Irq_DrivenWithoutNotification_IsStillTaken()
+    public void Irq_SharedLine_StaysAssertedUntilEverySourceReleases()
     {
-        var emulator = Build(NOP.OP_CODE);
+        var emulator = Build(SEI.OP_CODE, NOP.OP_CODE);
+        var otherDevice = emulator.InterruptRequest.RegisterSource();
+        emulator.Memory(IRQ_HANDLER, RTI.OP_CODE);
 
-        emulator.Cpu.InterruptRequest.Drive(true);
+        _irq.Assert();
+        otherDevice.Assert();
+        _irq.Release();                                        // other device still holds the line
+        emulator.Cpu.Step();                                   // SEI: nothing taken yet
+        emulator.Cpu.P.InterruptDisableFlag = false;
         var result = emulator.Cpu.Step();
 
         Assert.AreEqual(InstructionResult.IRQ_SEQUENCE, result.Instruction);
+
+        otherDevice.Release();
+        emulator.Cpu.Step();                                   // RTI
+        result = emulator.Cpu.Step();
+
+        Assert.IsFalse(result.IsInterrupt, "line released by every source");
     }
 
     [TestMethod]
@@ -160,7 +181,7 @@ public class Interrupt_Test
     {
         var emulator = Build(NOP.OP_CODE);
         emulator.Memory(IRQ_HANDLER, RTI.OP_CODE);
-        emulator.Cpu.InterruptRequest.Strobe(true);
+        _irq.Assert();
 
         emulator.Cpu.Step();                                   // interrupt sequence
         emulator.Cpu.Step();                                   // RTI restores I = 0
@@ -177,8 +198,8 @@ public class Interrupt_Test
         var emulator = Build(SEI.OP_CODE, NOP.OP_CODE);
         emulator.Cpu.Step();                                   // SEI
 
-        emulator.Cpu.NonMaskableInterrupt.Strobe(true);
-        Assert.AreEqual(0xE001, emulator.Cpu.PC.Value, "not taken inside the Strobe call");
+        _nmi.Assert();
+        Assert.AreEqual(0xE001, emulator.Cpu.PC.Value, "not taken inside the Assert call");
 
         var result = emulator.Cpu.Step();
 
@@ -193,8 +214,8 @@ public class Interrupt_Test
     {
         var emulator = Build(NOP.OP_CODE);
 
-        emulator.Cpu.NonMaskableInterrupt.Strobe(true);
-        emulator.Cpu.NonMaskableInterrupt.Strobe(false);
+        _nmi.Assert();
+        _nmi.Release();
         var result = emulator.Cpu.Step();
 
         Assert.AreEqual(InstructionResult.NMI_SEQUENCE, result.Instruction);
@@ -206,10 +227,10 @@ public class Interrupt_Test
         var emulator = Build(NOP.OP_CODE);
         emulator.Memory(NMI_HANDLER, RTI.OP_CODE);
 
-        emulator.Cpu.NonMaskableInterrupt.Strobe(true);
+        _nmi.Assert();
         emulator.Cpu.Step();                                   // NMI sequence
         emulator.Cpu.Step();                                   // RTI
-        emulator.Cpu.NonMaskableInterrupt.Strobe(true);        // still high: no edge
+        _nmi.Assert();        // already asserting: no edge
         var result = emulator.Cpu.Step();
 
         Assert.IsFalse(result.IsInterrupt);
@@ -222,14 +243,31 @@ public class Interrupt_Test
         var emulator = Build(NOP.OP_CODE);
         emulator.Memory(NMI_HANDLER, RTI.OP_CODE);
 
-        emulator.Cpu.NonMaskableInterrupt.Strobe(true);
+        _nmi.Assert();
         emulator.Cpu.Step();                                   // NMI sequence
         emulator.Cpu.Step();                                   // RTI
-        emulator.Cpu.NonMaskableInterrupt.Strobe(false);
-        emulator.Cpu.NonMaskableInterrupt.Strobe(true);
+        _nmi.Release();
+        _nmi.Assert();
         var result = emulator.Cpu.Step();
 
         Assert.AreEqual(InstructionResult.NMI_SEQUENCE, result.Instruction);
+    }
+
+    [TestMethod]
+    public void Nmi_SecondSourceWhileLineHeld_GivesNoNewEdge()
+    {
+        var emulator = Build(NOP.OP_CODE);
+        var restoreKey = emulator.NonMaskableInterrupt.RegisterSource();
+        emulator.Memory(NMI_HANDLER, RTI.OP_CODE);
+
+        _nmi.Assert();                                         // e.g. CIA 2 holding NMI
+        emulator.Cpu.Step();                                   // NMI sequence
+        emulator.Cpu.Step();                                   // RTI
+
+        restoreKey.Assert();                                   // line already asserted: no edge
+        var result = emulator.Cpu.Step();
+
+        Assert.IsFalse(result.IsInterrupt);
     }
 
     [TestMethod]
@@ -237,8 +275,8 @@ public class Interrupt_Test
     {
         var emulator = Build(NOP.OP_CODE);
 
-        emulator.Cpu.InterruptRequest.Strobe(true);
-        emulator.Cpu.NonMaskableInterrupt.Strobe(true);
+        _irq.Assert();
+        _nmi.Assert();
         var result = emulator.Cpu.Step();
 
         Assert.AreEqual(InstructionResult.NMI_SEQUENCE, result.Instruction);
@@ -251,6 +289,7 @@ public class Interrupt_Test
     public void DebugStrategy_DoesNotStopAtEndAddress_OnInterruptSequence()
     {
         var irqRaised = false;
+        OpenCollectorWire.Source? irq = null;
         var emulator = new EmulatorBuilder()
             .WithTestKernel([LDA_IMMEDIATE, 0x07, NOP.OP_CODE])
             .WithRam([(IRQ_HANDLER, RTI.OP_CODE)])
@@ -267,13 +306,14 @@ public class Interrupt_Test
                             return;
 
                         irqRaised = true;
-                        cpu.InterruptRequest.Strobe(true);
+                        irq!.Assert();
                     },
-                    [IRQ_HANDLER] = cpu => cpu.InterruptRequest.Strobe(false)
+                    [IRQ_HANDLER] = cpu => irq!.Release()
                 }
             })
             .Build();
 
+        irq = emulator.InterruptRequest.RegisterSource();
         emulator.Start();
 
         Assert.AreEqual(0x07, emulator.Cpu.A.Value, "stopped only after the instruction at EndAddress ran");

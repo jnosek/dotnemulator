@@ -74,8 +74,24 @@ public class MemoryPla : IMemoryBankSelector
 {
     // TODO: use later, input signals for cartridge detection.
     // When modelled, they should also call UpdateConfiguration and extend the table index.
-    public Wire Game = new Wire(true);
-    public Wire ExRom = new Wire(true);
+
+    /// <summary>
+    /// Cartridge GAME line. <c>true</c> means a cartridge is asserting it.
+    /// </summary>
+    /// <remarks>
+    /// Active-low on the real pin and pulled up when no cartridge is fitted, so the default <c>false</c>
+    /// (not asserted) is the no-cartridge state. Not used yet.
+    /// </remarks>
+    public Wire Game = new Wire(false);
+
+    /// <summary>
+    /// Cartridge EXROM line. <c>true</c> means a cartridge is asserting it.
+    /// </summary>
+    /// <remarks>
+    /// Active-low on the real pin and pulled up when no cartridge is fitted, so the default <c>false</c>
+    /// (not asserted) is the no-cartridge state. Not used yet.
+    /// </remarks>
+    public Wire ExRom = new Wire(false);
 
     private readonly Bus _port;
 

@@ -95,26 +95,36 @@ public class MOS6510Cpu
     public readonly Bus PortBus;
 
     /// <summary>
-    /// IRQ line. <c>true</c> means a device is requesting an interrupt.
+    /// IRQ line. <c>true</c> means at least one device is requesting an interrupt.
     /// </summary>
     /// <remarks>
+    /// <para>
+    /// Shared, wired-OR line (active-low on the real pin): each device asserts and releases it through its own
+    /// <see cref="OpenCollectorWire.Source"/>, so one device releasing it does not cancel another's request.
+    /// </para>
+    /// <para>
     /// Level-triggered: the CPU samples it between instructions (see <see cref="Step"/>) and services it while it is
-    /// held and the I flag is clear. The CPU does not subscribe to it, so devices may use either
-    /// <see cref="Wire.Drive"/> or <see cref="Wire.Strobe"/>. The device must release it (normally when the handler
-    /// acknowledges the interrupt), or it is taken again as soon as the handler's <c>RTI</c> clears the I flag.
+    /// asserted and the I flag is clear. A device must release it (normally when the handler acknowledges the
+    /// interrupt at the device), or it is taken again as soon as the handler's <c>RTI</c> clears the I flag.
+    /// </para>
     /// </remarks>
-    public readonly Wire InterruptRequest = new Wire();
+    public readonly OpenCollectorWire InterruptRequest;
 
     /// <summary>
-    /// NMI line. <c>true</c> means a device is requesting a non-maskable interrupt.
+    /// NMI line. <c>true</c> means at least one device is requesting a non-maskable interrupt.
     /// </summary>
     /// <remarks>
-    /// Edge-triggered: the CPU latches each low-to-high edge and services it at the next instruction boundary,
-    /// whatever the I flag, even if the line has already been released by then. Holding the line high does not
-    /// cause a second NMI; it must go low and high again. Devices must use <see cref="Wire.Strobe"/>, since
-    /// <see cref="Wire.Drive"/> does not notify and the edge would be missed.
+    /// <para>
+    /// Shared, wired-OR line (active-low on the real pin), driven through <see cref="OpenCollectorWire.Source"/>s.
+    /// </para>
+    /// <para>
+    /// Edge-triggered: the CPU latches each change from released to asserted and services it at the next
+    /// instruction boundary, whatever the I flag, even if the line has been released by then. Holding the line
+    /// does not cause a second NMI; it must be released and asserted again. While one device holds the line,
+    /// another device asserting it produces no edge, so no NMI (on the C64, RESTORE does nothing while CIA 2 holds NMI).
+    /// </para>
     /// </remarks>
-    public readonly Wire NonMaskableInterrupt = new Wire();
+    public readonly OpenCollectorWire NonMaskableInterrupt;
 
     /// <summary>
     /// Set by a rising edge on <see cref="NonMaskableInterrupt"/>, cleared when the NMI is serviced.
@@ -123,12 +133,20 @@ public class MOS6510Cpu
 
     internal readonly InstructionSet instructionSet;
     
-    public MOS6510Cpu(Bus addressBus, Bus dataBus, Bus portBus, ReadWriteWire readWrite)
+    public MOS6510Cpu(
+        Bus addressBus,
+        Bus dataBus,
+        Bus portBus,
+        ReadWriteWire readWrite,
+        OpenCollectorWire interruptRequest,
+        OpenCollectorWire nonMaskableInterrupt)
     {
         AddressBus = addressBus;
         DataBus = dataBus;
         PortBus = portBus;
         ReadWrite = readWrite;
+        InterruptRequest = interruptRequest;
+        NonMaskableInterrupt = nonMaskableInterrupt;
 
         instructionSet = new MOS6510InstructionSet(this);
 
@@ -163,8 +181,8 @@ public class MOS6510Cpu
     /// </summary>
     /// <remarks>
     /// Only records the request; the NMI is serviced at the next instruction boundary by <see cref="Step"/>,
-    /// never in the middle of an instruction. <see cref="Wire.Strobe"/> only notifies on a change, so
-    /// <paramref name="value"/> being <c>true</c> is always a low-to-high edge.
+    /// never in the middle of an instruction. <see cref="OpenCollectorWire"/> only notifies when its level changes,
+    /// so <paramref name="value"/> being <c>true</c> is always a released-to-asserted edge.
     /// </remarks>
     private void NonMaskableInterruptHandler(bool value)
     {

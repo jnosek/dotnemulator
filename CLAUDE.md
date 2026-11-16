@@ -19,7 +19,7 @@ Dotnemulator.sln
 src/
   Abstraction/                      # Dotnemulator.Abstraction: shared, platform-agnostic building blocks
     SlimEventSource*.cs, IEventSink.cs   # lightweight signal/event plumbing
-    Hardware/                       # Register, Bus, Wire, ReadWriteWire, BitWidth, MemorySegment
+    Hardware/                       # Register, Bus, Wire, OpenCollectorWire, ReadWriteWire, BitWidth, MemorySegment
     Operations/                     # IInstruction, InstructionSet, IRead/IWrite/IReadWrite
   Platforms/
     Commodore64/                    # Dotnemulator.Platforms.Commodore64 (exe)
@@ -44,7 +44,8 @@ Platform-agnostic primitives that model digital hardware:
 |---|---|
 | `SlimEventSource` / `SlimEventSource<T>` | Minimal pub/sub. `Subscribe` registers a handler. With one subscriber, `Trigger`/`Update` points straight at it (no fan-out cost), so signal propagation stays cheap in the hot loop. |
 | `Bus` | N-bit (1–32, size required) value holder that is a `SlimEventSource`. `Strobe(value)` puts a masked value on the bus and notifies subscribers (used by the component **starting** a bus cycle). `Drive(value)` puts it on **without** notifying (used by components **responding** to a cycle). `Read()` / `ReadBit()` sample it. |
-| `Wire` | Single-bit signal (`SlimEventSource<bool>`). `Strobe(bool)` sets it and notifies **only if the level changed** (every notification is an edge), e.g. NMI. `Drive(bool)` sets it without notifying. |
+| `Wire` | Single-bit signal (`SlimEventSource<bool>`) with one driver. `true` = **asserted**, whatever the pin voltage (so an active-low pin pulled low is `true`). `Strobe(bool)` sets it and notifies **only if the level changed** (every notification is an edge). `Drive(bool)` sets it without notifying. |
+| `OpenCollectorWire` | Shared, wired-OR single-bit line (`SlimEventSource<bool>`), e.g. IRQ/NMI. Each device calls `RegisterSource()` once and uses its `Source.Assert()`/`Release()`; `Value` is `true` while any source asserts it, and subscribers are notified only when that combined level changes. Up to 32 sources. |
 | `ReadWriteWire` / `ReadWriteMode` | Read/write select line (`SlimEventSource<ReadWriteMode>`). `Drive(ReadWriteMode.Read/Write)`, `Mode`, `IsRead`/`IsWrite`. `Strobe` notifies only on a change, like `Wire`. |
 | `BitWidth` | Shared size check (1–32 bits) and mask calculation used by `Bus` and `Register`. |
 | `Register` | N-bit masked storage with `Value`, `SetFlag`/`GetFlag`, `Increment`/`Decrement`/`Advance` (post-increment). Overflow wraps like real hardware. Can be subclassed (see `StatusRegister`). |
@@ -60,7 +61,7 @@ Components are connected through shared `Bus`/`Wire` instances, which are create
  MOS6510Cpu ─ DataBus(8) ────────────────────────────────► MemoryMap                       ▲
             ReadWrite (ReadWriteWire) ───────────────────► MemoryMap                       │
             PortBus(8) ────────────────────────────────────────────────────────────────────┘
-            IRQ / NMI Wires ◄── (future peripherals: CIA, VIC-II, ...)
+            IRQ / NMI (OpenCollectorWire) ◄── sources registered by peripherals (future: CIA, VIC-II, RESTORE, ...)
 ```
 
 Every memory access is one **bus cycle**, started by a single `AddressBus.Strobe()`:
@@ -68,7 +69,7 @@ Every memory access is one **bus cycle**, started by a single `AddressBus.Strobe
 - **CPU read**: `ReadWrite.Drive(Read)`, then `AddressBus.Strobe(address)`. `MemoryMap` asks the PLA for the bank (`SelectBank(address)`) and drives the byte onto `DataBus`. The CPU then calls `DataBus.Read()`.
 - **CPU write**: `ReadWrite.Drive(Write)`, `DataBus.Drive(value)`, then `AddressBus.Strobe(address)`. `MemoryMap` stores the byte already on `DataBus` in the selected bank. Writes to ROM areas go to the RAM underneath. No read happens during a write.
 - **6510 on-chip I/O port**: addresses `$0000`/`$0001` are handled inside the CPU (`Address0`/`Address1` registers). Writing `$0001` strobes `PortBus`, and the PLA selects the matching row of its block table (LORAM/HIRAM/CHAREN → BASIC/KERNAL/CHAR/IO/RAM via the `MEMORY_CONFIGS` table). This does not start a memory cycle.
-- **Interrupts**: interrupts are only taken between instructions, at the start of `Step()`. `InterruptRequest` (IRQ) is level-triggered: it is serviced while the line is high and the I flag is clear, and the CPU only samples it, so `Drive` or `Strobe` both work. `NonMaskableInterrupt` (NMI) is edge-triggered: the CPU latches each low-to-high `Strobe` and services it at the next boundary, so it must be strobed. NMI wins if both are pending. Servicing pushes PC and P (B clear), sets the I flag and jumps through the vector, as its own `Step()` whose `InstructionResult.IsInterrupt` is true.
+- **Interrupts**: `Emulator` creates `InterruptRequest` and `NonMaskableInterrupt` as `OpenCollectorWire`s and passes them to the CPU; each device that can interrupt registers its own source. Interrupts are only taken between instructions, at the start of `Step()`. IRQ is level-triggered: it is serviced while any source asserts it and the I flag is clear. NMI is edge-triggered: the CPU latches each released-to-asserted change and services it at the next boundary; while one source holds NMI, another asserting it gives no new edge (as on the C64). NMI wins if both are pending. Servicing pushes PC and P (B clear), sets the I flag and jumps through the vector, as its own `Step()` whose `InstructionResult.IsInterrupt` is true.
 
 Subscribers run synchronously in the order they subscribed. Avoid components that depend on that order: if a component needs another's output during the same cycle, and that output is stateless decode logic (like `MemoryPla` implementing `IMemoryBankSelector`), pass the decoder in through the constructor and call it.
 
@@ -97,7 +98,7 @@ To add an instruction: create the class following the pattern above, register it
 
 ### Emulator composition and execution
 
-- `Emulator` is the composition root. It owns the buses and the `ReadWrite` wire, and constructs `MOS6510Cpu`, `MemoryPla` and `MemoryMap` (which takes the PLA as its `IMemoryBankSelector`), plus an `IExecutionStrategy`.
+- `Emulator` is the composition root. It owns the buses, the `ReadWrite` wire and the IRQ/NMI lines, and constructs `MOS6510Cpu`, `MemoryPla` and `MemoryMap` (which takes the PLA as its `IMemoryBankSelector`), plus an `IExecutionStrategy`.
 - `EmulatorBuilder` is the fluent setup API: `WithRoms()`, `WithImage(byte[])` (full 64 KB image), and internal test helpers `WithTestKernel(byte[])`, `WithRam(...)`, `WithMemoryMap(...)`, `WithExecutionStrategy(...)`, `WithUnitTestMode(startAddress?)`.
 - `IExecutionStrategy` separates *how* the CPU is run from the machine itself:
   - `RuntimeExecutionStrategy`: reset, then `Step()` forever.
@@ -153,5 +154,5 @@ Assert.AreEqual(0x02, emulator.Cpu.A.Value);
 ## Current status / roadmap hints
 
 - 6510 legal opcode set is implemented and passes the 6502 functional test (decimal mode and cycle accuracy are areas to verify).
-- `MemoryMap._io` is a plain RAM-backed placeholder. VIC-II, SID, CIA 1/2 and cartridge lines (`MemoryPla.Game`/`ExRom`, currently unused) are not modelled yet.
+- `MemoryMap._io` is a plain RAM-backed placeholder. VIC-II, SID, CIA 1/2 and cartridge lines (`MemoryPla.Game`/`ExRom`, currently unused, default `false` = not asserted) are not modelled yet.
 - `Emulator.Stop()` / `Reset()` are stubs. There is no video/audio/input front end yet.
