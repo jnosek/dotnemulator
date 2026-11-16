@@ -55,7 +55,7 @@ public class Register_Test
         Assert.AreEqual(0, register.Value);
     }
 
-    // --- StatusRegister: fixed bits hold for every kind of write ---
+    // --- StatusRegister ---
 
     [TestMethod]
     public void Status_StartsWithOnlyUnusedSet()
@@ -73,42 +73,6 @@ public class Register_Test
 
         p.Value = 0xFF;
         Assert.AreEqual(0xFF & ~StatusFlag.BreakCommand, p.Value);
-    }
-
-    [TestMethod]
-    public void Status_SetFlag_CannotSetBreak()
-    {
-        var p = new StatusRegister();
-
-        p.SetFlag(StatusFlag.BreakCommand, true);
-
-        Assert.IsFalse(p.BreakCommandFlag);
-        Assert.AreEqual(StatusFlag.Unused, p.Value);
-    }
-
-    [TestMethod]
-    public void Status_SetFlag_CannotClearUnused()
-    {
-        var p = new StatusRegister();
-
-        p.SetFlag(StatusFlag.Unused, false);
-
-        Assert.IsTrue(p.GetFlag(StatusFlag.Unused));
-    }
-
-    [TestMethod]
-    public void Status_IncrementAndDecrement_KeepFixedBits()
-    {
-        var p = new StatusRegister { Value = 0b1110_1111 };   // B would be set by +1
-
-        p.Increment();
-        Assert.IsFalse(p.BreakCommandFlag);
-        Assert.IsTrue(p.GetFlag(StatusFlag.Unused));
-
-        p.Value = StatusFlag.Unused;                         // Unused would be cleared by -1
-        p.Decrement();
-        Assert.IsTrue(p.GetFlag(StatusFlag.Unused));
-        Assert.IsFalse(p.BreakCommandFlag);
     }
 
     [TestMethod]

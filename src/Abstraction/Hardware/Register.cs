@@ -11,10 +11,9 @@ namespace Dotnemulator.Abstraction.Hardware;
 /// (for example an 8-bit register incremented from <c>$FF</c> becomes <c>$00</c>).
 /// </para>
 /// <para>
-/// <b>Subclassing:</b> every write, whether through <see cref="Value"/>, <see cref="SetFlag"/>,
-/// <see cref="Increment"/>, <see cref="Decrement"/> or <see cref="Advance"/>, passes through <see cref="Coerce"/>.
-/// A subclass with bits that are fixed in hardware (such as a status register's always-set bit) overrides
-/// <see cref="Coerce"/> once, and no write can bypass it. Reads are not virtual.
+/// <b>Subclassing:</b> <see cref="Value"/>, <see cref="SetFlag"/> and <see cref="GetFlag"/> are virtual.
+/// <see cref="Increment"/>, <see cref="Decrement"/> and <see cref="Advance"/> are not, and write the stored value
+/// directly, so they do not go through an overridden <see cref="Value"/> setter.
 /// </para>
 /// </remarks>
 public class Register
@@ -43,29 +42,30 @@ public class Register
     /// The current contents of the register.
     /// </summary>
     /// <remarks>
-    /// Setting it passes the value through <see cref="Coerce"/>, which masks it to <see cref="Size"/> bits
-    /// and applies any rules a subclass defines.
+    /// Setting it masks the value to <see cref="Size"/> bits.
     /// </remarks>
-    public int Value
+    public virtual int Value
     {
         get => _data;
-        set => _data = Coerce(value);
+        set => _data = value & Mask;
     }
 
     /// <summary>
     /// Sets or clears the bits in <paramref name="flag"/>.
     /// </summary>
     /// <remarks>
-    /// The result passes through <see cref="Coerce"/>, so a subclass can keep a bit fixed even when asked to
-    /// change it. <paramref name="flag"/> must fit within <see cref="Size"/> bits; this is only checked in DEBUG builds.
+    /// <paramref name="flag"/> must fit within <see cref="Size"/> bits; this is only checked in DEBUG builds.
     /// </remarks>
     /// <param name="flag">The bit or bits to change, e.g. <c>0b0000_0001</c>.</param>
     /// <param name="value"><c>true</c> to set the bits, <c>false</c> to clear them.</param>
-    public void SetFlag(int flag, bool value)
+    public virtual void SetFlag(int flag, bool value)
     {
         Debug.Assert((flag & ~Mask) == 0, $"Flag {flag:X} does not fit in a {Size}-bit register.");
 
-        _data = Coerce(value ? _data | flag : _data & ~flag);
+        if(value)
+            _data |= flag;
+        else
+            _data &= ~flag;
     }
 
     /// <summary>
@@ -76,7 +76,7 @@ public class Register
     /// </remarks>
     /// <param name="flag">The bit or bits to test.</param>
     /// <returns><c>true</c> if any of the bits are set.</returns>
-    public bool GetFlag(int flag)
+    public virtual bool GetFlag(int flag)
     {
         Debug.Assert((flag & ~Mask) == 0, $"Flag {flag:X} does not fit in a {Size}-bit register.");
 
@@ -90,7 +90,7 @@ public class Register
     /// <seealso cref="Advance"/>
     public int Increment()
     {
-        _data = Coerce(_data + 1);
+        _data = (_data + 1) & Mask;
         return _data;
     }
 
@@ -117,19 +117,7 @@ public class Register
     /// <returns>The <b>new</b> value, after decrementing.</returns>
     public int Decrement()
     {
-        _data = Coerce(_data - 1);
+        _data = (_data - 1) & Mask;
         return _data;
     }
-
-    /// <summary>
-    /// Converts a value about to be stored into what the register will actually hold.
-    /// </summary>
-    /// <remarks>
-    /// Called for every write. The base implementation masks the value to <see cref="Size"/> bits. Overrides
-    /// should apply their own rules and still mask the result (for example by returning <c>base.Coerce(...)</c>),
-    /// must not allocate, and must not read <see cref="Value"/>.
-    /// </remarks>
-    /// <param name="value">The value being written.</param>
-    /// <returns>The value to store.</returns>
-    protected virtual int Coerce(int value) => value & Mask;
 }
