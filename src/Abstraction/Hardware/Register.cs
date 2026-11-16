@@ -12,14 +12,8 @@ public class Register
 
     public Register(int size = 1)
     {
-        if(size <= 0)
-            throw new ArgumentOutOfRangeException(nameof(size), "Size must be greater than 0.");
-        
-        if(size > 32)
-            throw new ArgumentOutOfRangeException(nameof(size), "Size must be less than or equal to 32.");
-
+        Mask = BitWidth.GetMask(size);
         Size = size;
-        Mask = (1 << size) - 1;
     }
 
     // TODO: replace with Value property
