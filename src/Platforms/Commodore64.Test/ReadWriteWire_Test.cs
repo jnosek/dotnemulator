@@ -13,7 +13,6 @@ public class ReadWriteWire_Test
         Assert.AreEqual(ReadWriteMode.Read, wire.Mode);
         Assert.IsTrue(wire.IsRead);
         Assert.IsFalse(wire.IsWrite);
-        Assert.IsTrue(wire.Value);
     }
 
     [TestMethod]
@@ -22,13 +21,14 @@ public class ReadWriteWire_Test
         var wire = new ReadWriteWire(ReadWriteMode.Write);
 
         Assert.AreEqual(ReadWriteMode.Write, wire.Mode);
-        Assert.IsFalse(wire.Value);
+        Assert.IsFalse(wire.IsRead);
+        Assert.IsTrue(wire.IsWrite);
     }
 
     [TestMethod]
-    [DataRow(ReadWriteMode.Read, true)]
-    [DataRow(ReadWriteMode.Write, false)]
-    public void Drive_SetsMode_WithoutNotifying(ReadWriteMode mode, bool level)
+    [DataRow(ReadWriteMode.Read)]
+    [DataRow(ReadWriteMode.Write)]
+    public void Drive_SetsMode_WithoutNotifying(ReadWriteMode mode)
     {
         var wire = new ReadWriteWire(mode == ReadWriteMode.Read ? ReadWriteMode.Write : ReadWriteMode.Read);
         var notifications = 0;
@@ -37,22 +37,21 @@ public class ReadWriteWire_Test
         wire.Drive(mode);
 
         Assert.AreEqual(mode, wire.Mode);
-        Assert.AreEqual(level, wire.Value);
         Assert.AreEqual(0, notifications);
     }
 
     [TestMethod]
-    public void Strobe_SetsMode_ThenNotifiesWithLevel()
+    public void Strobe_SetsMode_ThenNotifiesWithMode()
     {
         var wire = new ReadWriteWire();
-        var seen = new List<(bool Level, ReadWriteMode Mode)>();
-        wire.Subscribe(level => seen.Add((level, wire.Mode)));
+        var seen = new List<(ReadWriteMode Arg, ReadWriteMode Mode)>();
+        wire.Subscribe(mode => seen.Add((mode, wire.Mode)));
 
         wire.Strobe(ReadWriteMode.Write);
         wire.Strobe(ReadWriteMode.Read);
 
         CollectionAssert.AreEqual(
-            new[] { (false, ReadWriteMode.Write), (true, ReadWriteMode.Read) },
+            new[] { (ReadWriteMode.Write, ReadWriteMode.Write), (ReadWriteMode.Read, ReadWriteMode.Read) },
             seen);
     }
 }

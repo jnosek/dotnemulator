@@ -1,65 +1,69 @@
 namespace Dotnemulator.Abstraction.Hardware;
 
 /// <summary>
-/// A read/write select line, such as the R/W pin of a 6502-family CPU, expressed as a <see cref="ReadWriteMode"/>.
+/// A read/write select line, such as the R/W pin of a 6502-family CPU, carrying a <see cref="ReadWriteMode"/>.
 /// </summary>
 /// <remarks>
 /// <para>
-/// The underlying <see cref="Wire.Value"/> follows the usual active-low write convention (R/W̅):
-/// <c>true</c> (high) for <see cref="ReadWriteMode.Read"/> and <c>false</c> (low) for <see cref="ReadWriteMode.Write"/>.
-/// Subscribers inherited from <see cref="Wire"/> therefore receive <c>true</c> for a read and <c>false</c> for a write.
+/// This is a single-bit signal like <see cref="Wire"/>, but its state is the <see cref="ReadWriteMode"/> itself
+/// rather than a <see cref="bool"/> level, so call sites always say <see cref="ReadWriteMode.Read"/> or
+/// <see cref="ReadWriteMode.Write"/>. On the 6510 the pin is high for a read and low for a write.
 /// </para>
 /// <para>
-/// Prefer <see cref="Mode"/>, <see cref="Drive(ReadWriteMode)"/> and <see cref="Strobe(ReadWriteMode)"/> over the
-/// <see cref="bool"/> members so the direction is explicit at the call site.
+/// Subscribers receive the new <see cref="ReadWriteMode"/> when the line is strobed.
 /// </para>
 /// </remarks>
-public class ReadWriteWire : Wire
+public class ReadWriteWire : SlimEventSource<ReadWriteMode>
 {
     /// <param name="mode">Initial mode; defaults to <see cref="ReadWriteMode.Read"/>, the idle state of a 6502-family CPU.</param>
     public ReadWriteWire(ReadWriteMode mode = ReadWriteMode.Read)
-        : base(ToLevel(mode))
     {
+        Mode = mode;
     }
 
     /// <summary>
     /// The current mode of the line.
     /// </summary>
-    public ReadWriteMode Mode => Value ? ReadWriteMode.Read : ReadWriteMode.Write;
+    public ReadWriteMode Mode { get; private set; }
 
     /// <summary>
     /// <c>true</c> when the line signals a read cycle.
     /// </summary>
-    public bool IsRead => Value;
+    public bool IsRead => Mode == ReadWriteMode.Read;
 
     /// <summary>
     /// <c>true</c> when the line signals a write cycle.
     /// </summary>
-    public bool IsWrite => !Value;
+    public bool IsWrite => Mode == ReadWriteMode.Write;
 
     /// <summary>
     /// Sets the mode without notifying subscribers.
     /// </summary>
     /// <remarks>
     /// This is the normal way to use the line: the initiator drives the mode before it strobes the address bus,
-    /// and the components handling that cycle sample <see cref="Mode"/>.
+    /// and the components handling that cycle sample <see cref="Mode"/>. Nothing reacts to the change itself,
+    /// so there is no handler call on the hot path.
     /// </remarks>
     /// <param name="mode">The new mode.</param>
-    /// <seealso cref="Wire.Drive(bool)"/>
+    /// <seealso cref="Strobe"/>
     public void Drive(ReadWriteMode mode)
     {
-        Drive(ToLevel(mode));
+        Mode = mode;
     }
 
     /// <summary>
-    /// Sets the mode and then notifies subscribers with the new level (<c>true</c> for read, <c>false</c> for write).
+    /// Sets the mode and then notifies subscribers with the new mode.
     /// </summary>
+    /// <remarks>
+    /// Use this only when another component must react as soon as the mode changes.
+    /// Subscribers run synchronously, in the order they subscribed, before this method returns.
+    /// Subscribers are notified on every call, even when the mode is unchanged.
+    /// </remarks>
     /// <param name="mode">The new mode.</param>
-    /// <seealso cref="Wire.Strobe(bool)"/>
+    /// <seealso cref="Drive"/>
     public void Strobe(ReadWriteMode mode)
     {
-        Strobe(ToLevel(mode));
+        Mode = mode;
+        Update(mode);
     }
-
-    private static bool ToLevel(ReadWriteMode mode) => mode == ReadWriteMode.Read;
 }
