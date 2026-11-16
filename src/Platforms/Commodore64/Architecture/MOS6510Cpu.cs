@@ -66,14 +66,28 @@ public class MOS6510Cpu
     /// Address Bus used to specify the memory address for read and write operations.
     /// </summary>
     /// <remarks>
-    /// A trigger of the AddressBus will always cause the memory map to drive the value to the DataBus for a subsequent read operation.
+    /// The CPU strobes this bus to start every memory cycle. Components that answer cycles subscribe to it and
+    /// check <see cref="ReadWrite"/> to decide whether to drive <see cref="DataBus"/> (read) or sample it (write).
     /// </remarks>
     public readonly Bus AddressBus;
 
     /// <summary>
     /// Data Bus
     /// </summary>
+    /// <remarks>
+    /// Only ever driven, never triggered. On a write the CPU drives it before strobing <see cref="AddressBus"/>;
+    /// on a read the responding component drives it while handling the strobe.
+    /// </remarks>
     public readonly Bus DataBus;
+
+    /// <summary>
+    /// R/W line: <c>true</c> for a read cycle, <c>false</c> for a write cycle.
+    /// </summary>
+    /// <remarks>
+    /// Driven (without notification) by the CPU before each <see cref="AddressBus"/> strobe, and sampled by
+    /// the components handling the cycle. Matches the 6510 pin, which is high for read and low for write.
+    /// </remarks>
+    public readonly Wire ReadWrite;
 
     /// <summary>
     /// Port Bus
@@ -85,11 +99,12 @@ public class MOS6510Cpu
 
     internal readonly InstructionSet instructionSet;
     
-    public MOS6510Cpu(Bus addressBus, Bus dataBus, Bus portBus)
+    public MOS6510Cpu(Bus addressBus, Bus dataBus, Bus portBus, Wire readWrite)
     {
         AddressBus = addressBus;
         DataBus = dataBus;
         PortBus = portBus;
+        ReadWrite = readWrite;
 
         instructionSet = new MOS6510InstructionSet(this);
 
@@ -186,11 +201,10 @@ public class MOS6510Cpu
         // if address bus is greater than 1, write to data bus
         if(address > 1)
         {
-            AddressBus.Drive(address);
-            AddressBus.Trigger();
-
+            // set up a write cycle: data must be on the bus before the cycle starts
+            ReadWrite.Drive(false);
             DataBus.Drive(value);
-            DataBus.Trigger();
+            AddressBus.Strobe(address);
         }
         // if address bus is 0, write to port bus control register
         else if(address == 0)
@@ -201,8 +215,7 @@ public class MOS6510Cpu
         else
         {
             Address1.Value = value;
-            PortBus.Drive(value);
-            PortBus.Trigger();
+            PortBus.Strobe(value);
         }
     }
 
@@ -211,9 +224,9 @@ public class MOS6510Cpu
         // if address bus is greater than 1, read from data bus
         if(address > 1)
         {
-            // drive value to AddressBus and trigger for next read
-            AddressBus.Drive(address);
-            AddressBus.Trigger();
+            // start a read cycle; the responding component drives DataBus before Strobe returns
+            ReadWrite.Drive(true);
+            AddressBus.Strobe(address);
 
             return DataBus.Read();
         }

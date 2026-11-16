@@ -13,16 +13,20 @@ internal class MemoryMap
     private readonly Bus _addressBus;
     private readonly Bus _dataBus;
     private readonly Bus _memoryBankBus;
+    private readonly Wire _readWrite;
 
-    public MemoryMap(Bus addressBus, Bus dataBus, Bus memoryBankBus)
+    /// <remarks>
+    /// Subscribes to <paramref name="addressBus"/> only. The <see cref="MemoryPla"/> must subscribe first so
+    /// <paramref name="memoryBankBus"/> already holds the bank for the current address when this map handles the cycle.
+    /// </remarks>
+    public MemoryMap(Bus addressBus, Bus dataBus, Bus memoryBankBus, Wire readWrite)
     {
         _addressBus = addressBus;
         _memoryBankBus = memoryBankBus;
         _dataBus = dataBus;
+        _readWrite = readWrite;
         
-        _addressBus.Subscribe(ReadHandler);
-        _memoryBankBus.Subscribe(ReadHandler);
-        _dataBus.Subscribe(WriteHandler);
+        _addressBus.Subscribe(BusCycleHandler);
     }
 
     internal void LoadRoms(Stream basicRomStream, Stream charRomStream, Stream kernelRomStream)
@@ -77,6 +81,21 @@ internal class MemoryMap
             Convert.ToHexString(_charRom.GetHash()),
             Convert.ToHexString(_kernelRom.GetHash())
         ];
+    }
+
+    /// <summary>
+    /// Handles a bus cycle started by a strobe of the address bus.
+    /// </summary>
+    /// <remarks>
+    /// On a read cycle the selected bank's byte is driven onto the data bus. On a write cycle the byte the
+    /// initiator already drove onto the data bus is stored, and the data bus is left untouched.
+    /// </remarks>
+    private void BusCycleHandler()
+    {
+        if(_readWrite.Value)
+            ReadHandler();
+        else
+            WriteHandler();
     }
 
     private void WriteHandler()

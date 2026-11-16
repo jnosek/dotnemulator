@@ -10,6 +10,14 @@ public class Emulator
     internal Bus DataBus { get; } = new Bus(8);
     internal Bus PortBus { get; } = new Bus(8);
 
+    /// <summary>
+    /// The 6510 R/W line: <c>true</c> for a read cycle, <c>false</c> for a write cycle.
+    /// </summary>
+    /// <remarks>
+    /// Starts high (read), matching the CPU after reset.
+    /// </remarks>
+    internal Wire ReadWrite { get; } = new Wire(true);
+
     internal MOS6510Cpu Cpu { get; }
     internal MemoryPla Pla { get; }
     internal MemoryMap MemoryMap { get; }
@@ -20,12 +28,17 @@ public class Emulator
     /// Initializes a new instance of the Emulator class.
     /// <param name="memoryMapFactory">Optional factory function to create a custom MemoryMap. If not provided, a default MemoryMap will be used.</param>
     /// </summary>
+    /// <remarks>
+    /// Construction order matters: components that subscribe to <see cref="AddressBus"/> are notified in the
+    /// order they subscribed. The <see cref="MemoryPla"/> must be created before <see cref="MemoryMap"/> (and any
+    /// future I/O chip) so the bank selection is on <see cref="MemoryPla.MemoryBankBus"/> before they handle the cycle.
+    /// </remarks>
     internal Emulator(Func<Emulator, MemoryMap>? memoryMapFactory = null)
     {
-        Cpu = new MOS6510Cpu(AddressBus, DataBus, PortBus);
+        Cpu = new MOS6510Cpu(AddressBus, DataBus, PortBus, ReadWrite);
         Pla = new MemoryPla(AddressBus, PortBus);
         MemoryMap = memoryMapFactory?.Invoke(this) ?? 
-            new MemoryMap(AddressBus, DataBus, Pla.MemoryBankBus);
+            new MemoryMap(AddressBus, DataBus, Pla.MemoryBankBus, ReadWrite);
 
         ExecutionStrategy = new RuntimeExecutionStrategy();
     }

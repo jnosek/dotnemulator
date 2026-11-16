@@ -33,6 +33,7 @@ public class DebugExecutionStrategy : IExecutionStrategy
 
         if(MemoryWatchCallbacks.Count > 0)
         {
+            // subscribed last, so DataBus holds the value written (write cycle) or the value just read (read cycle)
             cpu.AddressBus.Subscribe(() => {
                 var address = cpu.AddressBus.Read();
                 if(MemoryWatchCallbacks.TryGetValue(address, out var callback))
