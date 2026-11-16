@@ -1,6 +1,6 @@
 using Dotnemulator.Abstraction.Hardware;
 
-namespace Dotnemulator.Platforms.Commodore64.Test;
+namespace Dotnemulator.Abstraction.Test.Hardware;
 
 [TestClass]
 public class Wire_Test

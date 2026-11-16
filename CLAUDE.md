@@ -21,6 +21,7 @@ src/
     SlimEventSource*.cs, IEventSource.cs # lightweight signal/event plumbing (namespace Dotnemulator.Abstraction)
     Hardware/                       # Register, Bus, Wire, OpenCollectorWire, ReadWriteWire, BitWidth, MemorySegment
     Operations/                     # IInstruction, InstructionSet, IRead/IWrite/IReadWrite
+  Abstraction.Test/                 # MSTest unit tests for Abstraction, mirroring its folders (Hardware/, ...)
   Platforms/
     Commodore64/                    # Dotnemulator.Platforms.Commodore64 (exe)
       Architecture/                 # chips & CPU internals: MOS6510Cpu, StatusRegister, MemoryPla, MemoryMap, ...
@@ -28,11 +29,13 @@ src/
       Roms/                         # BASIC, KERNAL, CHAR ROMs (embedded resources)
       Emulator.cs, EmulatorBuilder.cs   # composition root + fluent builder
       IExecutionStrategy.cs, RuntimeExecutionStrategy.cs, DebugExecutionStrategy.cs
-    Commodore64.Test/               # MSTest unit tests, one file per instruction under Instructions/
+    Commodore64.Test/               # MSTest unit tests for C64-specific hardware only; one file per instruction under Instructions/
     Commodore64.FunctionalTest/     # runs 6502_functional_test.bin end to end
 ```
 
 New platforms go under `src/Platforms/<SystemName>/` with matching `<SystemName>.Test` projects, and should reference `Abstraction`.
+
+Tests live next to what they test: tests of `Abstraction` types (`Bus`, `Wire`, `Register`, `SlimEventSource`, ...) go in `Abstraction.Test`, and a platform's test project only holds tests of that platform's chips, wiring and behaviour (including platform classes built on Abstraction types, such as `StatusRegister`).
 
 ## Architecture
 
@@ -113,6 +116,10 @@ Requires the .NET 10 SDK (`net10.0`). Tests use MSTest 4.
 
 ```bash
 dotnet build Dotnemulator.sln
+```
+
+```bash
+dotnet test src/Abstraction.Test
 ```
 
 ```bash
