@@ -63,7 +63,7 @@ There are two tests in `OpCodeTest`, one per build of the ROM (both are embedded
 | Test | ROM | How it reports |
 |---|---|---|
 | `Full` | `6502_functional_test.bin` (`report = 0`, the upstream default) | Passes when execution reaches the success trap. A failing check ends in a trap loop (`jmp *`), which jump-loop detection turns into a failure listing the last instructions. |
-| `FullWithReport` | `6502_functional_test_io.bin` (`report = 1`) | The ROM prints its progress and, on a failure, a register/stack/workspace dump. The test writes that output to the console. |
+| `FullWithReport` | `6502_functional_test_io.bin` (`report = 1`) | The ROM prints its progress and, on a failure, a register/stack/workspace dump. The test writes that output to the console, plus a line for each test case that passes, and checks that all 44 test cases (`00` to `2B`) passed. |
 
 ### Running `FullWithReport` and seeing its output
 
@@ -83,6 +83,13 @@ It runs:
 dotnet test src/Platforms/Commodore64.FunctionalTest --filter "FullyQualifiedName~OpCodeTest.FullWithReport" --logger "console;verbosity=detailed" -tl:off
 ```
 
+Both options matter:
+
+- `--logger "console;verbosity=detailed"`: the test writes the ROM's output with `Console.WriteLine`, and
+  `dotnet test` only shows a passing test's console output at detailed verbosity.
+- `-tl:off`: in an interactive terminal, .NET 9 and later use the MSBuild terminal logger, which hides that output
+  (and even the pass/fail summary). It only shows up without this switch when the output is piped or redirected.
+
 Extra arguments are passed on to `dotnet test`, for example:
 
 ```bash
@@ -97,23 +104,42 @@ If PowerShell refuses to run the script because of its execution policy, run it 
 `powershell -ExecutionPolicy Bypass -File tools/run-full-with-report.ps1`, or run the `dotnet test` command above
 directly.
 
-Both options matter:
-
-- `--logger "console;verbosity=detailed"`: the test writes the ROM's output with `Console.WriteLine`, and
-  `dotnet test` only shows a passing test's console output at detailed verbosity.
-- `-tl:off`: in an interactive terminal, .NET 9 and later use the MSBuild terminal logger, which hides that output
-  (and even the pass/fail summary). It only shows up without this switch when the output is piped or redirected.
-
-A passing run looks like this:
+A passing run looks like this (`Started testing` and `All tests completed` come from the ROM, the
+`Test case NN passed` lines from the test):
 
 ```
-  Passed FullWithReport [10 s]
+  Passed FullWithReport [13 s]
   Standard Output Messages:
  Started testing
+ Test case 00 passed
+ Test case 01 passed
+ ...
+ Test case 2B passed
  All tests completed, press R to repeat
+Test Run Successful.
 ```
 
-A failing run prints the ROM's dump, both under "Standard Output Messages" and in the failure message:
+The test case lines come from watching the ROM's current test number at `$0200` (`test_case`). The ROM stores the
+next test's number there after each test's checks pass, and `$F0` after the last test, so each new number means the
+previous test case passed. To see what a test case covers, search the listing for its next number, e.g.
+`lda #test_num` with `a923` for the end of test case `22`.
+
+A failing run prints the passed test cases, then the ROM's dump. The dump also appears in the failure message:
+
+```
+  Standard Output Messages:
+ Started testing
+ Test case 00 passed
+ ...
+ Test case 21 passed
+ regs Y  X  A  PS PCLPCH
+ 01F9 04 00 7F 31 92 33 30
+ 000C 7F 80 E1 C1 A0 80 00
+ 0200 22 00 00 C0 80 E1 C1 A0 80
+ press C to continue or S to skip current test
+```
+
+and the failure message:
 
 ```
   Failed FullWithReport [211 ms]

@@ -68,6 +68,29 @@ def success_trap(listing: list[str]) -> int:
     raise SystemExit("success trap (jmp *) not found in report = 0 listing")
 
 
+def test_case_numbers(listing: list[str]) -> tuple[int, int]:
+    """Returns (last test case number, value written to test_case once all tests are complete).
+
+    Each next_test macro expansion stores the next test's number with "lda #nn ;*** next tests' number";
+    after the last test the program stores "lda #$f0 ;mark opcode testing complete".
+    """
+    numbers = []
+    complete = None
+    for line in listing:
+        match = CODE_RE.match(line)
+        if not match or not match.group(2).startswith("a9") or len(match.group(2)) != 4:
+            continue
+        if ";*** next tests' number" in line:
+            numbers.append(int(match.group(2)[2:], 16))
+        elif ";mark opcode testing complete" in line:
+            complete = int(match.group(2)[2:], 16)
+    if not numbers or complete is None:
+        raise SystemExit("test case numbers not found in listing")
+    if numbers != list(range(1, len(numbers) + 1)):
+        raise SystemExit("test case numbers are not consecutive")
+    return numbers[-1], complete
+
+
 def absolute_operand(code: bytes, opcode: int, what: str) -> int:
     if len(code) != 3 or code[0] != opcode:
         raise SystemExit(f"{what}: expected opcode ${opcode:02X} with an absolute operand, found {code.hex()}")
@@ -97,15 +120,22 @@ def main() -> None:
     trap = symbols(trap_listing)
     io = symbols(io_listing)
 
+    trap_last, trap_complete = test_case_numbers(trap_listing)
+    io_last, io_complete = test_case_numbers(io_listing)
+
     values = {
         "trap": {
             "Start": trap["start"],
             "TestCase": trap["test_case"],
+            "LastTestCase": trap_last,
+            "AllTestsComplete": trap_complete,
             "Success": success_trap(trap_listing),
         },
         "io": {
             "Start": io["start"],
             "TestCase": io["test_case"],
+            "LastTestCase": io_last,
+            "AllTestsComplete": io_complete,
             "ReportError": io["report_error"],
             "ErrorWait": io["rerr1"],
             "ReportSuccess": io["report_success"],

@@ -16,6 +16,8 @@ internal static class FunctionalTestSymbols
     {
         public const int Start = 0x0400;
         public const int TestCase = 0x0200;
+        public const int LastTestCase = 0x002B;
+        public const int AllTestsComplete = 0x00F0;
         public const int Success = 0x3469;
     }
 
@@ -24,6 +26,8 @@ internal static class FunctionalTestSymbols
     {
         public const int Start = 0x0400;
         public const int TestCase = 0x0200;
+        public const int LastTestCase = 0x002B;
+        public const int AllTestsComplete = 0x00F0;
         public const int ReportError = 0x445B;
         public const int ErrorWait = 0x44CD;
         public const int ReportSuccess = 0x4524;

@@ -46,7 +46,8 @@ public sealed class OpCodeTest
 
     /// <summary>
     /// The I/O build (<c>report = 1</c>): the ROM prints its progress, and on a failure a dump of the registers,
-    /// stack and workspace, through <c>report.i65</c>. That output is written to the console.
+    /// stack and workspace, through <c>report.i65</c>. That output is written to the console, along with a line for
+    /// each test case that passes.
     /// </summary>
     /// <remarks>
     /// The ROM writes each character to <see cref="FunctionalTestSymbols.Io.OutputPort"/> (<c>$F001</c>, in the
@@ -58,6 +59,7 @@ public sealed class OpCodeTest
     {
         // arrange
         var console = new FunctionalTestConsole();
+        var progress = new TestCaseProgress(FunctionalTestSymbols.Io.AllTestsComplete);
         Emulator? emulator = null;
         emulator = new EmulatorBuilder()
             .WithImage(LoadRom("6502_functional_test_io.bin"))
@@ -70,7 +72,8 @@ public sealed class OpCodeTest
                 IsJumpLoopDetectionEnabled = true,
                 MemoryWriteWatchCallbacks = new()
                 {
-                    [FunctionalTestSymbols.Io.OutputPort] = console.Write
+                    [FunctionalTestSymbols.Io.OutputPort] = console.Write,
+                    [FunctionalTestSymbols.Io.TestCase] = progress.Write
                 },
                 BreakpointCallbacks = new()
                 {
@@ -101,6 +104,8 @@ public sealed class OpCodeTest
         // assert
         StringAssert.Contains(console.Text, "Started testing");
         StringAssert.Contains(console.Text, "All tests completed");
+        Assert.IsTrue(progress.IsComplete, "The ROM did not mark the tests as complete.");
+        Assert.AreEqual(FunctionalTestSymbols.Io.LastTestCase + 1, progress.PassedCount, "Number of test cases passed.");
     }
 
     private byte[] LoadRom(string name)
