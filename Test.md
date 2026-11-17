@@ -80,7 +80,7 @@ tools/run-full-with-report.ps1
 It runs:
 
 ```bash
-dotnet test src/Platforms/Commodore64.FunctionalTest --filter "FullyQualifiedName~OpCodeTest.FullWithReport" --logger "console;verbosity=detailed"
+dotnet test src/Platforms/Commodore64.FunctionalTest --filter "FullyQualifiedName~OpCodeTest.FullWithReport" --logger "console;verbosity=detailed" -tl:off
 ```
 
 Extra arguments are passed on to `dotnet test`, for example:
@@ -97,8 +97,12 @@ If PowerShell refuses to run the script because of its execution policy, run it 
 `powershell -ExecutionPolicy Bypass -File tools/run-full-with-report.ps1`, or run the `dotnet test` command above
 directly.
 
-`--logger "console;verbosity=detailed"` matters: the test writes the ROM's output with `Console.WriteLine`, and
-`dotnet test` only shows a passing test's console output at detailed verbosity.
+Both options matter:
+
+- `--logger "console;verbosity=detailed"`: the test writes the ROM's output with `Console.WriteLine`, and
+  `dotnet test` only shows a passing test's console output at detailed verbosity.
+- `-tl:off`: in an interactive terminal, .NET 9 and later use the MSBuild terminal logger, which hides that output
+  (and even the pass/fail summary). It only shows up without this switch when the output is piped or redirected.
 
 A passing run looks like this:
 

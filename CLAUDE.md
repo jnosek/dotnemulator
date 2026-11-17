@@ -137,7 +137,7 @@ dotnet test src/Platforms/Commodore64.FunctionalTest
 To see the functional test ROM's own output (progress, and the register/stack dump on a failure):
 
 ```bash
-dotnet test src/Platforms/Commodore64.FunctionalTest --logger "console;verbosity=detailed"
+dotnet test src/Platforms/Commodore64.FunctionalTest --logger "console;verbosity=detailed" -tl:off
 ```
 
 ```bash
