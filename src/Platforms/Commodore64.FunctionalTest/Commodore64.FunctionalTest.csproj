@@ -24,6 +24,7 @@
 
   <ItemGroup>
     <EmbeddedResource Include="Roms\6502_functional_test.bin" />
+    <EmbeddedResource Include="Roms\6502_functional_test_io.bin" />
   </ItemGroup>
 
 </Project>

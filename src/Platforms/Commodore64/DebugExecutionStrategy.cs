@@ -23,7 +23,19 @@ public class DebugExecutionStrategy : IExecutionStrategy
 
     public Dictionary<int, Action<MOS6510Cpu>> BreakpointCallbacks { get; init; } = new();
 
+    /// <summary>
+    /// Called with the data bus value for every bus cycle, read or write, at the given address.
+    /// </summary>
     public Dictionary<int, Action<int>> MemoryWatchCallbacks { get; init; } = new();
+
+    /// <summary>
+    /// Called with the value written for every write cycle at the given address. Reads are ignored.
+    /// </summary>
+    /// <remarks>
+    /// Use this to capture output a program sends to a port (for example the functional test's report channel),
+    /// where a read of the same address must not be mistaken for output.
+    /// </remarks>
+    public Dictionary<int, Action<int>> MemoryWriteWatchCallbacks { get; init; } = new();
 
     private readonly Queue<InstructionResult> _instructionLog = new(INSTRUCTION_LOG_WINDOW_SIZE);
 
@@ -34,7 +46,7 @@ public class DebugExecutionStrategy : IExecutionStrategy
         // removed when Execute ends, so running again does not stack up memory-watch handlers
         IDisposable? memoryWatch = null;
 
-        if(MemoryWatchCallbacks.Count > 0)
+        if(MemoryWatchCallbacks.Count > 0 || MemoryWriteWatchCallbacks.Count > 0)
         {
             // subscribed last, so DataBus holds the value written (write cycle) or the value just read (read cycle)
             memoryWatch = cpu.AddressBus.Subscribe(() => {
@@ -42,6 +54,11 @@ public class DebugExecutionStrategy : IExecutionStrategy
                 if(MemoryWatchCallbacks.TryGetValue(address, out var callback))
                 {
                     callback(cpu.DataBus.Read());
+                }
+
+                if(cpu.ReadWrite.IsWrite && MemoryWriteWatchCallbacks.TryGetValue(address, out var writeCallback))
+                {
+                    writeCallback(cpu.DataBus.Read());
                 }
             });
         }

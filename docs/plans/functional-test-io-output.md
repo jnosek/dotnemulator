@@ -1,5 +1,7 @@
 # Plan: functional test with I/O report output
 
+Status: implemented on branch `functional-test-io` (both `Full` and `FullWithReport` are kept).
+
 Goal: build a second copy of Klaus Dormann's 6502 functional test with its I/O
 report channel turned on, and change `Commodore64.FunctionalTest` so the text
 the ROM prints ("Started testing", the register/stack dump on failure, "All
