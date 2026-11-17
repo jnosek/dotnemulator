@@ -16,6 +16,7 @@ The first (and so far only) platform is the **Commodore 64** (MOS 6510 CPU).
 
 ```
 Dotnemulator.sln
+global.json                         # selects Microsoft.Testing.Platform as the dotnet test runner
 src/
   Abstraction/                      # Dotnemulator.Abstraction: shared, platform-agnostic building blocks
     SlimEventSource*.cs, IEventSource.cs # lightweight signal/event plumbing (namespace Dotnemulator.Abstraction)
@@ -116,7 +117,7 @@ To add an instruction: create the class following the pattern above, register it
 
 ## Build & test
 
-Requires the .NET 10 SDK (`net10.0`). Tests use MSTest 4. `Test.md` has the full guide to running the tests (filters, the functional test output, reading a failure dump).
+Requires the .NET 10 SDK (`net10.0`). Tests use MSTest 4 on Microsoft.Testing.Platform: `global.json` selects it for `dotnet test`, and each test project sets `OutputType` `Exe` and `EnableMSTestRunner`. Use MTP options (`--output detailed`, `--filter`, `--list-tests`), not VSTest ones such as `--logger`. `Test.md` has the full guide to running the tests (filters, the functional test output, reading a failure dump).
 
 ```bash
 dotnet build Dotnemulator.sln
@@ -137,7 +138,7 @@ dotnet test src/Platforms/Commodore64.FunctionalTest
 To see the functional test ROM's own output (progress, and the register/stack dump on a failure):
 
 ```bash
-dotnet test src/Platforms/Commodore64.FunctionalTest --logger "console;verbosity=detailed" -tl:off
+dotnet test --project src/Platforms/Commodore64.FunctionalTest --output detailed
 ```
 
 ```bash

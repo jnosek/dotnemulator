@@ -7,8 +7,8 @@
     PowerShell version of run-full-with-report.sh. The ROM prints "Started testing" and "All tests completed", or the
     register/stack dump of a failing test. Any arguments are passed on to dotnet test.
 
-    -tl:off turns off the MSBuild terminal logger, which .NET 9+ uses in interactive terminals and which hides the
-    test output (it only shows when output is piped).
+    The tests run on Microsoft.Testing.Platform (see global.json). It always shows the output of a failing test;
+    --output detailed also shows it for a passing one.
 
 .EXAMPLE
     tools/run-full-with-report.ps1
@@ -20,10 +20,17 @@ $ErrorActionPreference = 'Stop'
 
 $repoRoot = Split-Path -Parent $PSScriptRoot
 
-& dotnet test (Join-Path $repoRoot 'src/Platforms/Commodore64.FunctionalTest') `
-    --filter 'FullyQualifiedName~OpCodeTest.FullWithReport' `
-    --logger 'console;verbosity=detailed' `
-    -tl:off `
-    @args
+Push-Location $repoRoot
+try {
+    & dotnet test `
+        --project src/Platforms/Commodore64.FunctionalTest `
+        --filter 'FullyQualifiedName~OpCodeTest.FullWithReport' `
+        --output detailed `
+        @args
+    $exitCode = $LASTEXITCODE
+}
+finally {
+    Pop-Location
+}
 
-exit $LASTEXITCODE
+exit $exitCode

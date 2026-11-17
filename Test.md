@@ -1,10 +1,14 @@
 # Running the tests
 
-All test projects use MSTest 4 on .NET 10. Run the commands from the repository root.
+All test projects use MSTest 4 on .NET 10 and run on
+[Microsoft.Testing.Platform](https://learn.microsoft.com/dotnet/core/testing/microsoft-testing-platform-intro) (MTP),
+selected for `dotnet test` by `global.json`. Run the commands from the repository root.
 
 ## Prerequisites
 
 - .NET 10 SDK (`dotnet --version` should report `10.x`)
+- For running tests in an IDE: one that supports MTP, such as Visual Studio 2022 17.14 or later, Rider, or VS Code
+  with C# Dev Kit
 
 Only regenerating the functional test ROMs needs more than that (see [the last section](#regenerating-the-functional-test-roms)).
 
@@ -19,8 +23,14 @@ Only regenerating the functional test ROMs needs more than that (see [the last s
 ## Run everything
 
 ```bash
-dotnet test Dotnemulator.sln
+dotnet test
 ```
+
+With no project given, `dotnet test` runs every test project in `Dotnemulator.sln`. To pick one, give its folder
+(as below) or use `--project <folder>`.
+
+MTP options differ from the older VSTest runner: there is no `--logger` (use `--output detailed` for more output,
+see below), and `dotnet test --project <folder> --help` lists what is available.
 
 ## Unit tests
 
@@ -80,15 +90,11 @@ tools/run-full-with-report.ps1
 It runs:
 
 ```bash
-dotnet test src/Platforms/Commodore64.FunctionalTest --filter "FullyQualifiedName~OpCodeTest.FullWithReport" --logger "console;verbosity=detailed" -tl:off
+dotnet test --project src/Platforms/Commodore64.FunctionalTest --filter "FullyQualifiedName~OpCodeTest.FullWithReport" --output detailed
 ```
 
-Both options matter:
-
-- `--logger "console;verbosity=detailed"`: the test writes the ROM's output with `Console.WriteLine`, and
-  `dotnet test` only shows a passing test's console output at detailed verbosity.
-- `-tl:off`: in an interactive terminal, .NET 9 and later use the MSBuild terminal logger, which hides that output
-  (and even the pass/fail summary). It only shows up without this switch when the output is piped or redirected.
+The test writes its output with `Console.WriteLine`. MTP always shows a failing test's output; `--output detailed`
+also shows it for a passing test.
 
 Extra arguments are passed on to `dotnet test`, for example:
 
@@ -108,15 +114,19 @@ A passing run looks like this (`Started testing` and `All tests completed` come 
 `Test case NN passed` lines from the test):
 
 ```
-  Passed FullWithReport [13 s]
-  Standard Output Messages:
- Started testing
- Test case 00 passed
- Test case 01 passed
- ...
- Test case 2B passed
- All tests completed, press R to repeat
-Test Run Successful.
+passed FullWithReport (12s 397ms)
+  Standard output
+    Started testing
+    Test case 00 passed
+    Test case 01 passed
+    ...
+    Test case 2B passed
+    All tests completed, press R to repeat
+...
+Test run summary: Passed!
+  total: 1
+  failed: 0
+  succeeded: 1
 ```
 
 The test case lines come from watching the ROM's current test number at `$0200` (`test_case`). The ROM stores the
@@ -124,33 +134,32 @@ next test's number there after each test's checks pass, and `$F0` after the last
 previous test case passed. To see what a test case covers, search the listing for its next number, e.g.
 `lda #test_num` with `a923` for the end of test case `22`.
 
-A failing run prints the passed test cases, then the ROM's dump. The dump also appears in the failure message:
+A failing run (with or without `--output detailed`) shows the failure message, which holds the ROM's dump, then the
+test's whole output: the passed test cases followed by the dump:
 
 ```
-  Standard Output Messages:
- Started testing
- Test case 00 passed
- ...
- Test case 21 passed
- regs Y  X  A  PS PCLPCH
- 01F9 04 00 7F 31 92 33 30
- 000C 7F 80 E1 C1 A0 80 00
- 0200 22 00 00 C0 80 E1 C1 A0 80
- press C to continue or S to skip current test
-```
-
-and the failure message:
-
-```
-  Failed FullWithReport [211 ms]
-  Error Message:
-   Assert.Fail failed. Functional test reported an error in test case 22:
-Started testing
-regs Y  X  A  PS PCLPCH
-01F9 04 00 7F 31 92 33 30
-000C 7F 80 E1 C1 A0 80 00
-0200 22 00 00 C0 80 E1 C1 A0 80
-press C to continue or S to skip current test
+failed FullWithReport (284ms)
+  Assert.Fail failed. Functional test reported an error in test case 22:
+  Started testing
+  regs Y  X  A  PS PCLPCH
+  01F9 04 00 7F 31 92 33 30
+  000C 7F 80 E1 C1 A0 80 00
+  0200 22 00 00 C0 80 E1 C1 A0 80
+  press C to continue or S to skip current test
+    at Microsoft.VisualStudio.TestTools.UnitTesting.Assert.Fail(String message) ...
+    ...
+  Standard output
+    Started testing
+    Test case 00 passed
+    ...
+    Test case 21 passed
+    regs Y  X  A  PS PCLPCH
+    01F9 04 00 7F 31 92 33 30
+    000C 7F 80 E1 C1 A0 80 00
+    0200 22 00 00 C0 80 E1 C1 A0 80
+    press C to continue or S to skip current test
+...
+Test run summary: Failed!
 ```
 
 Reading the dump:
