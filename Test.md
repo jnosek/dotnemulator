@@ -67,10 +67,14 @@ There are two tests in `OpCodeTest`, one per build of the ROM (both are embedded
 
 ### Running `FullWithReport` and seeing its output
 
-Use the script:
+Use the script (bash, or PowerShell on Windows, Linux or macOS):
 
 ```bash
 tools/run-full-with-report.sh
+```
+
+```powershell
+tools/run-full-with-report.ps1
 ```
 
 It runs:
@@ -85,7 +89,13 @@ Extra arguments are passed on to `dotnet test`, for example:
 tools/run-full-with-report.sh --configuration Release
 ```
 
-On Windows (PowerShell), run the `dotnet test` command above directly.
+```powershell
+tools/run-full-with-report.ps1 --configuration Release
+```
+
+If PowerShell refuses to run the script because of its execution policy, run it with
+`powershell -ExecutionPolicy Bypass -File tools/run-full-with-report.ps1`, or run the `dotnet test` command above
+directly.
 
 `--logger "console;verbosity=detailed"` matters: the test writes the ROM's output with `Console.WriteLine`, and
 `dotnet test` only shows a passing test's console output at detailed verbosity.
@@ -140,5 +150,10 @@ change the ROM configuration or the upstream version:
 tools/functional-test-roms/build.sh
 ```
 
-It needs `git`, `unzip`, `python3` and the 32-bit libraries for the bundled `as65` assembler. See
+```powershell
+tools/functional-test-roms/build.ps1
+```
+
+`build.sh` needs `git`, `unzip`, `python3` and the 32-bit libraries for the bundled Linux `as65` assembler.
+`build.ps1` needs `git` and Python 3. On Windows it uses the bundled `as65.exe`, so nothing else is needed. See
 [`tools/functional-test-roms/README.md`](tools/functional-test-roms/README.md).
