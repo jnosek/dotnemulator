@@ -33,6 +33,8 @@ src/
     Commodore64.FunctionalTest/     # runs the 6502 functional test ROMs end to end (Roms/, FunctionalTestSymbols.g.cs)
 tools/
   functional-test-roms/             # build.sh: regenerates the functional test ROMs with upstream's as65
+  run-full-with-report.sh           # runs the FullWithReport functional test and shows the ROM's output
+Test.md                             # how to run the unit and functional tests
 ```
 
 New platforms go under `src/Platforms/<SystemName>/` with matching `<SystemName>.Test` projects, and should reference `Abstraction`.
@@ -114,7 +116,7 @@ To add an instruction: create the class following the pattern above, register it
 
 ## Build & test
 
-Requires the .NET 10 SDK (`net10.0`). Tests use MSTest 4.
+Requires the .NET 10 SDK (`net10.0`). Tests use MSTest 4. `Test.md` has the full guide to running the tests (filters, the functional test output, reading a failure dump).
 
 ```bash
 dotnet build Dotnemulator.sln
