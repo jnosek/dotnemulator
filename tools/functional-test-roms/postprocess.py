@@ -1,0 +1,188 @@
+"""Turns as65 output into the files the functional tests use.
+
+- Pads each raw binary to a full 64 KB image. as65 starts the binary at the
+  lowest address used ($000A, the zero page workspace), but
+  EmulatorBuilder.WithImage expects an image starting at $0000.
+- Copies the binaries and listings into the test project's Roms folder.
+- Reads the addresses the tests need from the listings and writes them to
+  FunctionalTestSymbols.g.cs.
+"""
+
+import argparse
+import re
+import shutil
+from pathlib import Path
+
+IMAGE_SIZE = 0x10000
+
+# "Wrote binary from address $000a through $ffff."
+WROTE_RE = re.compile(r"Wrote binary from address \$([0-9a-fA-F]{4}) through \$([0-9a-fA-F]{4})")
+# symbol table rows: "               rchar : $4565          17765"
+SYMBOL_RE = re.compile(r"^\s+([A-Za-z_][A-Za-z0-9_]*) : \$([0-9a-fA-F]+)\s+-?\d+\s*$")
+# listing rows: "4565 : 8d01f0                   sta $f001"
+CODE_RE = re.compile(r"^([0-9a-f]{4}) : ([0-9a-f]+)\s")
+
+
+def read_listing(directory: Path) -> list[str]:
+    return (directory / "6502_functional_test.lst").read_text(encoding="latin-1").splitlines()
+
+
+def pad_image(directory: Path, name: str, listing: list[str]) -> bytes:
+    raw = (directory / f"{name}.bin").read_bytes()
+    match = next((m for m in map(WROTE_RE.search, listing) if m), None)
+    if match is None:
+        raise SystemExit(f"{name}: start address not found in listing")
+    start, end = int(match.group(1), 16), int(match.group(2), 16)
+    if end - start + 1 != len(raw):
+        raise SystemExit(f"{name}: binary is {len(raw)} bytes, listing says ${start:04X}-${end:04X}")
+    image = bytes(start) + raw + bytes(IMAGE_SIZE - 1 - end)
+    assert len(image) == IMAGE_SIZE
+    return image
+
+
+def symbols(listing: list[str]) -> dict[str, int]:
+    result = {}
+    for line in listing:
+        match = SYMBOL_RE.match(line)
+        if match:
+            result[match.group(1)] = int(match.group(2), 16)
+    return result
+
+
+def code_at(listing: list[str], address: int) -> bytes:
+    """Returns the bytes of the instruction assembled at address (skipping label-only rows)."""
+    for line in listing:
+        match = CODE_RE.match(line)
+        if match and int(match.group(1), 16) == address:
+            return bytes.fromhex(match.group(2))
+    raise SystemExit(f"no code at ${address:04X} in listing")
+
+
+def success_trap(listing: list[str]) -> int:
+    """Address of the "jmp *" that the success macro expands to with report = 0."""
+    for index, line in enumerate(listing):
+        if re.search(r"^\s+success\s+;if you get here everything went well", line):
+            match = CODE_RE.match(listing[index + 1])
+            if match and match.group(2) == "4c" + match.group(1)[2:] + match.group(1)[:2]:
+                return int(match.group(1), 16)
+    raise SystemExit("success trap (jmp *) not found in report = 0 listing")
+
+
+def test_case_numbers(listing: list[str]) -> tuple[int, int]:
+    """Returns (last test case number, value written to test_case once all tests are complete).
+
+    Each next_test macro expansion stores the next test's number with "lda #nn ;*** next tests' number";
+    after the last test the program stores "lda #$f0 ;mark opcode testing complete".
+    """
+    numbers = []
+    complete = None
+    for line in listing:
+        match = CODE_RE.match(line)
+        if not match or not match.group(2).startswith("a9") or len(match.group(2)) != 4:
+            continue
+        if ";*** next tests' number" in line:
+            numbers.append(int(match.group(2)[2:], 16))
+        elif ";mark opcode testing complete" in line:
+            complete = int(match.group(2)[2:], 16)
+    if not numbers or complete is None:
+        raise SystemExit("test case numbers not found in listing")
+    if numbers != list(range(1, len(numbers) + 1)):
+        raise SystemExit("test case numbers are not consecutive")
+    return numbers[-1], complete
+
+
+def absolute_operand(code: bytes, opcode: int, what: str) -> int:
+    if len(code) != 3 or code[0] != opcode:
+        raise SystemExit(f"{what}: expected opcode ${opcode:02X} with an absolute operand, found {code.hex()}")
+    return code[1] | code[2] << 8
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--commit", required=True)
+    parser.add_argument("--trap", type=Path, required=True)
+    parser.add_argument("--io", type=Path, required=True)
+    parser.add_argument("--roms", type=Path, required=True)
+    parser.add_argument("--symbols", type=Path, required=True)
+    args = parser.parse_args()
+
+    trap_listing = read_listing(args.trap)
+    io_listing = read_listing(args.io)
+
+    args.roms.mkdir(parents=True, exist_ok=True)
+    for directory, name, listing in [
+        (args.trap, "6502_functional_test", trap_listing),
+        (args.io, "6502_functional_test_io", io_listing),
+    ]:
+        (args.roms / f"{name}.bin").write_bytes(pad_image(directory, name, listing))
+        shutil.copyfile(directory / "6502_functional_test.lst", args.roms / f"{name}.lst")
+
+    trap = symbols(trap_listing)
+    io = symbols(io_listing)
+
+    trap_last, trap_complete = test_case_numbers(trap_listing)
+    io_last, io_complete = test_case_numbers(io_listing)
+
+    values = {
+        "trap": {
+            "Start": trap["start"],
+            "TestCase": trap["test_case"],
+            "LastTestCase": trap_last,
+            "AllTestsComplete": trap_complete,
+            "Success": success_trap(trap_listing),
+        },
+        "io": {
+            "Start": io["start"],
+            "TestCase": io["test_case"],
+            "LastTestCase": io_last,
+            "AllTestsComplete": io_complete,
+            "ReportError": io["report_error"],
+            "ErrorWait": io["rerr1"],
+            "ReportSuccess": io["report_success"],
+            "SuccessWait": io["rsuc1"],
+            # rchar is "sta <output port>", rget starts with "lda <input port>"
+            "OutputPort": absolute_operand(code_at(io_listing, io["rchar"]), 0x8D, "rchar"),
+            "InputPort": absolute_operand(code_at(io_listing, io["rget"]), 0xAD, "rget"),
+        },
+    }
+
+    def constants(group: str) -> str:
+        return "\n".join(f"        public const int {key} = 0x{value:04X};" for key, value in values[group].items())
+
+    args.symbols.write_text(
+        f"""// <auto-generated>
+// Generated by tools/functional-test-roms/build.sh from
+// https://github.com/Klaus2m5/6502_65C02_functional_tests commit {args.commit}.
+// Do not edit; rerun the script instead.
+// </auto-generated>
+
+namespace Commodore64.FunctionalTest;
+
+/// <summary>
+/// Addresses in the functional test ROMs, read from the assembler listings in <c>Roms/</c>.
+/// </summary>
+internal static class FunctionalTestSymbols
+{{
+    /// <summary><c>6502_functional_test.bin</c>: <c>report = 0</c>, failures and success end in trap loops.</summary>
+    public static class Trap
+    {{
+{constants("trap")}
+    }}
+
+    /// <summary><c>6502_functional_test_io.bin</c>: <c>report = 1</c>, results are printed through <c>report.i65</c>.</summary>
+    public static class Io
+    {{
+{constants("io")}
+    }}
+}}
+""",
+        encoding="utf-8",
+    )
+
+    for group, entries in values.items():
+        for key, value in entries.items():
+            print(f"  {group}.{key} = ${value:04X}")
+
+
+if __name__ == "__main__":
+    main()

@@ -7,6 +7,9 @@
     <LangVersion>latest</LangVersion>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <!-- run with Microsoft.Testing.Platform (see global.json) -->
+    <OutputType>Exe</OutputType>
+    <EnableMSTestRunner>true</EnableMSTestRunner>
   </PropertyGroup>
 
   <ItemGroup>
@@ -24,6 +27,7 @@
 
   <ItemGroup>
     <EmbeddedResource Include="Roms\6502_functional_test.bin" />
+    <EmbeddedResource Include="Roms\6502_functional_test_io.bin" />
   </ItemGroup>
 
 </Project>
