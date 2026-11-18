@@ -25,8 +25,9 @@ src/
   Abstraction.Test/                 # MSTest unit tests for Abstraction, mirroring its folders (Hardware/, ...)
   Platforms/
     Commodore64/                    # Dotnemulator.Platforms.Commodore64 (exe)
-      Architecture/                 # chips & CPU internals: MOS6510Cpu, StatusRegister, MemoryPla, MemoryMap, ...
+      Architecture/                 # chips & CPU internals: MOS6510Cpu, StatusRegister, MemoryPla, MemoryMap, VicII, ...
         Instruction/                # one class per 6502/6510 instruction (LDA.cs, JSR.cs, ...)
+      Display/                      # TextScreen (screen RAM -> text), ConsoleScreenRenderer (console pseudo-screen)
       Roms/                         # BASIC, KERNAL, CHAR ROMs (embedded resources)
       Emulator.cs, EmulatorBuilder.cs   # composition root + fluent builder
       IExecutionStrategy.cs, RuntimeExecutionStrategy.cs, DebugExecutionStrategy.cs
@@ -68,6 +69,7 @@ Components are connected through shared `Bus`/`Wire` instances, which are create
             AddressBus(16) ──────────────────────────────► MemoryMap ──SelectBank()──► MemoryPla
  MOS6510Cpu ─ DataBus(8) ────────────────────────────────► MemoryMap                       ▲
             ReadWrite (ReadWriteWire) ───────────────────► MemoryMap                       │
+            AddressBus / DataBus / ReadWrite ────────────► VicII ──────SelectBank()────────┤
             PortBus(6) ────────────────────────────────────────────────────────────────────┘
             Game / ExRom Wires (expansion port) ───────────────────────────────────────────► MemoryPla
             IRQ / NMI (OpenCollectorWire) ◄── sources registered by peripherals (future: CIA, VIC-II, RESTORE, ...)
@@ -77,6 +79,7 @@ Every memory access is one **bus cycle**, started by a single `AddressBus.Strobe
 
 - **CPU read**: `ReadWrite.Drive(Read)`, then `AddressBus.Strobe(address)`. `MemoryMap` asks the PLA for the bank (`SelectBank(address)`) and drives the byte onto `DataBus`. The CPU then calls `DataBus.Read()`.
 - **CPU write**: `ReadWrite.Drive(Write)`, `DataBus.Drive(value)`, then `AddressBus.Strobe(address)`. `MemoryMap` stores the byte already on `DataBus` in the selected bank. Writes to ROM areas go to the RAM underneath. No read happens during a write.
+- **VIC-II registers**: while the PLA selects the IO bank, `$D000–$D3FF` is answered by `VicII`, not `MemoryMap` (which leaves that range alone, so exactly one component responds). The 64 registers repeat every 64 bytes. `VicII` is a stub: `$D012` and bit 7 of `$D011` read the raster line and write the raster compare; every other register only stores its value. With no clock wire yet, every bus cycle counts as one φ2 cycle (PAL: 63 cycles a line, 312 lines). The moving raster is what lets the KERNAL's CINT get past its `LDA $D012 / BNE` wait at `$FF5E`. No raster IRQ, sprites or video.
 - **6510 on-chip I/O port**: addresses `$0000` (data direction, `Address0`) and `$0001` (data, `Address1`) are registers inside the CPU. `PortBus` is the six pins P0–P5. Writing either register strobes `PortBus` with the pin levels: output pins (DDR bit 1) carry the data bit, input pins read high (pulled up on the C64). Reading `$0001` gives the data register for output bits and the pins for input bits. Both registers are cleared at reset, so all pins start as inputs and the default configuration is selected. The PLA selects the matching row of its block table (LORAM/HIRAM/CHAREN → BASIC/KERNAL/CHAR/IO/RAM via the `MEMORY_CONFIGS` table). This does not start a memory cycle.
 - **Interrupts**: `Emulator` creates `InterruptRequest` and `NonMaskableInterrupt` as `OpenCollectorWire`s and passes them to the CPU; each device that can interrupt registers its own source. Interrupts are only taken between instructions, at the start of `Step()`. IRQ is level-triggered: it is serviced while any source asserts it and the I flag is clear. NMI is edge-triggered: the CPU latches each released-to-asserted change and services it at the next boundary; while one source holds NMI, another asserting it gives no new edge (as on the C64). NMI wins if both are pending. Servicing pushes PC and P (B clear), sets the I flag and jumps through the vector, as its own `Step()` whose `InstructionResult.Interrupt` is `InterruptKind.Irq`/`Nmi`.
 
@@ -108,11 +111,11 @@ To add an instruction: create the class following the pattern above, register it
 
 ### Emulator composition and execution
 
-- `Emulator` is the composition root. It owns every board-level bus and wire (address, data, port, `ReadWrite`, IRQ/NMI, cartridge `Game`/`ExRom`), and constructs `MOS6510Cpu`, `MemoryPla` and `MemoryMap` (which takes the PLA as its `IMemoryBankSelector`), plus an `IExecutionStrategy`.
+- `Emulator` is the composition root. It owns every board-level bus and wire (address, data, port, `ReadWrite`, IRQ/NMI, cartridge `Game`/`ExRom`), and constructs `MOS6510Cpu`, `MemoryPla`, `MemoryMap` and `VicII` (both take the PLA as their `IMemoryBankSelector`), plus an `IExecutionStrategy`.
 - `EmulatorBuilder` is the fluent setup API: `WithRoms()`, `WithImage(byte[])` (full 64 KB image), and internal test helpers `WithTestKernel(byte[])`, `WithRam(...)`, `WithMemoryMap(...)`, `WithExecutionStrategy(...)`, `WithUnitTestMode(startAddress?)`.
 - `IExecutionStrategy` separates *how* the CPU is run from the machine itself:
   - `RuntimeExecutionStrategy`: reset, then `Step()` forever.
-  - `DebugExecutionStrategy`: start/end address, stop on `NOP` (`$EA`), jump-loop detection (throws `JumpLoopException` with a rolling instruction log), breakpoint callbacks, and memory-watch callbacks (`MemoryWatchCallbacks` for every cycle, `MemoryWriteWatchCallbacks` for writes only).
+  - `DebugExecutionStrategy`: start/end address, stop on `NOP` (`$EA`), jump-loop detection (throws `JumpLoopException` with a rolling instruction log), a `MaxSteps` hang guard (throws `StepLimitException`), breakpoint callbacks, and memory-watch callbacks (`MemoryWatchCallbacks` for every cycle, `MemoryWriteWatchCallbacks` for writes only).
 - Internals are exposed to the test assemblies with `InternalsVisibleTo` in `Program.cs`. Most hardware types are `internal` on purpose.
 
 ## Build & test
@@ -145,6 +148,8 @@ dotnet test --project src/Platforms/Commodore64.FunctionalTest --output detailed
 dotnet run --project src/Platforms/Commodore64
 ```
 
+With no video front end yet, `Program` boots the real ROMs and `ConsoleScreenRenderer` draws the 40×25 text screen (decoded from screen RAM at `$0400` by `TextScreen`) in the console, redrawn in place every 100 ms, with the PC on a status line. Ctrl+C draws a last frame and restores the cursor. With redirected output it prints one frame at exit.
+
 ### Test conventions
 
 Unit tests build a tiny machine, run it until a `NOP` is reached, and assert on CPU state:
@@ -158,6 +163,8 @@ var emulator = new EmulatorBuilder()
 emulator.Start();
 Assert.AreEqual(0x02, emulator.Cpu.A.Value);
 ```
+
+`KernalBoot_Test` boots the real ROMs (`WithRoms()`) to the KERNAL keyboard wait loop (`$E5CD`) and checks the banner and `READY.` through `TextScreen`, plus the order of the boot stages. It sets `MaxSteps` so a hang fails quickly; the boot takes about 600,000 steps.
 
 `WithTestKernel` writes the program at `$E000` and points the reset vector there (and the IRQ vector at `$0100`). The functional tests load a full 64 KB 6502 test image and run from `$0400`:
 
@@ -180,5 +187,5 @@ The ROMs, their listings and `FunctionalTestSymbols.g.cs` (the addresses above) 
 ## Current status / roadmap hints
 
 - 6510 legal opcode set is implemented and passes the 6502 functional test (decimal mode and cycle accuracy are areas to verify).
-- `MemoryMap._io` is a plain RAM-backed placeholder. VIC-II, SID, CIA 1/2 and cartridge lines (`Emulator.Game`/`ExRom`, read by the PLA but currently unused, default `false` = not asserted) are not modelled yet.
-- `Emulator.Stop()` / `Reset()` are stubs. There is no video/audio/input front end yet.
+- The real KERNAL boots to `READY.` (no keyboard yet). `MemoryMap._io` is a plain RAM-backed placeholder for the I/O area outside the VIC-II stub's range. The full VIC-II, SID, CIA 1/2 and cartridge lines (`Emulator.Game`/`ExRom`, read by the PLA but currently unused, default `false` = not asserted) are not modelled yet.
+- `Emulator.Stop()` / `Reset()` are stubs. There is no video/audio/input front end yet, only the console text screen.

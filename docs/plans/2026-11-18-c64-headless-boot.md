@@ -1,6 +1,6 @@
 # Plan: C64 headless boot (VIC-II raster stub, boot smoke test, console screen)
 
-Status: planned on branch `headless-boot`.
+Status: implemented on branch `headless-boot`.
 
 Goal: get the real KERNAL to boot to `READY.` on its own, and make the screen
 visible in the console, so boot problems can be seen without a video front end.
@@ -79,7 +79,7 @@ asserts that the screen shows the BASIC banner and `READY.`.
    `READY.` is printed).
 2. Hang guard: a new `DebugExecutionStrategy.MaxSteps` (nullable, off by
    default) throws `StepLimitException` with the PC and the instruction log once
-   that many steps have run. The test sets 5,000,000, about 3x the boot. A
+   that many steps have run. The test sets 2,000,000, about 3x the boot (measured at about 600,000 steps). A
    regression then fails fast with a useful message instead of hanging the test
    run.
 3. Read screen RAM through the new `TextScreen` helper (section 3) and assert:
@@ -153,12 +153,12 @@ ROMs. Then start the renderer and call `emulator.Start()`.
 
 ## Verification
 
-- [ ] `dotnet build Dotnemulator.sln` with no new warnings
-- [ ] `dotnet test src/Abstraction.Test` and `src/Platforms/Commodore64.Test`
+- [x] `dotnet build Dotnemulator.sln` with no new warnings
+- [x] `dotnet test src/Abstraction.Test` and `src/Platforms/Commodore64.Test`
       pass, including the boot smoke test
-- [ ] `dotnet test src/Platforms/Commodore64.FunctionalTest` still passes (the
+- [x] `dotnet test src/Platforms/Commodore64.FunctionalTest` still passes (the
       test image doesn't touch `$D000` through the I/O bank)
-- [ ] `dotnet run --project src/Platforms/Commodore64` shows the banner and
+- [x] `dotnet run --project src/Platforms/Commodore64` shows the banner and
       `READY.` redrawn in place, and Ctrl+C restores the cursor
 
 ## Not in this change

@@ -21,6 +21,15 @@ public class DebugExecutionStrategy : IExecutionStrategy
     /// </remarks>
     public int? EndAddress { get; set; }
 
+    /// <summary>
+    /// If this many steps run without another stop condition, a <see cref="StepLimitException"/> is thrown.
+    /// </summary>
+    /// <remarks>
+    /// A guard against programs that hang in a loop jump-loop detection cannot see (more than one instruction long).
+    /// <c>null</c> (the default) means no limit.
+    /// </remarks>
+    public long? MaxSteps { get; set; }
+
     public Dictionary<int, Action<MOS6510Cpu>> BreakpointCallbacks { get; init; } = new();
 
     /// <summary>
@@ -63,10 +72,20 @@ public class DebugExecutionStrategy : IExecutionStrategy
             });
         }
 
+        long steps = 0;
+
         try
         {
             while(true)
             {
+                if(steps++ == MaxSteps)
+                {
+                    throw new StepLimitException($"Step limit of {MaxSteps} reached at address {cpu.PC.Value:X4}")
+                    {
+                        InstructionLog = _instructionLog.Reverse().ToList()
+                    };
+                }
+
                 if(BreakpointCallbacks.TryGetValue(cpu.PC.Value, out var callback))
                 {
                     callback(cpu);

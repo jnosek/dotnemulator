@@ -115,7 +115,9 @@ internal class MemoryMap
                 _ram.Write(address, data);
                 break;
             case MemoryPla.IO:
-                _io.Write(address, data);
+                // the VIC-II answers its own range
+                if(!VicII.IsVicAddress(address))
+                    _io.Write(address, data);
                 break;
             case MemoryPla.UNMAPPED:
                 // do nothing, unmapped memory writes are ignored
@@ -144,6 +146,9 @@ internal class MemoryMap
                 value = _ram.Read(address);
                 break;
             case MemoryPla.IO:
+                // the VIC-II answers its own range and drives the data bus itself
+                if(VicII.IsVicAddress(address))
+                    return;
                 value = _io.Read(address);
                 break;
             case MemoryPla.UNMAPPED:
