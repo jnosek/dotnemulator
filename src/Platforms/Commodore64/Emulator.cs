@@ -51,6 +51,7 @@ public class Emulator
     internal MOS6510Cpu Cpu { get; }
     internal MemoryPla Pla { get; }
     internal MemoryMap MemoryMap { get; }
+    internal VicII Vic { get; }
 
     internal IExecutionStrategy ExecutionStrategy { get; set; }
 
@@ -64,6 +65,7 @@ public class Emulator
         Pla = new MemoryPla(PortBus, Game, ExRom);
         MemoryMap = memoryMapFactory?.Invoke(this) ?? 
             new MemoryMap(AddressBus, DataBus, ReadWrite, Pla);
+        Vic = new VicII(AddressBus, DataBus, ReadWrite, Pla);
 
         ExecutionStrategy = new RuntimeExecutionStrategy();
     }
