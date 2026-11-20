@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using Dotnemulator.Platforms.Commodore64;
+using Dotnemulator.Platforms.Commodore64.Diagnostics;
 
 namespace Commodore64.FunctionalTest;
 
@@ -70,11 +71,6 @@ public sealed class OpCodeTest
                 EndAddress = FunctionalTestSymbols.Io.SuccessWait,
                 IsStopOnNopEnabled = false,
                 IsJumpLoopDetectionEnabled = true,
-                MemoryWriteWatchCallbacks = new()
-                {
-                    [FunctionalTestSymbols.Io.OutputPort] = console.Write,
-                    [FunctionalTestSymbols.Io.TestCase] = progress.Write
-                },
                 BreakpointCallbacks = new()
                 {
                     // the error report has been printed; rerr1 would wait for C (continue) or S (skip)
@@ -87,6 +83,11 @@ public sealed class OpCodeTest
                 }
             })
             .Build();
+
+        // the ROM's output and test case number, captured from write cycles only (it also reads both back)
+        using var memoryWatch = new MemoryWatch(emulator)
+            .OnWrite(FunctionalTestSymbols.Io.OutputPort, console.Write)
+            .OnWrite(FunctionalTestSymbols.Io.TestCase, progress.Write);
 
         // act
         try

@@ -71,7 +71,7 @@ public class BootMonitor_Test
         emulator.Start();
         var lines = _log.Count;
 
-        Assert.IsFalse(monitor.BeforeStep(emulator.Cpu));
+        Assert.AreEqual(ObserverAction.Detach, monitor.BeforeStep(emulator.Cpu));
         Assert.HasCount(lines, _log);
         Assert.HasCount(1, _finished);
     }

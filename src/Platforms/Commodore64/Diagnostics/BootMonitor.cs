@@ -99,10 +99,10 @@ internal sealed class BootMonitor : IExecutionObserver
     /// </summary>
     public IReadOnlyList<int> StagesReached => _stagesReached;
 
-    public bool BeforeStep(MOS6510Cpu cpu)
+    public ObserverAction BeforeStep(MOS6510Cpu cpu)
     {
         if(Result != null)
-            return false;
+            return ObserverAction.Detach;
 
         if(_steps == 0)
             _stopwatch.Start();
@@ -129,10 +129,10 @@ internal sealed class BootMonitor : IExecutionObserver
         }
 
         _steps++;
-        return true;
+        return ObserverAction.Continue;
     }
 
-    private bool Finish(BootOutcome outcome, int address)
+    private ObserverAction Finish(BootOutcome outcome, int address)
     {
         _stopwatch.Stop();
         Result = new BootResult(outcome, _steps, _stopwatch.Elapsed, address);
@@ -141,7 +141,7 @@ internal sealed class BootMonitor : IExecutionObserver
             Log(address, $"Boot complete: {_steps:N0} steps in {_stopwatch.Elapsed.TotalMilliseconds:N0} ms");
 
         Finished?.Invoke(Result);
-        return false;
+        return ObserverAction.Detach;
     }
 
     private void Log(int address, string text) => _log($"boot {_steps,11:N0}  ${address:X4}  {text}");
