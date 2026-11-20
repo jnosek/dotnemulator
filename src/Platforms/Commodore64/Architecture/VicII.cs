@@ -21,6 +21,12 @@ using Dotnemulator.Abstraction.Hardware;
 /// Raster interrupts, sprites, bad lines and video output are not modelled.
 /// </para>
 /// <para>
+/// <c>$D019</c> (interrupt latches) is plain storage, which makes CINT detect PAL by accident: its register
+/// table writes <c>$0F</c> there, and bit 0 reads back as 1, which CINT takes to mean the raster reached line 311
+/// (PAL only). On a real VIC-II, writing 1s to <c>$D019</c> clears the latches; bit 0 would be set by the raster
+/// reaching the compare line.
+/// </para>
+/// <para>
 /// There is no clock wire yet, so every bus cycle is counted as one φ2 cycle: on a 6510 each memory access takes
 /// one cycle. PAL timing is 63 cycles per line and 312 lines per frame.
 /// </para>
