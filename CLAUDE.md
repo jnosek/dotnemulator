@@ -27,11 +27,12 @@ src/
     Commodore64/                    # Dotnemulator.Platforms.Commodore64 (exe)
       Architecture/                 # chips & CPU internals: MOS6510Cpu, StatusRegister, MemoryPla, MemoryMap, VicII, ...
         Instruction/                # one class per 6502/6510 instruction (LDA.cs, JSR.cs, ...)
-      Diagnostics/                  # BootMonitor: logs the KERNAL boot stages, then detaches
+      Diagnostics/                  # execution observers (BootMonitor, breakpoints, stops, trace, jump loop, step limit), MemoryWatch bus probe
       Display/                      # TextScreen (screen RAM -> text), ConsoleScreenRenderer (console pseudo-screen)
       Roms/                         # BASIC, KERNAL, CHAR ROMs (embedded resources)
       Emulator.cs, EmulatorBuilder.cs   # composition root + fluent builder
-      IExecutionStrategy.cs, RuntimeExecutionStrategy.cs, DebugExecutionStrategy.cs, IExecutionObserver.cs
+      IExecutionStrategy.cs, RuntimeExecutionStrategy.cs, DebugExecutionStrategy.cs
+      IExecutionObserver.cs, ExecutionObservers.cs  # observer interface + ObserverAction, ordered observer list
     Commodore64.Test/               # MSTest unit tests for C64-specific hardware only; one file per instruction under Instructions/
     Commodore64.FunctionalTest/     # runs the 6502 functional test ROMs end to end (Roms/, FunctionalTestSymbols.g.cs)
 tools/
@@ -115,10 +116,12 @@ To add an instruction: create the class following the pattern above, register it
 - `Emulator` is the composition root. It owns every board-level bus and wire (address, data, port, `ReadWrite`, IRQ/NMI, cartridge `Game`/`ExRom`), and constructs `MOS6510Cpu`, `MemoryPla`, `MemoryMap` and `VicII` (both take the PLA as their `IMemoryBankSelector`), plus an `IExecutionStrategy`.
 - `EmulatorBuilder` is the fluent setup API: `WithRoms()`, `WithImage(byte[])` (full 64 KB image), and internal test helpers `WithTestKernel(byte[])`, `WithRam(...)`, `WithMemoryMap(...)`, `WithExecutionStrategy(...)`, `WithUnitTestMode(startAddress?)`.
 - `IExecutionStrategy` separates *how* the CPU is run from the machine itself:
-  - `RuntimeExecutionStrategy`: reset, then `Step()` forever.
-  - `DebugExecutionStrategy`: start/end address, stop on `NOP` (`$EA`), jump-loop detection (throws `JumpLoopException` with a rolling instruction log), a `MaxSteps` hang guard (throws `StepLimitException`), breakpoint callbacks, and memory-watch callbacks (`MemoryWatchCallbacks` for every cycle, `MemoryWriteWatchCallbacks` for writes only).
-- Both strategies take an optional `IExecutionObserver` (`IExecutionStrategy.Observer`, or `EmulatorBuilder.WithExecutionObserver(...)`), called with the CPU before every step until it returns `false`. The runtime strategy then switches to its plain `Step()` loop, so a detached observer costs nothing.
-- `Diagnostics/BootMonitor` is such an observer. It recognises the rev 3 KERNAL's reset stages by PC (reset, cartridge `CBM80` check, IOINIT, RAMTAS, RESTOR, CINT, raster wait, PAL/NTSC, BASIC cold start, banner, keyboard wait at `$E5CD`) and logs one line for each. Results known only after a stage (top of memory, `$02A6`) are read with `PeekRam`. It finishes, calls `Finished` and detaches on boot complete, cartridge autostart, or a stall (`DEFAULT_STEP_LIMIT`, 2,000,000 steps).
+  - `RuntimeExecutionStrategy`: reset, then `Step()` until an observer stops it, or forever.
+  - `DebugExecutionStrategy`: start address plus debugging aids set up through properties: end address, stop on `NOP` (`$EA`), jump-loop detection (throws `JumpLoopException` with the instruction log), a `MaxSteps` hang guard (throws `StepLimitException`), breakpoint callbacks, and memory-watch callbacks (`MemoryWatchCallbacks` for every cycle, `MemoryWriteWatchCallbacks` for writes only). Each run turns these into the observers below (and a `MemoryWatch`), in a fixed order documented on the class.
+- **Execution observers.** `IExecutionObserver` has `BeforeStep(cpu)` and `AfterStep(cpu, result)` (both default to `Continue`), each returning an `ObserverAction`: `Continue`, `Detach` (never called again) or `Stop` (end the run; from `BeforeStep` the step does not run). Both strategies hold an ordered `Observers` list (`EmulatorBuilder.WithExecutionObserver(...)` adds to it) and call it through `ExecutionObservers`. The first `Stop` wins and later observers are skipped for that step. Once all have detached, the runtime strategy switches to its plain `Step()` loop, so finished observers cost nothing. Observers must not allocate per step.
+- Observers in `Diagnostics/`: `BreakpointObserver` (address → action, optional one-shot, detaches when empty), `StopAtAddressObserver` and `StopOnOpcodeObserver` (both ignore interrupt sequences), `InstructionTraceObserver` (ring buffer of the last 100 steps, `GetLog()` newest first), `JumpLoopObserver` (same instruction at the same address twice in a row; must come before the trace it reads; loops of several instructions are left to the step limit), `StepLimitObserver`.
+- `Diagnostics/MemoryWatch` is a bus probe, not a step observer: it subscribes to `AddressBus` when created (after the emulator is built, so after `MemoryMap`/`VicII`), calls `OnAccess`/`OnWrite` callbacks per address, works with either strategy, and unsubscribes on `Dispose`.
+- `Diagnostics/BootMonitor` is an execution observer. It recognises the rev 3 KERNAL's reset stages by PC (reset, cartridge `CBM80` check, IOINIT, RAMTAS, RESTOR, CINT, raster wait, PAL/NTSC, BASIC cold start, banner, keyboard wait at `$E5CD`) and logs one line for each. Results known only after a stage (top of memory, `$02A6`) are read with `PeekRam`. It finishes, calls `Finished` and detaches on boot complete, cartridge autostart, or a stall (`DEFAULT_STEP_LIMIT`, 2,000,000 steps).
 - Internals are exposed to the test assemblies with `InternalsVisibleTo` in `Program.cs`. Most hardware types are `internal` on purpose.
 
 ## Build & test
@@ -167,12 +170,12 @@ emulator.Start();
 Assert.AreEqual(0x02, emulator.Cpu.A.Value);
 ```
 
-`KernalBoot_Test` boots the real ROMs (`WithRoms()`) to the KERNAL keyboard wait loop (`$E5CD`) and checks the banner and `READY.` through `TextScreen`, plus the order of the boot stages. It sets `MaxSteps` so a hang fails quickly; the boot takes about 600,000 steps.
+`KernalBoot_Test` boots the real ROMs (`WithRoms()`) to the KERNAL keyboard wait loop (`$E5CD`) and checks the banner and `READY.` through `TextScreen`, plus the order of the boot stages through `BootMonitor.StagesReached`. It sets `MaxSteps` so a hang fails quickly; the boot takes about 600,000 steps.
 
 `WithTestKernel` writes the program at `$E000` and points the reset vector there (and the IRQ vector at `$0100`). The functional tests load a full 64 KB 6502 test image and run from `$0400`:
 
 - `Full` runs `6502_functional_test.bin` (`report = 0`, the upstream default) until the success trap. A failure ends in a trap loop, which jump-loop detection turns into a test failure.
-- `FullWithReport` runs `6502_functional_test_io.bin` (`report = 1`). The ROM prints through `report.i65`: each character is written to `$F001` (in the KERNAL area, so it lands in RAM) and captured with `DebugExecutionStrategy.MemoryWriteWatchCallbacks` by `FunctionalTestConsole`, which writes it to the console. `TestCaseProgress` watches writes to `test_case` (`$0200`) and prints a line for each test case that passes; the test also checks that every test case passed. The test ends at the success wait loop (`rsuc1`) or fails at the error wait loop (`rerr1`) with the ROM's dump in the message.
+- `FullWithReport` runs `6502_functional_test_io.bin` (`report = 1`). The ROM prints through `report.i65`: each character is written to `$F001` (in the KERNAL area, so it lands in RAM) and captured with a `MemoryWatch` (`OnWrite`) by `FunctionalTestConsole`, which writes it to the console. `TestCaseProgress` watches writes to `test_case` (`$0200`) and prints a line for each test case that passes; the test also checks that every test case passed. The test ends at the success wait loop (`rsuc1`) or fails at the error wait loop (`rerr1`) with the ROM's dump in the message.
 
 The ROMs, their listings and `FunctionalTestSymbols.g.cs` (the addresses above) are generated by `tools/functional-test-roms/build.sh` (or `build.ps1`) from a pinned upstream commit and committed; don't edit them by hand. The listings are the place to look up a failing test's code.
 

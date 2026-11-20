@@ -1,7 +1,20 @@
 # Plan: move debug features onto execution observers
 
-Status: planned (not started). Builds on `IExecutionObserver` and `BootMonitor`
-from branch `boot-monitor`.
+Status: implemented on branch `execution-observers` (steps 1–5). Step 6
+(`FaultObserver`, `--trace`) is left for later, as planned.
+
+Changes from the plan made during implementation:
+
+- `JumpLoopObserver` does not detect loops of several instructions. Ordinary
+  code loops the same way (the KERNAL's RAM test runs one ~560,000 times), so a
+  hang can't be told apart without comparing machine state. The step limit
+  covers those.
+- `BootMonitor` keeps its own step counter instead of using
+  `StepLimitObserver`: it reports a stall by logging and detaching, where
+  `StepLimitObserver` throws.
+- The debug strategy got about 3× faster (functional tests: 9.2 s → 3.0 s in
+  Release). The old jump-loop check called LINQ `Last()` on a `Queue` every
+  step; the ring-buffer trace makes it constant-time.
 
 Goal: split `DebugExecutionStrategy`, which today runs seven separate features
 from one loop, into small observers that can be attached to either execution
@@ -140,13 +153,13 @@ buffer).
 
 ## Verification
 
-- [ ] `dotnet build Dotnemulator.sln` with no new warnings
-- [ ] `dotnet test src/Abstraction.Test`, `src/Platforms/Commodore64.Test` and
+- [x] `dotnet build Dotnemulator.sln` with no new warnings
+- [x] `dotnet test src/Abstraction.Test`, `src/Platforms/Commodore64.Test` and
       `src/Platforms/Commodore64.FunctionalTest` pass after each step
-- [ ] New unit tests for each observer: breakpoint, stop at address (including
+- [x] New unit tests for each observer: breakpoint, stop at address (including
       the interrupt case), stop on opcode, trace window, jump loop, step limit,
       memory watch (all cycles and writes only)
-- [ ] `dotnet run --project src/Platforms/Commodore64` still prints the boot log
+- [x] `dotnet run --project src/Platforms/Commodore64` still prints the boot log
       and then the screen
-- [ ] `CLAUDE.md` updated: observer list, `ObserverAction`, `Diagnostics/`
+- [x] `CLAUDE.md` updated: observer list, `ObserverAction`, `Diagnostics/`
       contents, `MemoryWatch`

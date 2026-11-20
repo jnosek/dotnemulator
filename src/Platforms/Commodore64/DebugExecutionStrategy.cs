@@ -1,11 +1,31 @@
 using Dotnemulator.Platforms.Commodore64.Architecture;
 using Dotnemulator.Platforms.Commodore64.Architecture.Instruction;
+using Dotnemulator.Platforms.Commodore64.Diagnostics;
 
 namespace Dotnemulator.Platforms.Commodore64;
 
+/// <summary>
+/// Runs the CPU with debugging aids, for tests and tools.
+/// </summary>
+/// <remarks>
+/// <para>
+/// Each aid is an <see cref="IExecutionObserver"/> (or, for memory watches, a <see cref="MemoryWatch"/> probe)
+/// in <c>Diagnostics/</c>. The properties here are a convenient way to set them up: each run creates the
+/// matching observers, in this order, with any extra <see cref="Observers"/> after the step limit:
+/// </para>
+/// <list type="number">
+/// <item><see cref="StepLimitObserver"/> (<see cref="MaxSteps"/>)</item>
+/// <item><see cref="Observers"/></item>
+/// <item><see cref="BreakpointObserver"/> (<see cref="BreakpointCallbacks"/>)</item>
+/// <item><see cref="StopOnOpcodeObserver"/> for <c>NOP</c> (<see cref="IsStopOnNopEnabled"/>)</item>
+/// <item><see cref="JumpLoopObserver"/> (<see cref="IsJumpLoopDetectionEnabled"/>)</item>
+/// <item><see cref="InstructionTraceObserver"/>: the last 100 steps, for the exceptions' instruction logs</item>
+/// <item><see cref="StopAtAddressObserver"/> (<see cref="EndAddress"/>)</item>
+/// </list>
+/// </remarks>
 public class DebugExecutionStrategy : IExecutionStrategy
 {
-    const int INSTRUCTION_LOG_WINDOW_SIZE = 100;
+    const int INSTRUCTION_LOG_WINDOW_SIZE = InstructionTraceObserver.DEFAULT_CAPACITY;
 
     public bool IsStopOnNopEnabled { get; set; } = false;
 
@@ -14,7 +34,7 @@ public class DebugExecutionStrategy : IExecutionStrategy
     public int? StartAddress { get; set; }
 
     /// <summary>
-    /// If execution reaches this address, it will stop. 
+    /// If execution reaches this address, it will stop once the instruction there has run.
     /// </summary>
     /// <remarks>
     /// This can be useful for debugging or testing specific sections of code.
@@ -29,8 +49,6 @@ public class DebugExecutionStrategy : IExecutionStrategy
     /// <c>null</c> (the default) means no limit.
     /// </remarks>
     public long? MaxSteps { get; set; }
-
-    IExecutionObserver? IExecutionStrategy.Observer { get; set; }
 
     public Dictionary<int, Action<MOS6510Cpu>> BreakpointCallbacks { get; init; } = new();
 
@@ -48,90 +66,77 @@ public class DebugExecutionStrategy : IExecutionStrategy
     /// </remarks>
     public Dictionary<int, Action<int>> MemoryWriteWatchCallbacks { get; init; } = new();
 
-    private readonly Queue<InstructionResult> _instructionLog = new(INSTRUCTION_LOG_WINDOW_SIZE);
+    /// <summary>
+    /// Extra observers, called after the step limit and before the breakpoints.
+    /// </summary>
+    internal List<IExecutionObserver> Observers { get; } = new();
+
+    IList<IExecutionObserver> IExecutionStrategy.Observers => Observers;
 
     public void Execute(MOS6510Cpu cpu)
     {
         cpu.Initialize(StartAddress);
 
         // removed when Execute ends, so running again does not stack up memory-watch handlers
-        IDisposable? memoryWatch = null;
+        using var memoryWatch = CreateMemoryWatch(cpu);
 
-        if(MemoryWatchCallbacks.Count > 0 || MemoryWriteWatchCallbacks.Count > 0)
+        var observers = new ExecutionObservers(CreateObservers());
+
+        while(true)
         {
-            // subscribed last, so DataBus holds the value written (write cycle) or the value just read (read cycle)
-            memoryWatch = cpu.AddressBus.Subscribe(() => {
-                var address = cpu.AddressBus.Read();
-                if(MemoryWatchCallbacks.TryGetValue(address, out var callback))
-                {
-                    callback(cpu.DataBus.Read());
-                }
+            if(observers.BeforeStep(cpu))
+                break;
 
-                if(cpu.ReadWrite.IsWrite && MemoryWriteWatchCallbacks.TryGetValue(address, out var writeCallback))
-                {
-                    writeCallback(cpu.DataBus.Read());
-                }
-            });
+            var result = cpu.Step();
+
+            if(observers.AfterStep(cpu, result))
+                break;
         }
+    }
 
-        long steps = 0;
-        var observer = ((IExecutionStrategy)this).Observer;
+    /// <summary>
+    /// The observers for one run. Created fresh each time, so step counts and the trace start empty.
+    /// </summary>
+    private IEnumerable<IExecutionObserver> CreateObservers()
+    {
+        var trace = new InstructionTraceObserver(INSTRUCTION_LOG_WINDOW_SIZE);
 
-        try
-        {
-            while(true)
-            {
-                if(steps++ == MaxSteps)
-                {
-                    throw new StepLimitException($"Step limit of {MaxSteps} reached at address {cpu.PC.Value:X4}")
-                    {
-                        InstructionLog = _instructionLog.Reverse().ToList()
-                    };
-                }
+        if(MaxSteps is long maxSteps)
+            yield return new StepLimitObserver(maxSteps, trace);
 
-                if(observer != null && !observer.BeforeStep(cpu))
-                    observer = null;
+        foreach(var observer in Observers)
+            yield return observer;
 
-                if(BreakpointCallbacks.TryGetValue(cpu.PC.Value, out var callback))
-                {
-                    callback(cpu);
-                }
+        if(BreakpointCallbacks.Count > 0)
+            yield return new BreakpointObserver(BreakpointCallbacks);
 
-                var result = cpu.Step();
+        if(IsStopOnNopEnabled)
+            yield return new StopOnOpcodeObserver(NOP.OP_CODE);
 
-                // if this was a NOP instruction, break out of the loop and stop execution
-                if(IsStopOnNopEnabled && result.Instruction == NOP.OP_CODE)
-                    break;
+        // compares with the trace's latest entry, so it must run before the trace records this step
+        if(IsJumpLoopDetectionEnabled)
+            yield return new JumpLoopObserver(trace);
 
-                // if jump loop detection is enabled, check if the current instruction matches the last instruction in the log
-                if(IsJumpLoopDetectionEnabled && _instructionLog.Count > 0)
-                {
-                    var lastInstruction = _instructionLog.Last();
-                    if(result.Instruction == lastInstruction.Instruction &&
-                       result.Address == lastInstruction.Address)
-                    {
-                        throw new JumpLoopException($"Detected potential jump loop at address {result.Address:X4} with instruction {result.Instruction:X2}")
-                        {
-                            InstructionLog = _instructionLog.Reverse().ToList()
-                        };
-                    }
-                }
+        yield return trace;
 
-                // add the instruction result to the log
-                _instructionLog.Enqueue(result);
+        if(EndAddress is int endAddress)
+            yield return new StopAtAddressObserver(endAddress);
+    }
 
-                // maintain a rolling log of the last instructions
-                if(_instructionLog.Count > INSTRUCTION_LOG_WINDOW_SIZE)
-                    _instructionLog.Dequeue();
+    private MemoryWatch? CreateMemoryWatch(MOS6510Cpu cpu)
+    {
+        if(MemoryWatchCallbacks.Count == 0 && MemoryWriteWatchCallbacks.Count == 0)
+            return null;
 
-                // an interrupt sequence reports the interrupted address, but the instruction there has not run yet
-                if(result.Interrupt == InterruptKind.None && result.Address == EndAddress)
-                    break;
-            }
-        }
-        finally
-        {
-            memoryWatch?.Dispose();
-        }
+        // created last, so it runs after the memory map: the data bus holds the value written or just read
+        var watch = new MemoryWatch(cpu.AddressBus, cpu.DataBus, cpu.ReadWrite);
+
+        foreach(var (address, callback) in MemoryWatchCallbacks)
+            watch.OnAccess(address, callback);
+
+        foreach(var (address, callback) in MemoryWriteWatchCallbacks)
+            watch.OnWrite(address, callback);
+
+        return watch;
     }
 }

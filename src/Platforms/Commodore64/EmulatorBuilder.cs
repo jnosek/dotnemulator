@@ -10,7 +10,7 @@ public sealed class EmulatorBuilder
 
     private IExecutionStrategy? _executionStrategy = null;
 
-    private Func<Emulator, IExecutionObserver>? _observerFactory = null;
+    private readonly List<Func<Emulator, IExecutionObserver>> _observerFactories = new();
 
     public EmulatorBuilder WithRoms()
     {
@@ -61,11 +61,12 @@ public sealed class EmulatorBuilder
     }
 
     /// <summary>
-    /// Attaches an observer, created from the built emulator, to the execution strategy.
+    /// Attaches an observer, created from the built emulator, to the execution strategy. Observers are called in
+    /// the order they are added.
     /// </summary>
     internal EmulatorBuilder WithExecutionObserver(Func<Emulator, IExecutionObserver> factory)
     {
-        _observerFactory = factory;
+        _observerFactories.Add(factory);
         return this;
     }
 
@@ -92,8 +93,8 @@ public sealed class EmulatorBuilder
             configure(emulator.MemoryMap);
         }
 
-        if(_observerFactory != null)
-            emulator.ExecutionStrategy.Observer = _observerFactory(emulator);
+        foreach(var createObserver in _observerFactories)
+            emulator.ExecutionStrategy.Observers.Add(createObserver(emulator));
 
         return emulator;
     }

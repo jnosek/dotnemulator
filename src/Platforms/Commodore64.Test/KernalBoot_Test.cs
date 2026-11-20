@@ -1,3 +1,4 @@
+using Dotnemulator.Platforms.Commodore64.Diagnostics;
 using Dotnemulator.Platforms.Commodore64.Display;
 
 namespace Dotnemulator.Platforms.Commodore64.Test;
@@ -9,29 +10,25 @@ namespace Dotnemulator.Platforms.Commodore64.Test;
 public class KernalBoot_Test
 {
     /// <summary>
-    /// KERNAL keyboard wait loop (<c>LDA $C6</c> ...), where the boot ends up once <c>READY.</c> is printed.
-    /// </summary>
-    private const int KEYBOARD_WAIT = 0xE5CD;
-
-    /// <summary>
     /// About three times the ~600,000 steps a boot takes, so a hang fails quickly instead of blocking the test run.
     /// </summary>
     private const long MAX_STEPS = 2_000_000;
 
-    private static (Emulator emulator, DebugExecutionStrategy strategy) Build()
+    private static (Emulator emulator, BootMonitor monitor) Build()
     {
-        var strategy = new DebugExecutionStrategy
-        {
-            EndAddress = KEYBOARD_WAIT,
-            MaxSteps = MAX_STEPS
-        };
+        BootMonitor? monitor = null;
 
         var emulator = new EmulatorBuilder()
             .WithRoms()
-            .WithExecutionStrategy(strategy)
+            .WithExecutionStrategy(new DebugExecutionStrategy
+            {
+                EndAddress = BootMonitor.KEYBOARD_WAIT,
+                MaxSteps = MAX_STEPS
+            })
+            .WithExecutionObserver(e => monitor = new BootMonitor(e.MemoryMap, _ => { }))
             .Build();
 
-        return (emulator, strategy);
+        return (emulator, monitor!);
     }
 
     [TestMethod]
@@ -52,27 +49,7 @@ public class KernalBoot_Test
     [TestMethod]
     public void BootReachesEachStageInOrder()
     {
-        var (emulator, strategy) = Build();
-
-        var stages = new (int address, string name)[]
-        {
-            (0xFCE2, "RESET"),
-            (0xFDA3, "IOINIT"),
-            (0xFD50, "RAMTAS"),
-            (0xFD15, "RESTOR"),
-            (0xFF5B, "CINT"),
-            (0xE394, "BASIC cold start"),
-        };
-
-        var reached = new List<string>();
-        foreach(var (address, name) in stages)
-        {
-            strategy.BreakpointCallbacks[address] = _ =>
-            {
-                if(!reached.Contains(name))
-                    reached.Add(name);
-            };
-        }
+        var (emulator, monitor) = Build();
 
         try
         {
@@ -80,9 +57,17 @@ public class KernalBoot_Test
         }
         catch(StepLimitException ex)
         {
-            Assert.Fail($"{ex.Message}; stages reached: {string.Join(" -> ", reached)}");
+            Assert.Fail($"{ex.Message}; stages reached: {string.Join(" -> ", monitor.StagesReached.Select(a => $"${a:X4}"))}");
         }
 
-        CollectionAssert.AreEqual(stages.Select(stage => stage.name).ToList(), reached);
+        Assert.AreEqual(BootOutcome.Completed, monitor.Result?.Outcome);
+        CollectionAssert.AreEqual(
+            new[]
+            {
+                BootMonitor.RESET, BootMonitor.NO_CARTRIDGE, BootMonitor.IOINIT, BootMonitor.RAMTAS,
+                BootMonitor.RESTOR, BootMonitor.CINT, BootMonitor.RASTER_WAIT_DONE, BootMonitor.VIDEO_STANDARD_SET,
+                BootMonitor.BASIC_COLD_START, BootMonitor.PRINT_BANNER, BootMonitor.KEYBOARD_WAIT
+            },
+            monitor.StagesReached.ToArray());
     }
 }

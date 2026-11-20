@@ -5,9 +5,10 @@ namespace Dotnemulator.Platforms.Commodore64;
 internal interface IExecutionStrategy
 {
     /// <summary>
-    /// Optional observer called before each step until it detaches (see <see cref="IExecutionObserver"/>).
+    /// Observers called before and after every step, in this order, until they detach
+    /// (see <see cref="IExecutionObserver"/>).
     /// </summary>
-    IExecutionObserver? Observer { get; set; }
+    IList<IExecutionObserver> Observers { get; }
 
     void Execute(MOS6510Cpu cpu);
 }
