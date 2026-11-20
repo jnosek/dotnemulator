@@ -30,6 +30,8 @@ public class DebugExecutionStrategy : IExecutionStrategy
     /// </remarks>
     public long? MaxSteps { get; set; }
 
+    IExecutionObserver? IExecutionStrategy.Observer { get; set; }
+
     public Dictionary<int, Action<MOS6510Cpu>> BreakpointCallbacks { get; init; } = new();
 
     /// <summary>
@@ -73,6 +75,7 @@ public class DebugExecutionStrategy : IExecutionStrategy
         }
 
         long steps = 0;
+        var observer = ((IExecutionStrategy)this).Observer;
 
         try
         {
@@ -85,6 +88,9 @@ public class DebugExecutionStrategy : IExecutionStrategy
                         InstructionLog = _instructionLog.Reverse().ToList()
                     };
                 }
+
+                if(observer != null && !observer.BeforeStep(cpu))
+                    observer = null;
 
                 if(BreakpointCallbacks.TryGetValue(cpu.PC.Value, out var callback))
                 {

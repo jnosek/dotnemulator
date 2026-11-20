@@ -7,13 +7,19 @@ using System.Text;
 /// </summary>
 /// <remarks>
 /// <para>
-/// Each refresh moves the cursor to the top-left corner and overwrites the previous frame, so the console shows a
-/// live 40x25 screen. The frame is built in one buffer and written with one call to avoid flicker. Reverse-video
+/// After each frame the cursor is left on the line below it. Each refresh moves the cursor up by the frame's height
+/// (ANSI <c>ESC[nA</c>) and overwrites the previous frame, so the console shows a live 40x25 screen. Relative
+/// movement keeps working after the console has scrolled, and needs no cursor-position query to the terminal. The frame is built in one buffer and written with one call to avoid flicker. Reverse-video
 /// characters are drawn with the ANSI reverse attribute.
 /// </para>
 /// <para>
 /// The timer runs on a thread-pool thread while the CPU runs on the caller's thread. The renderer only reads RAM,
 /// so the worst case is a frame torn by a scroll in progress, which the next refresh corrects.
+/// </para>
+/// <para>
+/// With <see cref="ClearOnStart"/> off, the console is not cleared: the first frame is written below whatever is
+/// already there (for example the boot log), scrolling if needed, and later frames overwrite it in place. Nothing
+/// else may write to the console while the renderer runs, and the window must be at least as tall as the frame.
 /// </para>
 /// <para>
 /// When output is redirected the cursor cannot be moved, so nothing is drawn while running and one frame is
@@ -25,6 +31,11 @@ internal sealed class ConsoleScreenRenderer : IDisposable
     private const string REVERSE_ON = "\u001b[7m";
     private const string REVERSE_OFF = "\u001b[27m";
 
+    /// <summary>
+    /// Lines in one frame: top border, 25 rows, bottom border and the status line.
+    /// </summary>
+    private const int FRAME_LINES = TextScreen.ROWS + 3;
+
     private readonly TextScreen _screen;
     private readonly Func<string> _status;
     private readonly TimeSpan _interval;
@@ -33,6 +44,7 @@ internal sealed class ConsoleScreenRenderer : IDisposable
     private readonly bool _canMoveCursor;
 
     private Timer? _timer;
+    private bool _started;
     private long _frameCount;
     private bool _disposed;
 
@@ -47,6 +59,12 @@ internal sealed class ConsoleScreenRenderer : IDisposable
         _canMoveCursor = !Console.IsOutputRedirected;
     }
 
+    /// <summary>
+    /// <c>true</c> (the default) clears the console when <see cref="Start"/> is called and draws at the top;
+    /// <c>false</c> draws below the existing output.
+    /// </summary>
+    public bool ClearOnStart { get; init; } = true;
+
     public void Start()
     {
         Console.OutputEncoding = Encoding.UTF8;
@@ -54,9 +72,23 @@ internal sealed class ConsoleScreenRenderer : IDisposable
         if(!_canMoveCursor)
             return;
 
-        Console.Clear();
-        Console.CursorVisible = false;
-        _timer = new Timer(_ => Draw(), null, TimeSpan.Zero, _interval);
+        lock(_drawLock)
+        {
+            if(_disposed || _started)
+                return;
+
+            Console.CursorVisible = false;
+
+            if(ClearOnStart)
+                Console.Clear();
+
+            // written in sequence, so the console scrolls to make room; later frames move up over it
+            BuildFrame();
+            Console.Write(_frame);
+
+            _started = true;
+            _timer = new Timer(_ => Draw(), null, _interval, _interval);
+        }
     }
 
     /// <summary>
@@ -66,15 +98,10 @@ internal sealed class ConsoleScreenRenderer : IDisposable
     {
         lock(_drawLock)
         {
-            if(_disposed)
+            if(_disposed || !_started)
                 return;
 
-            BuildFrame();
-
-            if(_canMoveCursor)
-                Console.SetCursorPosition(0, 0);
-
-            Console.Write(_frame);
+            Redraw();
         }
     }
 
@@ -88,20 +115,29 @@ internal sealed class ConsoleScreenRenderer : IDisposable
             _timer?.Dispose();
 
             // final frame, so the console is left showing the last state of the screen
-            BuildFrame();
-            if(_canMoveCursor)
+            if(_started)
             {
-                Console.SetCursorPosition(0, 0);
-                Console.Write(_frame);
+                Redraw();
                 Console.CursorVisible = true;
             }
-            else
+            else if(!_canMoveCursor)
             {
+                BuildFrame();
                 Console.Write(_frame);
             }
 
             _disposed = true;
         }
+    }
+
+    /// <summary>
+    /// Overwrites the previous frame. The cursor is on the line below it, and is left there again.
+    /// </summary>
+    private void Redraw()
+    {
+        BuildFrame();
+        Console.Write($"\u001b[{FRAME_LINES}A\r");
+        Console.Write(_frame);
     }
 
     private void BuildFrame()

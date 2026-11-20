@@ -10,6 +10,8 @@ public sealed class EmulatorBuilder
 
     private IExecutionStrategy? _executionStrategy = null;
 
+    private Func<Emulator, IExecutionObserver>? _observerFactory = null;
+
     public EmulatorBuilder WithRoms()
     {
         _memoryMapConfigurations.Add((map) => {
@@ -58,6 +60,15 @@ public sealed class EmulatorBuilder
         return this;
     }
 
+    /// <summary>
+    /// Attaches an observer, created from the built emulator, to the execution strategy.
+    /// </summary>
+    internal EmulatorBuilder WithExecutionObserver(Func<Emulator, IExecutionObserver> factory)
+    {
+        _observerFactory = factory;
+        return this;
+    }
+
     internal EmulatorBuilder WithUnitTestMode(int? startAddress = null)
     {
         _executionStrategy = new DebugExecutionStrategy
@@ -80,6 +91,9 @@ public sealed class EmulatorBuilder
         {
             configure(emulator.MemoryMap);
         }
+
+        if(_observerFactory != null)
+            emulator.ExecutionStrategy.Observer = _observerFactory(emulator);
 
         return emulator;
     }

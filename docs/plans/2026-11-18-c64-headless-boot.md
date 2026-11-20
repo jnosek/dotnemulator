@@ -58,8 +58,15 @@ cycle (each memory access on a 6510 takes one cycle). PAL timing: 63 cycles per
 line and 312 lines, so the counter wraps from 311 to 0. When a clock/φ2 wire is
 added, the VIC-II switches to it.
 
-**Out of scope:** raster IRQs and the `$D019` latch, so CINT detects NTSC
-(`$02A6 = 0`). Also sprites, video output, and bad-line/BA cycle stealing.
+**Out of scope:** raster IRQs and the `$D019` latch. Also sprites, video
+output, and bad-line/BA cycle stealing.
+
+**PAL/NTSC (corrected after implementation).** An earlier version of this plan
+said CINT would detect NTSC. It detects PAL (`$02A6 = 1`), for the wrong reason.
+CINT's register table writes `$0F` to `$D019`. On a real VIC-II, writing 1s
+there clears the interrupt latches, but the stub just stores the value, so bit 0
+reads back as 1. CINT takes that as "the raster reached line 311", which only
+happens on PAL. An NTSC machine can't be modelled until the `$D019` latch is.
 
 **Tests** (`VicII_Test.cs`):
 
