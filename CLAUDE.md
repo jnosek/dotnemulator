@@ -27,10 +27,11 @@ src/
     Commodore64/                    # Dotnemulator.Platforms.Commodore64 (exe)
       Architecture/                 # chips & CPU internals: MOS6510Cpu, StatusRegister, MemoryPla, MemoryMap, VicII, ...
         Instruction/                # one class per 6502/6510 instruction (LDA.cs, JSR.cs, ...)
+      Diagnostics/                  # BootMonitor: logs the KERNAL boot stages, then detaches
       Display/                      # TextScreen (screen RAM -> text), ConsoleScreenRenderer (console pseudo-screen)
       Roms/                         # BASIC, KERNAL, CHAR ROMs (embedded resources)
       Emulator.cs, EmulatorBuilder.cs   # composition root + fluent builder
-      IExecutionStrategy.cs, RuntimeExecutionStrategy.cs, DebugExecutionStrategy.cs
+      IExecutionStrategy.cs, RuntimeExecutionStrategy.cs, DebugExecutionStrategy.cs, IExecutionObserver.cs
     Commodore64.Test/               # MSTest unit tests for C64-specific hardware only; one file per instruction under Instructions/
     Commodore64.FunctionalTest/     # runs the 6502 functional test ROMs end to end (Roms/, FunctionalTestSymbols.g.cs)
 tools/
@@ -116,6 +117,8 @@ To add an instruction: create the class following the pattern above, register it
 - `IExecutionStrategy` separates *how* the CPU is run from the machine itself:
   - `RuntimeExecutionStrategy`: reset, then `Step()` forever.
   - `DebugExecutionStrategy`: start/end address, stop on `NOP` (`$EA`), jump-loop detection (throws `JumpLoopException` with a rolling instruction log), a `MaxSteps` hang guard (throws `StepLimitException`), breakpoint callbacks, and memory-watch callbacks (`MemoryWatchCallbacks` for every cycle, `MemoryWriteWatchCallbacks` for writes only).
+- Both strategies take an optional `IExecutionObserver` (`IExecutionStrategy.Observer`, or `EmulatorBuilder.WithExecutionObserver(...)`), called with the CPU before every step until it returns `false`. The runtime strategy then switches to its plain `Step()` loop, so a detached observer costs nothing.
+- `Diagnostics/BootMonitor` is such an observer. It recognises the rev 3 KERNAL's reset stages by PC (reset, cartridge `CBM80` check, IOINIT, RAMTAS, RESTOR, CINT, raster wait, PAL/NTSC, BASIC cold start, banner, keyboard wait at `$E5CD`) and logs one line for each. Results known only after a stage (top of memory, `$02A6`) are read with `PeekRam`. It finishes, calls `Finished` and detaches on boot complete, cartridge autostart, or a stall (`DEFAULT_STEP_LIMIT`, 2,000,000 steps).
 - Internals are exposed to the test assemblies with `InternalsVisibleTo` in `Program.cs`. Most hardware types are `internal` on purpose.
 
 ## Build & test
@@ -148,7 +151,7 @@ dotnet test --project src/Platforms/Commodore64.FunctionalTest --output detailed
 dotnet run --project src/Platforms/Commodore64
 ```
 
-With no video front end yet, `Program` boots the real ROMs and `ConsoleScreenRenderer` draws the 40×25 text screen (decoded from screen RAM at `$0400` by `TextScreen`) in the console, redrawn in place every 100 ms, with the PC on a status line. Ctrl+C draws a last frame and restores the cursor. With redirected output it prints one frame at exit.
+With no video front end yet, `Program` boots the real ROMs with a `BootMonitor` writing the boot stages to the console. When the boot ends, `ConsoleScreenRenderer` draws the 40×25 text screen (decoded from screen RAM at `$0400` by `TextScreen`) below the log, redrawn in place every 100 ms (by moving the cursor up over the previous frame), with the PC on a status line. Ctrl+C draws a last frame and restores the cursor. With redirected output it prints one frame at exit.
 
 ### Test conventions
 
